@@ -1,3 +1,5 @@
+import { pricingPlans } from "@/data/content";
+
 const ATHENS_TZ = "Europe/Athens";
 const PROMO_START_DAY = 17;
 
@@ -141,6 +143,14 @@ export function splitCountdown(ms: number) {
 
 type PricingPlan = (typeof import("@/data/content").pricingPlans)[number];
 
+function parseEuro(value: string) {
+  return Number(value.replace(/[^\d]/g, ""));
+}
+
+function formatEuro(amount: number) {
+  return `€${amount}`;
+}
+
 export function getPlanDisplay(plan: PricingPlan, promoActive: boolean) {
   if (promoActive) {
     return {
@@ -155,4 +165,19 @@ export function getPlanDisplay(plan: PricingPlan, promoActive: boolean) {
     originalPrice: null,
     showSale: false,
   };
+}
+
+export function getPlanSavings(plan: PricingPlan, promoActive: boolean) {
+  if (plan.months <= 1) return null;
+
+  const monthlyPlan = pricingPlans[0];
+  const monthlyRate = parseEuro(
+    promoActive ? monthlyPlan.price : monthlyPlan.originalPrice,
+  );
+  const packageRate = parseEuro(getPlanDisplay(plan, promoActive).price);
+  const savings = monthlyRate * plan.months - packageRate;
+
+  if (savings <= 0) return null;
+
+  return formatEuro(savings);
 }

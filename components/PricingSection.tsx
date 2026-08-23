@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { Check, ShieldCheck, Sparkles, TrendingDown, Zap } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { PromoCountdown } from "@/components/PromoCountdown";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { pricingPlans } from "@/data/content";
 import { telegramUrl } from "@/lib/contact";
-import { getPlanDisplay, isPromoActive } from "@/lib/pricing-promo";
+import { getPlanDisplay, getPlanSavings, isPromoActive } from "@/lib/pricing-promo";
 import { cn } from "@/lib/cn";
 
 type PricingSectionProps = {
@@ -42,6 +42,7 @@ export function PricingSection({ showHeading = true }: PricingSectionProps) {
         <div className="mx-auto grid max-w-6xl gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {pricingPlans.map((plan, i) => {
             const display = getPlanDisplay(plan, promoActive);
+            const savings = getPlanSavings(plan, promoActive);
 
             return (
               <Reveal key={plan.id} delay={i * 0.08} className="h-full">
@@ -73,11 +74,19 @@ export function PricingSection({ showHeading = true }: PricingSectionProps) {
                         {display.originalPrice}
                       </p>
                     ) : null}
-                    <div className="flex items-end gap-1">
-                      <span className="font-display text-4xl font-bold text-white sm:text-5xl">
-                        {display.price}
-                      </span>
-                      <span className="pb-2 text-sm text-text-dim">{plan.period}</span>
+                    <div className="flex flex-wrap items-end gap-2">
+                      <div className="flex items-end gap-1">
+                        <span className="font-display text-4xl font-bold text-white sm:text-5xl">
+                          {display.price}
+                        </span>
+                        <span className="pb-2 text-sm text-text-dim">{plan.period}</span>
+                      </div>
+                      {savings ? (
+                        <span className="mb-1 inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-emerald-400">
+                          <TrendingDown className="h-3.5 w-3.5" />
+                          Κερδίζεις {savings}
+                        </span>
+                      ) : null}
                     </div>
                   </div>
 

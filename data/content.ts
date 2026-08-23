@@ -2,6 +2,7 @@ export const pricingPlans = [
   {
     id: "1-month",
     title: "1 Μήνας",
+    months: 1,
     price: "€15",
     originalPrice: "€20",
     period: "/ μήνα",
@@ -17,6 +18,7 @@ export const pricingPlans = [
   {
     id: "3-months",
     title: "3 Μήνες",
+    months: 3,
     price: "€35",
     originalPrice: "€47",
     period: "/ 3 μήνες",
@@ -33,6 +35,7 @@ export const pricingPlans = [
   {
     id: "6-months",
     title: "6 Μήνες",
+    months: 6,
     price: "€46",
     originalPrice: "€56",
     period: "/ 6 μήνες",
@@ -48,6 +51,7 @@ export const pricingPlans = [
   {
     id: "12-months",
     title: "12 Μήνες",
+    months: 12,
     price: "€72",
     originalPrice: "€89",
     period: "/ έτος",
