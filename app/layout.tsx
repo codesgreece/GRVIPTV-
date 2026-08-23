@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { LiveChat } from "@/components/LiveChat";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { StickyTelegramBar } from "@/components/StickyTelegramBar";
 import "./globals.css";
 
 /** Same display family as lionott.co (headings) */
@@ -81,6 +82,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
+        <StickyTelegramBar />
         <LiveChat />
         <ScrollToTop />
       </body>
