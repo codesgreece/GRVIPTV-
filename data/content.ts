@@ -174,7 +174,10 @@ export const spinWheelPrizes = [
     title: "10% έκπτωση",
     description: "Σε οποιαδήποτε συνδρομή επιλέξετε.",
     color: "#D4A72C",
+    colorDark: "#9A7318",
+    colorLight: "#FFD978",
     telegramNote: "Κέρδισα 10% έκπτωση στον τροχό δώρων",
+    weight: 49,
   },
   {
     id: "discount-15-6m",
@@ -183,7 +186,10 @@ export const spinWheelPrizes = [
     title: "15% έκπτωση",
     description: "Ειδικά για 6μηνη συνδρομή.",
     color: "#2AABEE",
+    colorDark: "#1565A8",
+    colorLight: "#7DD3FC",
     telegramNote: "Κέρδισα 15% έκπτωση σε 6μηνη συνδρομή",
+    weight: 1,
   },
   {
     id: "free-month",
@@ -192,7 +198,10 @@ export const spinWheelPrizes = [
     title: "1 μήνας δώρο",
     description: "Επιπλέον μήνας σύνδρομης δωρεάν.",
     color: "#34D399",
+    colorDark: "#059669",
+    colorLight: "#86EFAC",
     telegramNote: "Κέρδισα 1 μήνα δώρο στον τροχό",
+    weight: 1,
   },
   {
     id: "daily-pass",
@@ -201,7 +210,10 @@ export const spinWheelPrizes = [
     title: "Ημερήσιο δώρο",
     description: "Δες την αγαπημένη σου ομάδα free για 1 μέρα.",
     color: "#A78BFA",
+    colorDark: "#6D28D9",
+    colorLight: "#DDD6FE",
     telegramNote: "Κέρδισα 1 ημερήσιο δώρο για αγώνα",
+    weight: 1,
   },
   {
     id: "year-lottery",
@@ -210,7 +222,10 @@ export const spinWheelPrizes = [
     title: "Κλήρωση 1 έτους",
     description: "Συμμετοχή σε κλήρωση για 1 από 10 συνδρομές 1 έτους.",
     color: "#F472B6",
+    colorDark: "#BE185D",
+    colorLight: "#FBCFE8",
     telegramNote: "Κέρδισα συμμετοχή σε κλήρωση 1 έτους συνδρομής",
+    weight: 48,
   },
 ] as const;
 
