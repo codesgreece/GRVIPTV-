@@ -19,7 +19,7 @@ export function PricingSection({ showHeading = true }: PricingSectionProps) {
         {showHeading ? (
           <SectionHeading
             eyebrow="Επιλέξτε το πακέτο σας"
-            title="Απλές Και Δίκαιες Τιμές"
+            title="Τιμές για να απολαμβάνουν όλοι"
           />
         ) : null}
 
