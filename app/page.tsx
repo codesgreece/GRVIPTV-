@@ -7,6 +7,7 @@ import { Hero } from "@/components/Hero";
 import { LogosCarousel } from "@/components/LogosCarousel";
 import { BecomeResellerSection } from "@/components/BecomeResellerSection";
 import { GuaranteeStrip } from "@/components/GuaranteeStrip";
+import { OrderLineSection } from "@/components/OrderLineSection";
 import { PricingSection } from "@/components/PricingSection";
 import { ReferralSection } from "@/components/ReferralSection";
 import { ResellersSection } from "@/components/ResellersSection";
@@ -25,6 +26,7 @@ export default function HomePage() {
       <WhoIsItForSection />
       <ReviewsSection />
       <PricingSection />
+      <OrderLineSection />
       <ResellersSection />
       <BecomeResellerSection />
       <ReferralSection />

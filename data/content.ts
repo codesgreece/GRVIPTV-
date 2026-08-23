@@ -68,26 +68,66 @@ export const pricingPlans = [
 
 export const paysafeCardLinks = [
   {
+    amount: 5,
     label: "5 ΕΥΡΩ",
     href: "https://www.eneba.com/paysafecard-paysafecard-classic-5-eur-voucher-greece",
   },
   {
+    amount: 10,
     label: "10 ΕΥΡΩ",
     href: "https://www.eneba.com/paysafecard-paysafecard-classic-10-eur-voucher-greece",
   },
   {
+    amount: 25,
     label: "25 ΕΥΡΩ",
     href: "https://www.eneba.com/paysafecard-paysafecard-classic-25-eur-voucher-greece",
   },
   {
+    amount: 50,
     label: "50 ΕΥΡΩ",
     href: "https://www.eneba.com/paysafecard-paysafecard-classic-50-eur-voucher-greece",
   },
   {
+    amount: 100,
     label: "100 ΕΥΡΩ",
     href: "https://www.eneba.com/paysafecard-paysafecard-classic-100-eur-voucher-greece",
   },
 ] as const;
+
+export const orderLineContent = {
+  eyebrow: "Άμεση Παραγγελία",
+  title: "Πώς παραγγέλνεις αμέσως τη γραμμή σου",
+  description:
+    "4 απλά βήματα — από την επιλογή πακέτου μέχρι τα στοιχεία σύνδεσης στο Telegram.",
+  steps: [
+    {
+      title: "Διάλεξε το πακέτο σου",
+      description: "Επίλεξε 1, 3, 6 ή 12 μήνες από την ενότητα τιμών.",
+    },
+    {
+      title: "Πάρε την αντίστοιχη PaysafeCard",
+      description:
+        "Αγόρασε την κάρτα που καλύπτει το ποσό του πακέτου σου από τα επίσημα links Eneba.",
+    },
+    {
+      title: "Στείλε μας τον κωδικό στο Telegram",
+      description:
+        "Στείλε μήνυμα με τον 16ψήφιο αριθμό της κάρτας και το πακέτο που θέλεις.",
+    },
+    {
+      title: "Λαμβάνεις τα στοιχεία σύνδεσης",
+      description: "Εντός 1 ώρας σου στέλνουμε username, password και οδηγίες εγκατάστασης.",
+    },
+  ],
+  packageCardMap: [
+    { planTitle: "1 Μήνας", cardAmount: 25 as const },
+    { planTitle: "3 Μήνες", cardAmount: 50 as const },
+    { planTitle: "6 Μήνες", cardAmount: 50 as const, note: "€100 σε κανονικές τιμές" },
+    { planTitle: "12 Μήνες", cardAmount: 100 as const },
+  ],
+  disclaimer:
+    "Σε ώρες μεσάνυχτα, ώρες αιχμής ή κατά τη διάρκεια μεγάλων αθλητικών διοργανώσεων ενδέχεται καθυστέρηση στην ενεργοποίηση. Φρόντισε να ολοκληρώσεις την αγορά σου μερικές ώρες νωρίτερα.",
+} as const;
 
 export const becomeResellerContent = {
   eyebrow: "Συνεργασία",

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/PageHero";
 import { BecomeResellerSection } from "@/components/BecomeResellerSection";
 import { GuaranteeStrip } from "@/components/GuaranteeStrip";
+import { OrderLineSection } from "@/components/OrderLineSection";
 import { PricingSection } from "@/components/PricingSection";
 import { ReferralSection } from "@/components/ReferralSection";
 import { ResellersSection } from "@/components/ResellersSection";
@@ -21,6 +22,7 @@ export default function PaketaPage() {
         description="Απλή τιμολόγηση, άμεση ενεργοποίηση και πλήρης πρόσβαση σε κανάλια, ταινίες και σειρές."
       />
       <PricingSection showHeading={false} />
+      <OrderLineSection />
       <ResellersSection />
       <BecomeResellerSection />
       <ReferralSection />

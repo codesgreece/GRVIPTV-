@@ -1,4 +1,5 @@
 import { ArrowUpRight, CreditCard, Wallet } from "lucide-react";
+import { PaysafeCardVisual } from "@/components/PaysafeCardVisual";
 import { paysafeCardLinks } from "@/data/content";
 import { cn } from "@/lib/cn";
 
@@ -22,10 +23,6 @@ const paymentMethods = [
     dot: "bg-gold-bright",
   },
 ] as const;
-
-function paysafeAmount(label: string) {
-  return label.replace(/\s*ΕΥΡΩ/i, "").trim();
-}
 
 export function FooterPaymentMethods() {
   return (
@@ -67,7 +64,7 @@ export function FooterPaymentMethods() {
         </div>
 
         <div className="mt-5 rounded-xl border border-white/8 bg-black/35 p-4 sm:p-5">
-          <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="mb-4 flex items-center justify-between gap-3">
             <p className="text-xs font-bold tracking-[0.14em] text-sky-300 uppercase">
               Paysafe · Eneba
             </p>
@@ -76,31 +73,22 @@ export function FooterPaymentMethods() {
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-5">
-            {paysafeCardLinks.map((link) => {
-              const amount = paysafeAmount(link.label);
-
-              return (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-b from-[#141414] to-[#0B0B0B] p-3 transition duration-300 hover:-translate-y-0.5 hover:border-sky-400/45 hover:shadow-[0_10px_28px_rgba(14,165,233,0.18)]"
-                >
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-sky-500/0 to-sky-500/0 transition duration-300 group-hover:from-sky-500/10 group-hover:to-transparent" />
-                  <div className="relative">
-                    <p className="font-display text-2xl font-black leading-none text-white">
-                      €{amount}
-                    </p>
-                    <p className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-text-dim transition group-hover:text-sky-300">
-                      Αγορά
-                      <ArrowUpRight className="h-3 w-3 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                    </p>
-                  </div>
-                </a>
-              );
-            })}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+            {paysafeCardLinks.map((link) => (
+              <a
+                key={link.amount}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative rounded-xl border border-white/8 bg-[#0B0B0B] p-2.5 transition duration-300 hover:-translate-y-0.5 hover:border-sky-400/45 hover:shadow-[0_12px_28px_rgba(14,165,233,0.2)]"
+              >
+                <PaysafeCardVisual amount={link.amount} className="mx-auto max-w-[96px]" />
+                <p className="mt-2 flex items-center justify-center gap-1 text-[11px] font-semibold text-text-dim transition group-hover:text-sky-300">
+                  Αγορά
+                  <ArrowUpRight className="h-3 w-3" />
+                </p>
+              </a>
+            ))}
           </div>
         </div>
       </div>
