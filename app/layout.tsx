@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { LiveChat } from "@/components/LiveChat";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { SpinWheelPopup } from "@/components/SpinWheelPopup";
 import { StickyTelegramBar } from "@/components/StickyTelegramBar";
 import "./globals.css";
 
@@ -83,6 +84,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <main className="flex-1">{children}</main>
         <Footer />
         <StickyTelegramBar />
+        <SpinWheelPopup />
         <LiveChat />
         <ScrollToTop />
       </body>

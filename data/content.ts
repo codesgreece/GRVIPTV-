@@ -166,6 +166,54 @@ export const audiencePersonas = [
   },
 ] as const;
 
+export const spinWheelPrizes = [
+  {
+    id: "discount-10",
+    label: "10% Έκπτωση",
+    shortLabel: "10%",
+    title: "10% έκπτωση",
+    description: "Σε οποιαδήποτε συνδρομή επιλέξετε.",
+    color: "#D4A72C",
+    telegramNote: "Κέρδισα 10% έκπτωση στον τροχό δώρων",
+  },
+  {
+    id: "discount-15-6m",
+    label: "15% / 6μηνο",
+    shortLabel: "15%",
+    title: "15% έκπτωση",
+    description: "Ειδικά για 6μηνη συνδρομή.",
+    color: "#2AABEE",
+    telegramNote: "Κέρδισα 15% έκπτωση σε 6μηνη συνδρομή",
+  },
+  {
+    id: "free-month",
+    label: "1 Μήνας Δώρο",
+    shortLabel: "1 Μήνας",
+    title: "1 μήνας δώρο",
+    description: "Επιπλέον μήνας σύνδρομης δωρεάν.",
+    color: "#34D399",
+    telegramNote: "Κέρδισα 1 μήνα δώρο στον τροχό",
+  },
+  {
+    id: "daily-pass",
+    label: "1 Ημέρα Δωρεάν",
+    shortLabel: "1 Ημέρα",
+    title: "Ημερήσιο δώρο",
+    description: "Δες την αγαπημένη σου ομάδα free για 1 μέρα.",
+    color: "#A78BFA",
+    telegramNote: "Κέρδισα 1 ημερήσιο δώρο για αγώνα",
+  },
+  {
+    id: "year-lottery",
+    label: "Κλήρωση 1 Έτος",
+    shortLabel: "Κλήρωση",
+    title: "Κλήρωση 1 έτους",
+    description: "Συμμετοχή σε κλήρωση για 1 από 10 συνδρομές 1 έτους.",
+    color: "#F472B6",
+    telegramNote: "Κέρδισα συμμετοχή σε κλήρωση 1 έτους συνδρομής",
+  },
+] as const;
+
 export const resellersAdmin = {
   name: "GREEK VIPTV ADMIN",
   role: "Head Admin Founder",
