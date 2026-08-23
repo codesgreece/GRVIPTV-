@@ -79,6 +79,10 @@ export const paysafeCardLinks = [
     label: "25 ΕΥΡΩ",
     href: "https://www.eneba.com/paysafecard-paysafecard-classic-25-eur-voucher-greece",
   },
+  {
+    label: "50 ΕΥΡΩ",
+    href: "https://www.eneba.com/paysafecard-paysafecard-classic-50-eur-voucher-greece",
+  },
 ] as const;
 
 export const becomeResellerContent = {
