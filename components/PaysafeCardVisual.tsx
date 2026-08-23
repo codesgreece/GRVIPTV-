@@ -1,6 +1,3 @@
-"use client";
-
-import { useId } from "react";
 import { cn } from "@/lib/cn";
 
 type PaysafeCardVisualProps = {
@@ -9,85 +6,32 @@ type PaysafeCardVisualProps = {
 };
 
 export function PaysafeCardVisual({ amount, className }: PaysafeCardVisualProps) {
-  const uid = useId().replace(/:/g, "");
-
   return (
-    <svg
-      viewBox="0 0 100 136"
-      xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-label={`PaysafeCard ${amount} EUR`}
+    <div
       className={cn(
-        "aspect-[100/136] h-auto w-full overflow-visible drop-shadow-[0_8px_18px_rgba(0,120,200,0.32)]",
+        "relative aspect-[5/7] w-full min-w-[96px] overflow-hidden rounded-[10px] bg-gradient-to-br from-[#00A3E8] via-[#0082C9] to-[#006AA8] shadow-[0_8px_20px_rgba(0,120,200,0.35)]",
         className,
       )}
-      preserveAspectRatio="xMidYMid meet"
+      aria-label={`PaysafeCard ${amount} EUR`}
     >
-      <defs>
-        <linearGradient id={`${uid}-blue`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#00A3E8" />
-          <stop offset="55%" stopColor="#0082C9" />
-          <stop offset="100%" stopColor="#006AA8" />
-        </linearGradient>
-        <linearGradient id={`${uid}-shine`} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.22" />
-          <stop offset="45%" stopColor="#ffffff" stopOpacity="0.04" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-        </linearGradient>
-      </defs>
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/20 via-white/5 to-transparent" />
 
-      <rect x="0" y="0" width="100" height="136" rx="10" fill={`url(#${uid}-blue)`} />
-      <rect x="0" y="0" width="100" height="136" rx="10" fill={`url(#${uid}-shine)`} />
+      <div className="absolute top-0 left-1/2 h-[12px] w-[32%] -translate-x-1/2 rounded-b-md bg-white" />
 
-      <rect x="34" y="0" width="32" height="18" rx="5" fill="#ffffff" />
-      <rect x="41" y="3" width="18" height="8" rx="4" fill={`url(#${uid}-blue)`} />
-
-      <text
-        x="92"
-        y="34"
-        textAnchor="end"
-        fill="#ffffff"
-        fontFamily="Arial, Helvetica, sans-serif"
-        fontSize={amount === 100 ? "13" : "15"}
-        fontWeight="700"
-      >
+      <p className="absolute top-[10px] right-[8px] font-display text-[13px] font-black leading-none text-white">
         €{amount}
-      </text>
+      </p>
 
-      <g transform="translate(50 68)">
-        <polygon points="-14,-8 -8,-2 -14,4 -20,-2" fill="#ffffff" />
-        <polygon points="-2,-8 4,-2 -2,4 -8,-2" fill="#ffffff" />
-        <text
-          y="-2"
-          textAnchor="middle"
-          fill="#ffffff"
-          fontFamily="Arial, Helvetica, sans-serif"
-          fontSize="9.5"
-          fontWeight="700"
-        >
+      <div className="absolute inset-x-0 top-[42%] px-2 text-center">
+        <p className="text-[9px] font-bold uppercase leading-tight tracking-[0.06em] text-white">
           Paysafe
-        </text>
-        <text
-          y="11"
-          textAnchor="middle"
-          fill="#ffffff"
-          fontFamily="Arial, Helvetica, sans-serif"
-          fontSize="9.5"
-          fontWeight="700"
-        >
+        </p>
+        <p className="mt-0.5 text-[9px] font-bold uppercase leading-tight tracking-[0.06em] text-white/95">
           Card
-        </text>
-      </g>
+        </p>
+      </div>
 
-      <rect
-        x="8"
-        y="88"
-        width="84"
-        height="40"
-        rx="6"
-        fill="#ffffff"
-        fillOpacity="0.08"
-      />
-    </svg>
+      <div className="absolute inset-x-[8px] bottom-[8px] h-[26%] rounded-md border border-white/10 bg-white/8" />
+    </div>
   );
 }

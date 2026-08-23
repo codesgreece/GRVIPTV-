@@ -101,7 +101,7 @@ export function OrderLineSection() {
                       <ArrowRight className="h-4 w-4 shrink-0 text-gold" />
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end sm:gap-2.5">
+                    <div className="-mx-1 flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:justify-end sm:overflow-visible [&::-webkit-scrollbar]:hidden">
                       {item.cardAmounts.map((amount, cardIndex) => (
                         <div
                           key={`${item.planTitle}-${amount}-${cardIndex}`}
@@ -114,7 +114,7 @@ export function OrderLineSection() {
                             href={getCardLink(amount)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block w-[92px] shrink-0 sm:w-[100px]"
+                            className="block w-[104px] shrink-0 sm:w-[112px]"
                             aria-label={`Αγορά PaysafeCard ${amount} EUR`}
                           >
                             <PaysafeCardVisual amount={amount} />
@@ -140,7 +140,7 @@ export function OrderLineSection() {
                       className="block transition hover:scale-[1.03]"
                       aria-label={`Αγορά PaysafeCard ${link.amount} EUR`}
                     >
-                      <PaysafeCardVisual amount={link.amount} className="mx-auto w-[100px] sm:w-[108px]" />
+                      <PaysafeCardVisual amount={link.amount} className="mx-auto w-[112px]" />
                     </a>
                   ))}
                 </div>

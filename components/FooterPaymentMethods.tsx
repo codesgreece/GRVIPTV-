@@ -82,7 +82,7 @@ export function FooterPaymentMethods() {
                 rel="noopener noreferrer"
                 className="group relative rounded-xl border border-white/8 bg-[#0B0B0B] p-2.5 transition duration-300 hover:-translate-y-0.5 hover:border-sky-400/45 hover:shadow-[0_12px_28px_rgba(14,165,233,0.2)]"
               >
-                <PaysafeCardVisual amount={link.amount} className="mx-auto w-[100px] sm:w-[108px]" />
+                <PaysafeCardVisual amount={link.amount} className="mx-auto w-[112px]" />
                 <p className="mt-2 flex items-center justify-center gap-1 text-[11px] font-semibold text-text-dim transition group-hover:text-sky-300">
                   Αγορά
                   <ArrowUpRight className="h-3 w-3" />
