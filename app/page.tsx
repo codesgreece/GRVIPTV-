@@ -5,7 +5,10 @@ import { FAQSection } from "@/components/FAQSection";
 import { FeaturesSection } from "@/components/FeaturesSection";
 import { Hero } from "@/components/Hero";
 import { LogosCarousel } from "@/components/LogosCarousel";
+import { BecomeResellerSection } from "@/components/BecomeResellerSection";
+import { GuaranteeStrip } from "@/components/GuaranteeStrip";
 import { PricingSection } from "@/components/PricingSection";
+import { ReferralSection } from "@/components/ReferralSection";
 import { ResellersSection } from "@/components/ResellersSection";
 import { SetupPreview } from "@/components/SetupPreview";
 import { StatsSection } from "@/components/StatsSection";
@@ -19,6 +22,9 @@ export default function HomePage() {
       <FeaturesSection />
       <PricingSection />
       <ResellersSection />
+      <BecomeResellerSection />
+      <ReferralSection />
+      <GuaranteeStrip />
       <SetupPreview />
       <AppsSection />
       <DevicesSection />

@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { PageHero } from "@/components/PageHero";
+import { BecomeResellerSection } from "@/components/BecomeResellerSection";
+import { GuaranteeStrip } from "@/components/GuaranteeStrip";
 import { PricingSection } from "@/components/PricingSection";
+import { ReferralSection } from "@/components/ReferralSection";
 import { ResellersSection } from "@/components/ResellersSection";
 
 export const metadata: Metadata = {
@@ -19,6 +22,9 @@ export default function PaketaPage() {
       />
       <PricingSection showHeading={false} />
       <ResellersSection />
+      <BecomeResellerSection />
+      <ReferralSection />
+      <GuaranteeStrip />
     </>
   );
 }

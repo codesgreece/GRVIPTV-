@@ -62,6 +62,62 @@ export const pricingPlans = [
   },
 ] as const;
 
+export const becomeResellerContent = {
+  eyebrow: "Συνεργασία",
+  title: "Γίνε Συνεργάτης",
+  description:
+    "Ξεκίνα το δικό σου reseller δίκτυο με υποστήριξη, υλικό προώθησης και ανταγωνιστικές τιμές χονδρικής.",
+  benefits: [
+    "Ειδικές τιμές reseller & υψηλά περιθώρια κέρδους",
+    "Dashboard πελατών & γρήγορη ενεργοποίηση λογαριασμών",
+    "Branding υλικό, scripts πωλήσεων & training από την ομάδα",
+    "24/7 τεχνική υποστήριξη για εσένα και τους πελάτες σου",
+  ],
+  ctaLabel: "Θέλω να γίνω συνεργάτης",
+} as const;
+
+export const referralProgram = {
+  eyebrow: "Referral Program",
+  title: "Φέρε Φίλους, Κέρδισε Δωρεάν Μήνες",
+  description:
+    "Μοιράσου τον προσωπικό σου κωδικό. Όταν ενεργοποιηθεί νέος πελάτης, κερδίζετε και οι δύο.",
+  reward: "1 μήνας δώρο",
+  rewardDetail: "Για εσένα + 1 μήνας δώρο για τον φίλο σου στην πρώτη ενεργοποίηση",
+  steps: [
+    {
+      id: "get-code",
+      title: "Πάρε τον κωδικό σου",
+      description:
+        "Μετά την αγορά, σου στέλνουμε προσωπικό referral code (π.χ. GRVIP-CHARIS).",
+    },
+    {
+      id: "share",
+      title: "Το μοιράζεσαι",
+      description:
+        "Στείλε το link σου ή πες στον φίλο να αναφέρει τον κωδικό στο WhatsApp κατά την παραγγελία.",
+    },
+    {
+      id: "reward",
+      title: "Κερδίζετε και οι δύο",
+      description:
+        "Μόλις ενεργοποιηθεί ο φίλος, παρατείνουμε αυτόματα τη συνδρομή σας με 1 δωρεάν μήνα.",
+    },
+  ],
+  ctaExisting: "Έχω ήδη κωδικό — Ενεργοποίηση",
+  ctaNew: "Θέλω referral code",
+} as const;
+
+export const guaranteeStrip = {
+  title: "Εγγύηση ικανοποίησης 24 ωρών",
+  description:
+    "Αν δεν είσαι 100% ικανοποιημένος με την υπηρεσία, επιστρέφουμε το ποσό εντός 24 ωρών — χωρίς περιττές ερωτήσεις.",
+  badges: [
+    "Χωρίς κρυφές χρεώσεις",
+    "Άμεση ενεργοποίηση",
+    "Ασφαλείς πληρωμές",
+  ],
+} as const;
+
 export const resellersAdmin = {
   name: "GREEK VIPTV ADMIN",
   role: "Head Admin Founder",
