@@ -18,7 +18,7 @@ export function FAQSection({ showHeading = true }: FAQSectionProps) {
   const reduce = useReducedMotion();
 
   return (
-    <section id="faq" className="py-16 md:py-24">
+    <section id="faq" className="py-12 md:py-24">
       <div className="container-premium">
         {showHeading ? <SectionHeading title="Συχνές Ερωτήσεις" /> : null}
         <div className="grid items-start gap-8 lg:grid-cols-[1.2fr_0.8fr]">

@@ -21,7 +21,7 @@ export function Button({
   fullWidth,
 }: ButtonProps) {
   const classes = cn(
-    "font-ui inline-flex items-center justify-center gap-2 rounded-md px-6 py-3 text-base font-bold tracking-normal normal-case transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60",
+    "font-ui inline-flex items-center justify-center gap-2 rounded-md px-5 py-2.5 text-sm font-bold tracking-normal normal-case transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 sm:px-6 sm:py-3 sm:text-base",
     fullWidth && "w-full",
     variant === "gold" &&
       "bg-gradient-to-r from-[#D4A72C] via-[#F2C75C] to-[#D4A72C] text-[#0a0a0a] shadow-[0_8px_28px_rgba(212,167,44,0.28)] hover:shadow-[0_10px_36px_rgba(212,167,44,0.42)] hover:brightness-105",

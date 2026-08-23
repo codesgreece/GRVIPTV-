@@ -8,7 +8,7 @@ import { apps } from "@/data/content";
 
 export function AppsSection() {
   return (
-    <section className="py-16 md:py-24">
+    <section className="py-12 md:py-24">
       <div className="container-premium">
         <SectionHeading title="Δημοφιλείς Εφαρμογές" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -12,7 +12,7 @@ export function CinematicTV({ className }: CinematicTVProps) {
 
   return (
     <motion.div
-      className={`absolute left-1/2 top-[46%] z-[5] w-[88%] max-w-[700px] -translate-x-[46%] -translate-y-1/2 sm:w-[min(700px,65%)] ${className ?? ""}`}
+      className={`absolute left-1/2 top-[46%] z-[5] w-[92%] max-w-[700px] -translate-x-1/2 -translate-y-1/2 sm:w-[min(700px,65%)] ${className ?? ""}`}
       initial={reduce ? false : { opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.75, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
@@ -69,7 +69,7 @@ export function CinematicTV({ className }: CinematicTVProps) {
                 height={70}
                 className="h-8 w-auto drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)] sm:h-10 md:h-11"
               />
-              <span className="text-[9px] tracking-[0.32em] text-white/65 uppercase sm:text-[10px]">
+              <span className="text-[10px] tracking-[0.2em] text-white/65 uppercase sm:tracking-[0.32em]">
                 Τώρα σε Streaming
               </span>
             </div>

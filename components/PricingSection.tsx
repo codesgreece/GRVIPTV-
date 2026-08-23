@@ -13,7 +13,7 @@ type PricingSectionProps = {
 
 export function PricingSection({ showHeading = true }: PricingSectionProps) {
   return (
-    <section id="paketa" className="relative py-16 md:py-24">
+    <section id="paketa" className="relative py-12 md:py-24">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,167,44,0.08),transparent_55%)]" />
       <div className="container-premium relative z-10">
         {showHeading ? (
@@ -30,7 +30,7 @@ export function PricingSection({ showHeading = true }: PricingSectionProps) {
                 className={cn(
                   "relative flex h-full flex-col rounded-2xl border bg-[#0B0B0B] p-6 transition duration-300",
                   plan.popular
-                    ? "scale-[1.02] border-gold/55 shadow-[0_20px_60px_rgba(212,167,44,0.18)] lg:scale-105"
+                    ? "border-gold/55 shadow-[0_20px_60px_rgba(212,167,44,0.18)] lg:scale-105"
                     : "border-white/10 hover:border-gold/30",
                 )}
               >
@@ -44,7 +44,7 @@ export function PricingSection({ showHeading = true }: PricingSectionProps) {
                   {plan.title}
                 </h3>
                 <div className="mt-4 flex items-end gap-1">
-                  <span className="font-display text-5xl font-bold text-white">
+                  <span className="font-display text-4xl font-bold text-white sm:text-5xl">
                     {plan.price}
                   </span>
                   <span className="pb-2 text-sm text-text-dim">{plan.period}</span>

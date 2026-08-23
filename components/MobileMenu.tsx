@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -17,6 +18,15 @@ type MobileMenuProps = {
 export function MobileMenu({ open, onClose }: MobileMenuProps) {
   const pathname = usePathname();
   const reduce = useReducedMotion();
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
 
   return (
     <AnimatePresence>
@@ -84,7 +94,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
 
             <div className="border-t border-white/10 p-5">
               <Button href="/paketa" fullWidth onClick={onClose}>
-                ΞΕΚΙΝΗΣΤΕ ΤΩΡΑ
+                Ξεκινήστε Τώρα
               </Button>
             </div>
           </motion.aside>

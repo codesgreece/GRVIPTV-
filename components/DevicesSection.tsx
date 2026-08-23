@@ -36,7 +36,7 @@ const deviceGuideMap: Record<string, string> = {
 
 export function DevicesSection() {
   return (
-    <section className="section-noise relative py-16 md:py-24">
+    <section className="section-noise relative py-12 md:py-24">
       <div className="container-premium relative z-10">
         <SectionHeading
           eyebrow="Λειτουργεί σε όλες τις συσκευές σας"

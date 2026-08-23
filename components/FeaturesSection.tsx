@@ -23,7 +23,7 @@ const icons = {
 
 export function FeaturesSection() {
   return (
-    <section className="section-noise relative py-16 md:py-24">
+    <section className="section-noise relative py-12 md:py-24">
       <div className="container-premium relative z-10">
         <SectionHeading
           eyebrow="Γιατί να επιλέξετε GRVIP OTT;"

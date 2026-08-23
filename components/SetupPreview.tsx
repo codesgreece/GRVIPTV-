@@ -24,7 +24,7 @@ const steps = [
 
 export function SetupPreview() {
   return (
-    <section className="relative py-16 md:py-24">
+    <section className="relative py-12 md:py-24">
       <div className="container-premium grid items-start gap-12 lg:grid-cols-2">
         <Reveal>
           <p className="mb-3 text-xs font-semibold tracking-[0.22em] text-gold uppercase">

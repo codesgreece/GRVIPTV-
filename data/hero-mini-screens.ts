@@ -226,8 +226,13 @@ export const heroMiniScreens: HeroMiniScreen[] = [
 
 export const mobileHiddenMiniScreenIds = new Set([
   "tl-2",
+  "tc-1",
   "tc-3",
+  "tr-1",
   "tr-2",
+  "l-1",
+  "r-1",
   "r-2",
+  "b-1",
   "b-2",
 ]);

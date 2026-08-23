@@ -18,7 +18,7 @@ export function StatsSection() {
   return (
     <section className="relative pb-8 md:pb-12">
       <div className="container-premium">
-        <p className="mb-4 text-xs font-semibold tracking-[0.22em] text-gold uppercase">
+        <p className="mb-4 text-[11px] font-semibold tracking-[0.16em] text-gold uppercase sm:text-xs sm:tracking-[0.22em]">
           Ελληνικό Περιεχόμενο
         </p>
 
@@ -27,12 +27,12 @@ export function StatsSection() {
             const Icon = icons[stat.icon as keyof typeof icons];
             return (
               <Reveal key={stat.id} delay={i * 0.08}>
-                <div className="glass-card gold-glow group relative overflow-hidden rounded-2xl p-6 transition duration-300 hover:-translate-y-1">
+                <div className="glass-card gold-glow group relative overflow-hidden rounded-2xl p-5 transition duration-300 hover:-translate-y-1 sm:p-6">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,167,44,0.12),transparent_55%)] opacity-70" />
                   <div className="relative">
                     <Icon className="mb-4 h-6 w-6 text-gold" />
                     <StatValue value={stat.value} suffix={stat.suffix} />
-                    <p className="mt-2 text-xs font-semibold tracking-[0.18em] text-text-dim uppercase">
+                    <p className="mt-2 text-sm font-semibold tracking-[0.1em] text-text-dim uppercase sm:text-xs sm:tracking-[0.18em]">
                       {stat.label}
                     </p>
                   </div>
@@ -43,7 +43,7 @@ export function StatsSection() {
         </div>
 
         <Reveal delay={0.2}>
-          <p className="mt-5 text-center text-sm text-text-dim md:text-[15px]">
+          <p className="mt-5 px-1 text-center text-sm text-pretty text-text-dim md:text-[15px]">
             Επιπλέον πρόσβαση σε{" "}
             <span className="text-text-muted">24.000+ κανάλια</span> και{" "}
             <span className="text-text-muted">120.000+ ταινίες & σειρές</span>{" "}

@@ -25,7 +25,7 @@ export function LogosCarousel() {
           {items.map((brand, index) => (
             <div
               key={`${brand.id}-${index}`}
-              className="flex h-[72px] w-[168px] shrink-0 items-center justify-center rounded-xl border border-white/10 bg-[#0B0B0B]/80 px-3 md:h-[80px] md:w-[190px]"
+              className="flex h-[60px] w-[140px] shrink-0 items-center justify-center rounded-xl border border-white/10 bg-[#0B0B0B]/80 px-3 sm:h-[72px] sm:w-[168px] md:h-[80px] md:w-[190px]"
             >
               <Image
                 src={brand.src}

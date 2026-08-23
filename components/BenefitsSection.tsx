@@ -21,7 +21,7 @@ const icons = {
 
 export function BenefitsSection() {
   return (
-    <section className="py-16 md:py-24">
+    <section className="py-12 md:py-24">
       <div className="container-premium">
         <SectionHeading title="Γιατί Εμπιστεύονται το GRVIP OTT" />
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">

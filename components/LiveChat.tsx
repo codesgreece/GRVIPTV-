@@ -61,10 +61,10 @@ export function LiveChat() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="font-ui animate-pulse-glow inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gradient-to-r from-[#D4A72C] to-[#F2C75C] px-4 py-3 text-base font-bold tracking-normal normal-case text-[#111] shadow-[0_10px_30px_rgba(212,167,44,0.35)] transition hover:brightness-105"
+        className="font-ui animate-pulse-glow inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gradient-to-r from-[#D4A72C] to-[#F2C75C] px-3 py-2.5 text-sm font-bold tracking-normal normal-case text-[#111] shadow-[0_10px_30px_rgba(212,167,44,0.35)] transition hover:brightness-105 sm:px-4 sm:py-3 sm:text-base"
       >
-        <MessageCircle className="h-4 w-4" />
-        Live Chat
+        <MessageCircle className="h-4 w-4 shrink-0" />
+        <span className="hidden min-[380px]:inline">Live Chat</span>
       </button>
     </div>
   );

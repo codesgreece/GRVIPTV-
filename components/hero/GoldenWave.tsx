@@ -20,7 +20,7 @@ export function GoldenWave({ className }: GoldenWaveProps) {
 
   return (
     <motion.div
-      className={`pointer-events-none absolute inset-x-[-6%] top-[48%] z-10 h-[38%] sm:inset-x-[-4%] ${className ?? ""}`}
+      className={`pointer-events-none absolute inset-x-0 top-[48%] z-10 h-[38%] sm:inset-x-[-2%] ${className ?? ""}`}
       initial={reduce ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1.1, delay: 0.85 }}
@@ -28,7 +28,7 @@ export function GoldenWave({ className }: GoldenWaveProps) {
     >
       <motion.svg
         viewBox="0 0 600 140"
-        className="h-full w-full overflow-visible"
+        className="h-full w-full"
         preserveAspectRatio="none"
         animate={
           reduce

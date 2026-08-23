@@ -40,7 +40,7 @@ export function Header() {
               width={180}
               height={56}
               priority
-              className="h-10 w-auto object-contain md:h-12"
+              className="h-9 w-auto object-contain sm:h-10 md:h-12"
             />
           </Link>
 
@@ -72,8 +72,12 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <Button href="/paketa" className="hidden px-5 py-2.5 sm:inline-flex">
-              Ξεκινήστε Τώρα
+            <Button
+              href="/paketa"
+              className="hidden min-[400px]:inline-flex px-3 py-2 text-sm sm:px-5 sm:py-2.5"
+            >
+              <span className="sm:hidden">Ξεκινήστε</span>
+              <span className="hidden sm:inline">Ξεκινήστε Τώρα</span>
             </Button>
             <button
               type="button"
