@@ -11,6 +11,17 @@ export default function EpikoinoniaPage() {
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const name = String(formData.get("name") ?? "").trim();
+    const email = String(formData.get("email") ?? "").trim();
+    const subject = String(formData.get("subject") ?? "").trim();
+    const message = String(formData.get("message") ?? "").trim();
+
+    const body = encodeURIComponent(
+      `Όνομα: ${name}\nEmail αποστολέα: ${email}\n\n${message}`,
+    );
+    const mailSubject = encodeURIComponent(subject);
+    window.location.href = `mailto:${contactConfig.email}?subject=${mailSubject}&body=${body}`;
     setSent(true);
   };
 
@@ -77,8 +88,8 @@ export default function EpikoinoniaPage() {
           </Button>
           {sent ? (
             <p className="text-sm text-gold">
-              Το μήνυμά σας καταχωρήθηκε τοπικά (placeholder). Συνδέστε backend
-              για πραγματική αποστολή.
+              Ανοίχτηκε το email σας για αποστολή στο {contactConfig.email}. Αν δεν
+              άνοιξε αυτόματα, στείλτε μας απευθείας email.
             </p>
           ) : null}
         </form>

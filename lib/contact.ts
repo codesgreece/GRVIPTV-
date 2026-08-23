@@ -1,6 +1,6 @@
 /** Εύκολα αντικαταστάσιμα στοιχεία επικοινωνίας */
 export const contactConfig = {
-  email: "support@grvipott.com",
+  email: "grviptvott@outlook.com",
   phone: "+30 695 594 0150",
   phoneE164: "+306955940150",
   telegram: "https://t.me/+306955940150",
