@@ -1,28 +1,51 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { Mail, Send } from "lucide-react";
+import { Loader2, Mail, Send } from "lucide-react";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/Button";
 import { contactConfig } from "@/lib/contact";
 
+type FormStatus = "idle" | "loading" | "success" | "error";
+
 export default function EpikoinoniaPage() {
-  const [sent, setSent] = useState(false);
+  const [status, setStatus] = useState<FormStatus>("idle");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const name = String(formData.get("name") ?? "").trim();
-    const email = String(formData.get("email") ?? "").trim();
-    const subject = String(formData.get("subject") ?? "").trim();
-    const message = String(formData.get("message") ?? "").trim();
+    setStatus("loading");
+    setErrorMessage("");
 
-    const body = encodeURIComponent(
-      `Όνομα: ${name}\nEmail αποστολέα: ${email}\n\n${message}`,
-    );
-    const mailSubject = encodeURIComponent(subject);
-    window.location.href = `mailto:${contactConfig.email}?subject=${mailSubject}&body=${body}`;
-    setSent(true);
+    const formData = new FormData(event.currentTarget);
+    const payload = {
+      name: String(formData.get("name") ?? "").trim(),
+      email: String(formData.get("email") ?? "").trim(),
+      subject: String(formData.get("subject") ?? "").trim(),
+      message: String(formData.get("message") ?? "").trim(),
+    };
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Αποτυχία αποστολής.");
+      }
+
+      setStatus("success");
+      event.currentTarget.reset();
+    } catch (error) {
+      setStatus("error");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Αποτυχία αποστολής.",
+      );
+    }
   };
 
   return (
@@ -45,7 +68,8 @@ export default function EpikoinoniaPage() {
               id="name"
               name="name"
               required
-              className="w-full rounded-lg border border-white/10 bg-[#050505] px-4 py-3 text-white outline-none transition focus:border-gold/50"
+              disabled={status === "loading"}
+              className="w-full rounded-lg border border-white/10 bg-[#050505] px-4 py-3 text-white outline-none transition focus:border-gold/50 disabled:opacity-60"
             />
           </div>
           <div>
@@ -57,7 +81,8 @@ export default function EpikoinoniaPage() {
               name="email"
               type="email"
               required
-              className="w-full rounded-lg border border-white/10 bg-[#050505] px-4 py-3 text-white outline-none transition focus:border-gold/50"
+              disabled={status === "loading"}
+              className="w-full rounded-lg border border-white/10 bg-[#050505] px-4 py-3 text-white outline-none transition focus:border-gold/50 disabled:opacity-60"
             />
           </div>
           <div>
@@ -68,7 +93,8 @@ export default function EpikoinoniaPage() {
               id="subject"
               name="subject"
               required
-              className="w-full rounded-lg border border-white/10 bg-[#050505] px-4 py-3 text-white outline-none transition focus:border-gold/50"
+              disabled={status === "loading"}
+              className="w-full rounded-lg border border-white/10 bg-[#050505] px-4 py-3 text-white outline-none transition focus:border-gold/50 disabled:opacity-60"
             />
           </div>
           <div>
@@ -80,17 +106,28 @@ export default function EpikoinoniaPage() {
               name="message"
               required
               rows={5}
-              className="w-full resize-y rounded-lg border border-white/10 bg-[#050505] px-4 py-3 text-white outline-none transition focus:border-gold/50"
+              disabled={status === "loading"}
+              className="w-full resize-y rounded-lg border border-white/10 bg-[#050505] px-4 py-3 text-white outline-none transition focus:border-gold/50 disabled:opacity-60"
             />
           </div>
-          <Button type="submit" fullWidth>
-            Αποστολή Μηνύματος
+          <Button type="submit" fullWidth disabled={status === "loading"}>
+            {status === "loading" ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Αποστολή...
+              </>
+            ) : (
+              "Αποστολή Μηνύματος"
+            )}
           </Button>
-          {sent ? (
+          {status === "success" ? (
             <p className="text-sm text-gold">
-              Ανοίχτηκε το email σας για αποστολή στο {contactConfig.email}. Αν δεν
-              άνοιξε αυτόματα, στείλτε μας απευθείας email.
+              Το μήνυμά σας στάλθηκε επιτυχώς στο {contactConfig.email}. Θα σας
+              απαντήσουμε το συντομότερο δυνατό.
             </p>
+          ) : null}
+          {status === "error" ? (
+            <p className="text-sm text-red-400">{errorMessage}</p>
           ) : null}
         </form>
 

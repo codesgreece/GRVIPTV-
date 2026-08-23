@@ -9,6 +9,7 @@ type ButtonProps = {
   onClick?: () => void;
   type?: "button" | "submit";
   fullWidth?: boolean;
+  disabled?: boolean;
 };
 
 export function Button({
@@ -19,10 +20,12 @@ export function Button({
   onClick,
   type = "button",
   fullWidth,
+  disabled,
 }: ButtonProps) {
   const classes = cn(
     "font-ui inline-flex items-center justify-center gap-2 rounded-md px-5 py-2.5 text-sm font-bold tracking-normal normal-case transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 sm:px-6 sm:py-3 sm:text-base",
     fullWidth && "w-full",
+    disabled && "pointer-events-none opacity-60",
     variant === "gold" &&
       "bg-gradient-to-r from-[#D4A72C] via-[#F2C75C] to-[#D4A72C] text-[#0a0a0a] shadow-[0_8px_28px_rgba(212,167,44,0.28)] hover:shadow-[0_10px_36px_rgba(212,167,44,0.42)] hover:brightness-105",
     variant === "outline" &&
@@ -40,7 +43,7 @@ export function Button({
   }
 
   return (
-    <button type={type} onClick={onClick} className={classes}>
+    <button type={type} onClick={onClick} className={classes} disabled={disabled}>
       {children}
     </button>
   );
