@@ -1,11 +1,14 @@
 "use client";
 
-import { animate, useMotionValue, useMotionValueEvent, useReducedMotion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useReducedMotion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 
 const MIN_VIEWERS = 297;
 const MAX_VIEWERS = 784;
+const MIN_STEP_MS = 40;
+const MAX_STEP_MS = 70;
+const TARGET_ANIMATION_MS = 1200;
 
 function randomInRange(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -16,6 +19,50 @@ function nextCount(current: number) {
   return Math.min(MAX_VIEWERS, Math.max(MIN_VIEWERS, current + delta));
 }
 
+function stepDelayMs(steps: number) {
+  if (steps <= 1) return MIN_STEP_MS;
+  return Math.max(MIN_STEP_MS, Math.min(MAX_STEP_MS, Math.round(TARGET_ANIMATION_MS / steps)));
+}
+
+function useSteppedCount(target: number, reduce: boolean | null) {
+  const [display, setDisplay] = useState(target);
+  const displayRef = useRef(target);
+  const timerRef = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    window.clearInterval(timerRef.current);
+
+    if (reduce) {
+      displayRef.current = target;
+      setDisplay(target);
+      return;
+    }
+
+    const from = displayRef.current;
+    if (from === target) return;
+
+    const steps = Math.abs(target - from);
+    const direction = target > from ? 1 : -1;
+    const delay = stepDelayMs(steps);
+    let step = 0;
+
+    timerRef.current = window.setInterval(() => {
+      step += 1;
+      const next = from + direction * step;
+      displayRef.current = next;
+      setDisplay(next);
+
+      if (step >= steps) {
+        window.clearInterval(timerRef.current);
+      }
+    }, delay);
+
+    return () => window.clearInterval(timerRef.current);
+  }, [reduce, target]);
+
+  return display;
+}
+
 type LiveViewersBadgeProps = {
   className?: string;
 };
@@ -23,27 +70,7 @@ type LiveViewersBadgeProps = {
 export function LiveViewersBadge({ className }: LiveViewersBadgeProps) {
   const reduce = useReducedMotion();
   const [targetCount, setTargetCount] = useState(() => randomInRange(MIN_VIEWERS, MAX_VIEWERS));
-  const motionCount = useMotionValue(targetCount);
-  const [displayCount, setDisplayCount] = useState(targetCount);
-
-  useMotionValueEvent(motionCount, "change", (latest) => {
-    setDisplayCount(Math.round(latest));
-  });
-
-  useEffect(() => {
-    if (reduce) {
-      motionCount.set(targetCount);
-      setDisplayCount(targetCount);
-      return;
-    }
-
-    const controls = animate(motionCount, targetCount, {
-      duration: 1.1,
-      ease: [0.22, 1, 0.36, 1],
-    });
-
-    return () => controls.stop();
-  }, [motionCount, reduce, targetCount]);
+  const displayCount = useSteppedCount(targetCount, reduce);
 
   useEffect(() => {
     const tick = () => {
