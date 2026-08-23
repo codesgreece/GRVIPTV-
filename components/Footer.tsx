@@ -70,7 +70,7 @@ export function Footer() {
             Τρόποι Πληρωμής
           </h3>
           <div className="flex flex-wrap gap-2">
-            {["Card", "Bank", "Crypto", "E-Wallet"].map((method) => (
+            {["Paysafe Card", "Binance Card"].map((method) => (
               <span
                 key={method}
                 className="rounded-md border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-text-dim"
@@ -79,9 +79,6 @@ export function Footer() {
               </span>
             ))}
           </div>
-          <p className="mt-3 text-xs text-text-dim">
-            Generic placeholders — ενημερώστε με τις πραγματικές μεθόδους σας.
-          </p>
         </div>
       </div>
 
