@@ -10,6 +10,7 @@ import { GuaranteeStrip } from "@/components/GuaranteeStrip";
 import { PricingSection } from "@/components/PricingSection";
 import { ReferralSection } from "@/components/ReferralSection";
 import { ResellersSection } from "@/components/ResellersSection";
+import { ReviewsSection } from "@/components/ReviewsSection";
 import { SetupPreview } from "@/components/SetupPreview";
 import { StatsSection } from "@/components/StatsSection";
 import { WhoIsItForSection } from "@/components/WhoIsItForSection";
@@ -22,6 +23,7 @@ export default function HomePage() {
       <LogosCarousel />
       <FeaturesSection />
       <WhoIsItForSection />
+      <ReviewsSection />
       <PricingSection />
       <ResellersSection />
       <BecomeResellerSection />
