@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Send } from "lucide-react";
+import { ExternalLink, Send } from "lucide-react";
 import {
   FacebookIcon,
   InstagramIcon,
@@ -10,6 +10,7 @@ import {
 } from "@/components/icons/SocialIcons";
 import { contactConfig } from "@/lib/contact";
 import { footerNav } from "@/lib/navigation";
+import { paysafeCardLinks } from "@/data/content";
 
 export function Footer() {
   return (
@@ -78,6 +79,30 @@ export function Footer() {
                 {method}
               </span>
             ))}
+          </div>
+
+          <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <p className="text-sm font-semibold text-white">
+              Προμηθεύσου τις κάρτες σου από εδώ:
+            </p>
+            <p className="mt-3 text-xs font-bold tracking-[0.12em] text-gold uppercase">
+              Paysafe
+            </p>
+            <ul className="mt-2 space-y-2">
+              {paysafeCardLinks.map((link) => (
+                <li key={link.label}>
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-sm text-text-muted transition hover:text-gold"
+                  >
+                    {link.label}
+                    <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-70" />
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
