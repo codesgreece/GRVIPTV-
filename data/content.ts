@@ -105,14 +105,14 @@ export const orderLineContent = {
       description: "Επίλεξε 1, 3, 6 ή 12 μήνες από την ενότητα τιμών.",
     },
     {
-      title: "Πάρε την αντίστοιχη PaysafeCard",
+      title: "Πάρε τις αντίστοιχες PaysafeCard",
       description:
-        "Αγόρασε την κάρτα που καλύπτει το ποσό του πακέτου σου από τα επίσημα links Eneba.",
+        "Αγόρασε τις κάρτες που αντιστοιχούν στο πακέτο σου από τα επίσημα links Eneba.",
     },
     {
-      title: "Στείλε μας τον κωδικό στο Telegram",
+      title: "Στείλε μας τους κωδικούς στο Telegram",
       description:
-        "Στείλε μήνυμα με τον 16ψήφιο αριθμό της κάρτας και το πακέτο που θέλεις.",
+        "Στείλε μήνυμα με τους 16ψήφιους αριθμούς των καρτών και το πακέτο που θέλεις.",
     },
     {
       title: "Λαμβάνεις τα στοιχεία σύνδεσης",
@@ -120,10 +120,10 @@ export const orderLineContent = {
     },
   ],
   packageCardMap: [
-    { planTitle: "1 Μήνας", cardAmount: 25 as const },
-    { planTitle: "3 Μήνες", cardAmount: 50 as const },
-    { planTitle: "6 Μήνες", cardAmount: 50 as const, note: "€100 σε κανονικές τιμές" },
-    { planTitle: "12 Μήνες", cardAmount: 100 as const },
+    { planTitle: "1 Μήνας", cardAmounts: [10, 5] as const },
+    { planTitle: "3 Μήνες", cardAmounts: [25, 10] as const },
+    { planTitle: "6 Μήνες", cardAmounts: [25, 10, 10] as const },
+    { planTitle: "12 Μήνες", cardAmounts: [25, 25, 25] as const },
   ],
   disclaimer:
     "Σε ώρες μεσάνυχτα, ώρες αιχμής ή κατά τη διάρκεια μεγάλων αθλητικών διοργανώσεων ενδέχεται καθυστέρηση στην ενεργοποίηση. Φρόντισε να ολοκληρώσεις την αγορά σου μερικές ώρες νωρίτερα.",

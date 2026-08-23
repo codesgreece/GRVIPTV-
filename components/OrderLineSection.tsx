@@ -75,7 +75,7 @@ export function OrderLineSection() {
 
             <Button href={telegramUrl()} className="mt-6 font-extrabold" fullWidth>
               <Send className="h-4 w-4" />
-              Στείλε τον κωδικό στο Telegram
+              Στείλε τους κωδικούς στο Telegram
             </Button>
           </Reveal>
 
@@ -85,41 +85,42 @@ export function OrderLineSection() {
                 Πακέτο → Κάρτα
               </p>
               <h3 className="mt-1 font-display text-xl font-bold text-white">
-                Διάλεξε πακέτο, πάρε την κάρτα
+                Διάλεξε πακέτο, πάρε τις κάρτες
               </h3>
 
               <div className="mt-5 space-y-4">
-                {orderLineContent.packageCardMap.map((item) => {
-                  const href = getCardLink(item.cardAmount);
-
-                  return (
-                    <div
-                      key={item.planTitle}
-                      className="grid grid-cols-[1fr_auto_92px] items-center gap-3 rounded-xl border border-white/8 bg-black/30 p-3 sm:grid-cols-[1fr_auto_108px] sm:p-4"
-                    >
-                      <div>
-                        <p className="font-display text-base font-bold text-white">
-                          {item.planTitle}
-                        </p>
-                        {"note" in item && item.note ? (
-                          <p className="mt-0.5 text-[11px] text-text-dim">{item.note}</p>
-                        ) : null}
-                      </div>
-
-                      <ArrowRight className="hidden h-4 w-4 text-gold sm:block" />
-
-                      <a
-                        href={href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block transition hover:scale-[1.03]"
-                        aria-label={`Αγορά PaysafeCard ${item.cardAmount} EUR`}
-                      >
-                        <PaysafeCardVisual amount={item.cardAmount} />
-                      </a>
+                {orderLineContent.packageCardMap.map((item) => (
+                  <div
+                    key={item.planTitle}
+                    className="rounded-xl border border-white/8 bg-black/30 p-3 sm:p-4"
+                  >
+                    <div className="mb-3 flex items-center justify-between gap-2">
+                      <p className="font-display text-base font-bold text-white">
+                        {item.planTitle}
+                      </p>
+                      <ArrowRight className="h-4 w-4 shrink-0 text-gold" />
                     </div>
-                  );
-                })}
+
+                    <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+                      {item.cardAmounts.map((amount, cardIndex) => (
+                        <div key={`${item.planTitle}-${amount}-${cardIndex}`} className="flex items-center gap-1.5 sm:gap-2">
+                          {cardIndex > 0 ? (
+                            <span className="px-0.5 text-sm font-black text-gold">+</span>
+                          ) : null}
+                          <a
+                            href={getCardLink(amount)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block w-[72px] transition hover:scale-[1.04] sm:w-[80px]"
+                            aria-label={`Αγορά PaysafeCard ${amount} EUR`}
+                          >
+                            <PaysafeCardVisual amount={amount} />
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
 
               <div className="mt-6 border-t border-white/8 pt-5">
