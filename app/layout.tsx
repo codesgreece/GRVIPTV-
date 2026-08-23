@@ -35,13 +35,21 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://grvipott.com"),
+  metadataBase: new URL("https://grviptv.vercel.app"),
   title: {
     default: "GRVIP OTT | Premium Streaming",
     template: "%s | GRVIP OTT",
   },
   description:
     "Απολαύστε premium ψυχαγωγία με χιλιάδες ζωντανά κανάλια, ταινίες, σειρές και υποστήριξη για όλες τις συσκευές σας.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+    shortcut: "/favicon.ico",
+  },
   openGraph: {
     title: "GRVIP OTT | Premium Streaming",
     description:
