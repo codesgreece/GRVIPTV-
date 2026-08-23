@@ -23,7 +23,7 @@ export function PricingSection({ showHeading = true }: PricingSectionProps) {
           />
         ) : null}
 
-        <div className="mx-auto grid max-w-5xl gap-5 lg:grid-cols-3">
+        <div className="mx-auto grid max-w-6xl gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {pricingPlans.map((plan, i) => (
             <Reveal key={plan.id} delay={i * 0.08} className="h-full">
               <article
@@ -32,22 +32,36 @@ export function PricingSection({ showHeading = true }: PricingSectionProps) {
                   plan.popular
                     ? "border-gold/55 shadow-[0_20px_60px_rgba(212,167,44,0.18)] lg:scale-105"
                     : "border-white/10 hover:border-gold/30",
+                  "originalPrice" in plan && plan.originalPrice
+                    ? "border-emerald-500/25"
+                    : null,
                 )}
               >
                 {plan.popular ? (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-[#D4A72C] to-[#F2C75C] px-3 py-1 text-[10px] font-bold tracking-[0.14em] text-black uppercase">
                     {plan.badge}
                   </span>
+                ) : "originalPrice" in plan && plan.originalPrice ? (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-emerald-500 px-3 py-1 text-[10px] font-bold tracking-[0.14em] text-black uppercase">
+                    Προσφορά
+                  </span>
                 ) : null}
 
                 <h3 className="font-display text-lg font-semibold text-white">
                   {plan.title}
                 </h3>
-                <div className="mt-4 flex items-end gap-1">
-                  <span className="font-display text-4xl font-bold text-white sm:text-5xl">
-                    {plan.price}
-                  </span>
-                  <span className="pb-2 text-sm text-text-dim">{plan.period}</span>
+                <div className="mt-4">
+                  {"originalPrice" in plan && plan.originalPrice ? (
+                    <p className="mb-1 text-base font-semibold text-text-dim line-through">
+                      {plan.originalPrice}
+                    </p>
+                  ) : null}
+                  <div className="flex items-end gap-1">
+                    <span className="font-display text-4xl font-bold text-white sm:text-5xl">
+                      {plan.price}
+                    </span>
+                    <span className="pb-2 text-sm text-text-dim">{plan.period}</span>
+                  </div>
                 </div>
 
                 <ul className="mt-6 flex-1 space-y-3">
