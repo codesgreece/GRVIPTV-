@@ -1,7 +1,7 @@
 "use client";
 
+import { animate, useMotionValue, useMotionValueEvent, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/cn";
 
 const MIN_VIEWERS = 297;
@@ -22,11 +22,32 @@ type LiveViewersBadgeProps = {
 
 export function LiveViewersBadge({ className }: LiveViewersBadgeProps) {
   const reduce = useReducedMotion();
-  const [count, setCount] = useState(() => randomInRange(MIN_VIEWERS, MAX_VIEWERS));
+  const [targetCount, setTargetCount] = useState(() => randomInRange(MIN_VIEWERS, MAX_VIEWERS));
+  const motionCount = useMotionValue(targetCount);
+  const [displayCount, setDisplayCount] = useState(targetCount);
+
+  useMotionValueEvent(motionCount, "change", (latest) => {
+    setDisplayCount(Math.round(latest));
+  });
+
+  useEffect(() => {
+    if (reduce) {
+      motionCount.set(targetCount);
+      setDisplayCount(targetCount);
+      return;
+    }
+
+    const controls = animate(motionCount, targetCount, {
+      duration: 1.1,
+      ease: [0.22, 1, 0.36, 1],
+    });
+
+    return () => controls.stop();
+  }, [motionCount, reduce, targetCount]);
 
   useEffect(() => {
     const tick = () => {
-      setCount((current) => nextCount(current));
+      setTargetCount((current) => nextCount(current));
       const delay = randomInRange(4000, 9000);
       timer = window.setTimeout(tick, delay);
     };
@@ -55,7 +76,7 @@ export function LiveViewersBadge({ className }: LiveViewersBadgeProps) {
       </span>
 
       <span className="font-ui text-sm font-bold tabular-nums text-emerald-300">
-        {count.toLocaleString("el-GR")}
+        {displayCount.toLocaleString("el-GR")}
       </span>
     </div>
   );
