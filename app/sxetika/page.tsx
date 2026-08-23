@@ -24,7 +24,7 @@ export default function SxetikaPage() {
           υποστήριξη, ώστε να απολαμβάνετε το περιεχόμενο χωρίς περιττή
           πολυπλοκότητα.
         </p>
-        <Button href="/paketa" className="tracking-[0.12em] uppercase">
+        <Button href="/paketa">
           Δείτε τα Πακέτα
         </Button>
       </section>

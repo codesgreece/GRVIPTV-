@@ -24,11 +24,7 @@ export function AppsSection() {
                 <p className="mt-2 flex-1 text-sm text-text-muted">
                   {app.description}
                 </p>
-                <Button
-                  href="/odigos-egkatastasis"
-                  variant="outline"
-                  className="mt-5 tracking-[0.1em] uppercase"
-                >
+                <Button href="/odigos-egkatastasis" variant="outline" className="mt-5">
                   Δείτε Οδηγό
                 </Button>
               </article>

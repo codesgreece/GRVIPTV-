@@ -16,14 +16,8 @@ export function SetupSupportBlocks() {
             HD / 4K ποιότητα. Άμεση ενεργοποίηση.
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <Button href="/paketa" className="tracking-[0.08em] uppercase">
-              Δείτε τα Πακέτα
-            </Button>
-            <Button
-              href="/epikoinonia"
-              variant="outline"
-              className="tracking-[0.08em] uppercase"
-            >
+            <Button href="/paketa">Δείτε τα Πακέτα</Button>
+            <Button href="/epikoinonia" variant="outline">
               Επικοινωνία
             </Button>
           </div>
@@ -42,14 +36,14 @@ export function SetupSupportBlocks() {
               href={contactConfig.whatsapp}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-md bg-gradient-to-r from-[#D4A72C] to-[#F2C75C] px-5 py-3 text-sm font-semibold text-black"
+              className="font-ui flex items-center justify-center gap-2 rounded-md bg-gradient-to-r from-[#D4A72C] to-[#F2C75C] px-5 py-3 text-base font-bold tracking-normal normal-case text-black"
             >
               <MessageCircle className="h-4 w-4" />
               Chat στο WhatsApp
             </a>
             <Link
               href="/epikoinonia"
-              className="inline-flex items-center justify-center rounded-md border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:border-gold/40"
+              className="font-ui inline-flex items-center justify-center rounded-md border border-white/15 px-5 py-3 text-base font-bold tracking-normal normal-case text-white transition hover:border-gold/40"
             >
               Κέντρο Υποστήριξης
             </Link>

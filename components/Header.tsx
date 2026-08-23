@@ -72,10 +72,7 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <Button
-              href="/paketa"
-              className="hidden px-5 py-2.5 text-xs tracking-[0.12em] uppercase sm:inline-flex"
-            >
+            <Button href="/paketa" className="hidden px-5 py-2.5 sm:inline-flex">
               Ξεκινήστε Τώρα
             </Button>
             <button

@@ -61,14 +61,8 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 0.28 }}
             className="mt-8 flex flex-col gap-3 sm:flex-row"
           >
-            <Button href="/paketa" className="tracking-[0.14em] uppercase">
-              Ξεκινήστε Τώρα
-            </Button>
-            <Button
-              href="/paketa"
-              variant="outline"
-              className="tracking-[0.14em] uppercase"
-            >
+            <Button href="/paketa">Ξεκινήστε Τώρα</Button>
+            <Button href="/paketa" variant="outline">
               Δείτε τα Πακέτα
             </Button>
           </motion.div>

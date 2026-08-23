@@ -30,8 +30,9 @@
   --color-text: var(--text);
   --color-text-muted: var(--text-muted);
   --color-text-dim: var(--text-dim);
-  /* LionOTT stack: Cairo (display) + Urbanist/Manrope (UI/body) */
+  /* LionOTT stack: Cairo (display) + Urbanist (UI/buttons) + Manrope (Greek body) */
   --font-display: var(--font-cairo), var(--font-rubik), sans-serif;
+  --font-ui: var(--font-urbanist), var(--font-manrope), sans-serif;
   --font-body: var(--font-manrope), var(--font-urbanist), sans-serif;
   --font-sans: var(--font-manrope), var(--font-urbanist), sans-serif;
 }
@@ -64,8 +65,7 @@ textarea {
 }
 
 .font-ui {
-  font-family: var(--font-body);
-  font-weight: 600;
+  font-family: var(--font-ui);
 }
 
 ::selection {

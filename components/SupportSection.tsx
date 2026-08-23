@@ -11,7 +11,7 @@ export function SupportSection() {
         Χρειάζεστε Βοήθεια;
       </h3>
       <p className="mt-3 text-text-muted">Είμαστε εδώ για εσάς 24/7</p>
-      <Button href="/epikoinonia" fullWidth className="mt-6 tracking-[0.1em] uppercase">
+      <Button href="/epikoinonia" fullWidth className="mt-6">
         Επικοινωνήστε Μαζί Μας
       </Button>
     </aside>

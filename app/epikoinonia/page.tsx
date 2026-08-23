@@ -72,7 +72,7 @@ export default function EpikoinoniaPage() {
               className="w-full resize-y rounded-lg border border-white/10 bg-[#050505] px-4 py-3 text-white outline-none transition focus:border-gold/50"
             />
           </div>
-          <Button type="submit" fullWidth className="tracking-[0.12em] uppercase">
+          <Button type="submit" fullWidth>
             Αποστολή Μηνύματος
           </Button>
           {sent ? (

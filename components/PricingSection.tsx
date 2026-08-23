@@ -66,7 +66,7 @@ export function PricingSection({ showHeading = true }: PricingSectionProps) {
                   href="/epikoinonia"
                   variant={plan.popular ? "gold" : "outline"}
                   fullWidth
-                  className="mt-8 tracking-[0.12em] uppercase"
+                  className="mt-8 font-extrabold"
                 >
                   Επιλογή Πακέτου
                 </Button>

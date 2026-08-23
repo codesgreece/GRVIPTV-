@@ -50,10 +50,7 @@ export function SetupPreview() {
             ))}
           </ol>
 
-          <Button
-            href="/odigos-egkatastasis"
-            className="mt-8 tracking-[0.1em] uppercase"
-          >
+          <Button href="/odigos-egkatastasis" className="mt-8">
             Δείτε τον Αναλυτικό Οδηγό
           </Button>
         </Reveal>
@@ -76,11 +73,7 @@ export function SetupPreview() {
             <p className="mt-6 text-sm text-text-muted">
               Χρειάζεστε βοήθεια; Δείτε τον αναλυτικό οδηγό εγκατάστασης.
             </p>
-            <Button
-              href="/odigos-egkatastasis"
-              variant="outline"
-              className="mt-4 tracking-[0.1em] uppercase"
-            >
+            <Button href="/odigos-egkatastasis" variant="outline" className="mt-4">
               Ανοίξτε τον Οδηγό
             </Button>
           </div>

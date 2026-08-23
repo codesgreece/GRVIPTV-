@@ -63,14 +63,8 @@ export function SetupPageHero() {
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Button href="#wizard" className="tracking-[0.08em] uppercase">
-                  Ξεκινήστε τον Οδηγό
-                </Button>
-                <Button
-                  href="/epikoinonia"
-                  variant="outline"
-                  className="tracking-[0.08em] uppercase"
-                >
+                <Button href="#wizard">Ξεκινήστε τον Οδηγό</Button>
+                <Button href="/epikoinonia" variant="outline">
                   Ζωντανή Βοήθεια
                 </Button>
               </div>
