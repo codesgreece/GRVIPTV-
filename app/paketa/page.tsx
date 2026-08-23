@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageHero } from "@/components/PageHero";
 import { PricingSection } from "@/components/PricingSection";
+import { ResellersSection } from "@/components/ResellersSection";
 
 export const metadata: Metadata = {
   title: "Πακέτα",
@@ -17,6 +18,7 @@ export default function PaketaPage() {
         description="Απλή τιμολόγηση, άμεση ενεργοποίηση και πλήρης πρόσβαση σε κανάλια, ταινίες και σειρές."
       />
       <PricingSection showHeading={false} />
+      <ResellersSection />
     </>
   );
 }

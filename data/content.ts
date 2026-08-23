@@ -62,6 +62,30 @@ export const pricingPlans = [
   },
 ] as const;
 
+export const resellersAdmin = {
+  name: "GREEK VIPTV ADMIN",
+  role: "Head Admin Founder",
+  badge: "Official Admin",
+} as const;
+
+export const resellersPartners = [
+  {
+    id: "dimos-leonidiou",
+    name: "DIMOS LEONIDIOU",
+    avgMonthlyClients: 280,
+  },
+  {
+    id: "giannis-kalaouris",
+    name: "Γιάννης Καλαούρης",
+    avgMonthlyClients: 176,
+  },
+  {
+    id: "andreas-leontios",
+    name: "Ανδρέας Λεώντιος",
+    avgMonthlyClients: 345,
+  },
+] as const;
+
 export const stats = [
   {
     id: "gr-channels",

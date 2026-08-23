@@ -6,6 +6,7 @@ import { FeaturesSection } from "@/components/FeaturesSection";
 import { Hero } from "@/components/Hero";
 import { LogosCarousel } from "@/components/LogosCarousel";
 import { PricingSection } from "@/components/PricingSection";
+import { ResellersSection } from "@/components/ResellersSection";
 import { SetupPreview } from "@/components/SetupPreview";
 import { StatsSection } from "@/components/StatsSection";
 
@@ -17,6 +18,7 @@ export default function HomePage() {
       <LogosCarousel />
       <FeaturesSection />
       <PricingSection />
+      <ResellersSection />
       <SetupPreview />
       <AppsSection />
       <DevicesSection />
