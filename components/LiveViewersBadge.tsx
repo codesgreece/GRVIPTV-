@@ -6,9 +6,9 @@ import { cn } from "@/lib/cn";
 
 const MIN_VIEWERS = 297;
 const MAX_VIEWERS = 784;
-const MIN_STEP_MS = 40;
-const MAX_STEP_MS = 70;
-const TARGET_ANIMATION_MS = 1200;
+const MIN_STEP_MS = 55;
+const MAX_STEP_MS = 85;
+const TARGET_ANIMATION_MS = 1600;
 
 function randomInRange(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -24,19 +24,22 @@ function stepDelayMs(steps: number) {
   return Math.max(MIN_STEP_MS, Math.min(MAX_STEP_MS, Math.round(TARGET_ANIMATION_MS / steps)));
 }
 
-function useSteppedCount(target: number, reduce: boolean | null) {
+function useSteppedCount(target: number) {
   const [display, setDisplay] = useState(target);
   const displayRef = useRef(target);
+  const nodeRef = useRef<HTMLSpanElement>(null);
   const timerRef = useRef<number | undefined>(undefined);
+
+  const writeCount = (value: number) => {
+    displayRef.current = value;
+    setDisplay(value);
+    if (nodeRef.current) {
+      nodeRef.current.textContent = value.toLocaleString("el-GR");
+    }
+  };
 
   useEffect(() => {
     window.clearInterval(timerRef.current);
-
-    if (reduce) {
-      displayRef.current = target;
-      setDisplay(target);
-      return;
-    }
 
     const from = displayRef.current;
     if (from === target) return;
@@ -49,8 +52,7 @@ function useSteppedCount(target: number, reduce: boolean | null) {
     timerRef.current = window.setInterval(() => {
       step += 1;
       const next = from + direction * step;
-      displayRef.current = next;
-      setDisplay(next);
+      writeCount(next);
 
       if (step >= steps) {
         window.clearInterval(timerRef.current);
@@ -58,9 +60,9 @@ function useSteppedCount(target: number, reduce: boolean | null) {
     }, delay);
 
     return () => window.clearInterval(timerRef.current);
-  }, [reduce, target]);
+  }, [target]);
 
-  return display;
+  return { display, nodeRef };
 }
 
 type LiveViewersBadgeProps = {
@@ -70,7 +72,7 @@ type LiveViewersBadgeProps = {
 export function LiveViewersBadge({ className }: LiveViewersBadgeProps) {
   const reduce = useReducedMotion();
   const [targetCount, setTargetCount] = useState(() => randomInRange(MIN_VIEWERS, MAX_VIEWERS));
-  const displayCount = useSteppedCount(targetCount, reduce);
+  const { display: displayCount, nodeRef } = useSteppedCount(targetCount);
 
   useEffect(() => {
     const tick = () => {
@@ -102,7 +104,10 @@ export function LiveViewersBadge({ className }: LiveViewersBadgeProps) {
         ΠΑΡΑΚΟΛΟΥΘΟΥΝ ΤΩΡΑ LIVE
       </span>
 
-      <span className="font-ui text-sm font-bold tabular-nums text-emerald-300">
+      <span
+        ref={nodeRef}
+        className="font-ui text-sm font-bold tabular-nums text-emerald-300 transition-opacity duration-150"
+      >
         {displayCount.toLocaleString("el-GR")}
       </span>
     </div>
