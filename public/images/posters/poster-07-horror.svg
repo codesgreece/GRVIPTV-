@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <defs>
+    <linearGradient id="bgposter07horror" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0%" stop-color="#181010"/>
+      <stop offset="100%" stop-color="#080808"/>
+    </linearGradient>
+    <radialGradient id="glowposter07horror" cx="50%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#8b0000" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#080808" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="200" height="300" fill="url(#bgposter07horror)"/>
+  <rect width="200" height="300" fill="url(#glowposter07horror)"/>
+  
+      <path d="M100 70 Q130 120 100 180 Q70 120 100 70" fill="#000" opacity="0.5"/>
+      <circle cx="100" cy="110" r="8" fill="#8b0000" opacity="0.6"/>
+  <rect width="200" height="80" y="220" fill="url(#bgposter07horror)" opacity="0.55"/>
+  <rect width="200" height="300" fill="#000" opacity="0.08"/>
+</svg>

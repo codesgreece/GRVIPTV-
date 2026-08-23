@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <defs>
+    <linearGradient id="bgposter08crime" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0%" stop-color="#1c2430"/>
+      <stop offset="100%" stop-color="#0a0c10"/>
+    </linearGradient>
+    <radialGradient id="glowposter08crime" cx="50%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#64748b" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#0a0c10" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="200" height="300" fill="url(#bgposter08crime)"/>
+  <rect width="200" height="300" fill="url(#glowposter08crime)"/>
+  
+      <rect x="70" y="100" width="60" height="80" fill="#000" opacity="0.45" transform="rotate(8 100 140)"/>
+      <line x1="50" y1="220" x2="150" y2="200" stroke="#64748b" stroke-width="1.5" opacity="0.35"/>
+  <rect width="200" height="80" y="220" fill="url(#bgposter08crime)" opacity="0.55"/>
+  <rect width="200" height="300" fill="#000" opacity="0.08"/>
+</svg>

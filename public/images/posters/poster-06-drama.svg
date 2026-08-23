@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <defs>
+    <linearGradient id="bgposter06drama" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0%" stop-color="#382818"/>
+      <stop offset="100%" stop-color="#100c08"/>
+    </linearGradient>
+    <radialGradient id="glowposter06drama" cx="50%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#FFD978" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#100c08" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="200" height="300" fill="url(#bgposter06drama)"/>
+  <rect width="200" height="300" fill="url(#glowposter06drama)"/>
+  
+      <rect x="60" y="80" width="80" height="100" rx="4" fill="#000" opacity="0.35"/>
+      <line x1="70" y1="240" x2="130" y2="240" stroke="#FFD978" stroke-width="2" opacity="0.4"/>
+  <rect width="200" height="80" y="220" fill="url(#bgposter06drama)" opacity="0.55"/>
+  <rect width="200" height="300" fill="#000" opacity="0.08"/>
+</svg>

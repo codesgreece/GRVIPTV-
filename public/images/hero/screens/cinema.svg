@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">
+  <defs>
+    <linearGradient id="skycinema" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#301818"/>
+      <stop offset="55%" stop-color="#201010"/>
+      <stop offset="100%" stop-color="#100808"/>
+    </linearGradient>
+    <radialGradient id="glowcinema" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#d4a72c" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#100808" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="lightscinema" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  
+      <rect width="320" height="180" fill="url(#skycinema)"/>
+      <path d="M0 100 L320 85 L320 180 L0 180 Z" fill="#0a0606"/>
+      <ellipse cx="160" cy="70" rx="100" ry="35" fill="url(#glowcinema)" opacity="0.35"/>
+      <rect x="130" y="55" width="60" height="70" fill="#111" opacity="0.7"/>
+      <ellipse cx="160" cy="50" rx="20" ry="22" fill="#222"/>
+      <path d="M100 130 L160 90 L220 130 Z" fill="#1a1010" opacity="0.8"/>
+      <line x1="0" y1="60" x2="320" y2="45" stroke="#d4a72c" stroke-width="0.5" opacity="0.2"/>
+
+  <rect width="320" height="180" fill="#000" opacity="0.06"/>
+</svg>

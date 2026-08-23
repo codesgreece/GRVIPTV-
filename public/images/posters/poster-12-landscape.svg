@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <defs>
+    <linearGradient id="bgposter12landscape" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0%" stop-color="#142038"/>
+      <stop offset="100%" stop-color="#080c14"/>
+    </linearGradient>
+    <radialGradient id="glowposter12landscape" cx="50%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#080c14" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="200" height="300" fill="url(#bgposter12landscape)"/>
+  <rect width="200" height="300" fill="url(#glowposter12landscape)"/>
+  
+      <path d="M0 180 Q50 120 100 150 T200 130 L200 300 L0 300 Z" fill="#60a5fa" opacity="0.2"/>
+      <circle cx="150" cy="60" r="20" fill="#60a5fa" opacity="0.25"/>
+  <rect width="200" height="80" y="220" fill="url(#bgposter12landscape)" opacity="0.55"/>
+  <rect width="200" height="300" fill="#000" opacity="0.08"/>
+</svg>

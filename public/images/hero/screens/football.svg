@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">
+  <defs>
+    <linearGradient id="skyfootball" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#1a4018"/>
+      <stop offset="55%" stop-color="#0f2810"/>
+      <stop offset="100%" stop-color="#061208"/>
+    </linearGradient>
+    <radialGradient id="glowfootball" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#4ade80" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#061208" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="lightsfootball" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  
+      <rect width="320" height="180" fill="url(#skyfootball)"/>
+      <ellipse cx="160" cy="200" rx="200" ry="80" fill="#0a1808"/>
+      <rect x="0" y="95" width="320" height="85" fill="#143818"/>
+      <line x1="0" y1="130" x2="320" y2="130" stroke="#fff" stroke-width="1.5" opacity="0.25"/>
+      <circle cx="160" cy="130" r="28" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.2"/>
+      <ellipse cx="90" cy="118" rx="8" ry="14" fill="#111" opacity="0.85"/>
+      <ellipse cx="110" cy="112" rx="7" ry="12" fill="#222" opacity="0.8"/>
+      <ellipse cx="200" cy="115" rx="8" ry="14" fill="#111" opacity="0.85"/>
+      <ellipse cx="220" cy="108" rx="7" ry="12" fill="#333" opacity="0.75"/>
+      <circle cx="160" cy="128" r="4" fill="#fff" opacity="0.5"/>
+      <rect x="0" y="0" width="320" height="50" fill="url(#lightsfootball)"/>
+
+  <rect width="320" height="180" fill="#000" opacity="0.06"/>
+</svg>

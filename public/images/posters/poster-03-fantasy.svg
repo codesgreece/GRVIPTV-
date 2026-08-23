@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <defs>
+    <linearGradient id="bgposter03fantasy" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0%" stop-color="#2a1450"/>
+      <stop offset="100%" stop-color="#0d0818"/>
+    </linearGradient>
+    <radialGradient id="glowposter03fantasy" cx="50%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#9b59b6" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#0d0818" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="200" height="300" fill="url(#bgposter03fantasy)"/>
+  <rect width="200" height="300" fill="url(#glowposter03fantasy)"/>
+  
+      <polygon points="100,50 115,90 155,95 120,120 130,160 100,135 70,160 80,120 45,95 85,90" fill="#9b59b6" opacity="0.25"/>
+      <circle cx="100" cy="200" r="30" fill="#9b59b6" opacity="0.12"/>
+  <rect width="200" height="80" y="220" fill="url(#bgposter03fantasy)" opacity="0.55"/>
+  <rect width="200" height="300" fill="#000" opacity="0.08"/>
+</svg>

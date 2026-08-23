@@ -1,0 +1,233 @@
+export type HeroMiniScreen = {
+  id: string;
+  image: string;
+  alt: string;
+  position: {
+    top: string;
+    left: string;
+  };
+  width: number;
+  rotation: number;
+  zIndex: 1 | 2 | 3 | 4;
+  opacity: number;
+  blur?: number;
+  scale: number;
+  animationDelay: number;
+  floatDuration?: number;
+  floatY?: number;
+  hideBelow?: "sm" | "md" | "lg" | "xl";
+};
+
+/** 11 mini TVs layered around the main hero screen */
+export const heroMiniScreens: HeroMiniScreen[] = [
+  // Top left
+  {
+    id: "tl-1",
+    image: "/images/hero/screens/football.svg",
+    alt: "Ποδοσφαιρικός αγώνας σε mini οθόνη",
+    position: { top: "2%", left: "4%" },
+    width: 118,
+    rotation: -5,
+    zIndex: 2,
+    opacity: 0.92,
+    scale: 0.95,
+    animationDelay: 0.06,
+    floatDuration: 7.2,
+    floatY: 4,
+  },
+  {
+    id: "tl-2",
+    image: "/images/hero/screens/basketball.svg",
+    alt: "Μπασκετικός αγώνας σε mini οθόνη",
+    position: { top: "14%", left: "12%" },
+    width: 108,
+    rotation: -3,
+    zIndex: 1,
+    opacity: 0.78,
+    blur: 0.5,
+    scale: 0.88,
+    animationDelay: 0.12,
+    floatDuration: 6.8,
+    floatY: 5,
+    hideBelow: "sm",
+  },
+  // Top center / behind main TV
+  {
+    id: "tc-1",
+    image: "/images/hero/screens/action.svg",
+    alt: "Cinematic action scene σε mini οθόνη",
+    position: { top: "0%", left: "30%" },
+    width: 124,
+    rotation: 2,
+    zIndex: 3,
+    opacity: 0.88,
+    scale: 0.92,
+    animationDelay: 0.18,
+    floatDuration: 7.5,
+    floatY: 3,
+  },
+  {
+    id: "tc-2",
+    image: "/images/hero/screens/drama.svg",
+    alt: "Premium drama scene σε mini οθόνη",
+    position: { top: "6%", left: "48%" },
+    width: 116,
+    rotation: -2,
+    zIndex: 4,
+    opacity: 0.95,
+    scale: 0.98,
+    animationDelay: 0.22,
+    floatDuration: 6.5,
+    floatY: 4,
+  },
+  {
+    id: "tc-3",
+    image: "/images/hero/screens/fantasy.svg",
+    alt: "Fantasy adventure scene σε mini οθόνη",
+    position: { top: "3%", left: "62%" },
+    width: 112,
+    rotation: 4,
+    zIndex: 2,
+    opacity: 0.82,
+    blur: 0.4,
+    scale: 0.9,
+    animationDelay: 0.28,
+    floatDuration: 8,
+    floatY: 5,
+    hideBelow: "md",
+  },
+  // Top right
+  {
+    id: "tr-1",
+    image: "/images/hero/screens/racing.svg",
+    alt: "Racing action σε mini οθόνη",
+    position: { top: "1%", left: "78%" },
+    width: 120,
+    rotation: 6,
+    zIndex: 2,
+    opacity: 0.9,
+    scale: 0.94,
+    animationDelay: 0.32,
+    floatDuration: 7,
+    floatY: 4,
+  },
+  {
+    id: "tr-2",
+    image: "/images/hero/screens/stadium.svg",
+    alt: "Αθλητική στιγμή σε γεμάτο γήπεδο",
+    position: { top: "16%", left: "84%" },
+    width: 104,
+    rotation: -4,
+    zIndex: 1,
+    opacity: 0.75,
+    blur: 0.6,
+    scale: 0.86,
+    animationDelay: 0.38,
+    floatDuration: 6.6,
+    floatY: 6,
+    hideBelow: "lg",
+  },
+  // Left side
+  {
+    id: "l-1",
+    image: "/images/hero/screens/cinema.svg",
+    alt: "Cinematic movie scene σε mini οθόνη",
+    position: { top: "38%", left: "-1%" },
+    width: 114,
+    rotation: -8,
+    zIndex: 2,
+    opacity: 0.85,
+    scale: 0.9,
+    animationDelay: 0.44,
+    floatDuration: 7.8,
+    floatY: 5,
+  },
+  {
+    id: "l-2",
+    image: "/images/hero/screens/tennis.svg",
+    alt: "Αθλητική σκηνή σε mini οθόνη",
+    position: { top: "58%", left: "3%" },
+    width: 100,
+    rotation: -3,
+    zIndex: 1,
+    opacity: 0.72,
+    blur: 0.8,
+    scale: 0.84,
+    animationDelay: 0.5,
+    floatDuration: 6.4,
+    floatY: 4,
+    hideBelow: "md",
+  },
+  // Right side
+  {
+    id: "r-1",
+    image: "/images/hero/screens/scifi.svg",
+    alt: "Sci-fi cinematic scene σε mini οθόνη",
+    position: { top: "36%", left: "80%" },
+    width: 118,
+    rotation: 5,
+    zIndex: 3,
+    opacity: 0.88,
+    scale: 0.93,
+    animationDelay: 0.56,
+    floatDuration: 7.2,
+    floatY: 5,
+  },
+  {
+    id: "r-2",
+    image: "/images/hero/screens/documentary.svg",
+    alt: "Cinematic series scene σε mini οθόνη",
+    position: { top: "56%", left: "86%" },
+    width: 106,
+    rotation: -2,
+    zIndex: 2,
+    opacity: 0.8,
+    blur: 0.5,
+    scale: 0.88,
+    animationDelay: 0.62,
+    floatDuration: 6.9,
+    floatY: 4,
+    hideBelow: "xl",
+  },
+  // Bottom
+  {
+    id: "b-1",
+    image: "/images/hero/screens/stadium.svg",
+    alt: "Live sports broadcast σε mini οθόνη",
+    position: { top: "76%", left: "22%" },
+    width: 96,
+    rotation: -2,
+    zIndex: 1,
+    opacity: 0.68,
+    blur: 1,
+    scale: 0.82,
+    animationDelay: 0.68,
+    floatDuration: 7.4,
+    floatY: 3,
+    hideBelow: "sm",
+  },
+  {
+    id: "b-2",
+    image: "/images/hero/screens/action.svg",
+    alt: "Action movie scene σε mini οθόνη",
+    position: { top: "80%", left: "64%" },
+    width: 92,
+    rotation: 3,
+    zIndex: 1,
+    opacity: 0.65,
+    blur: 1.2,
+    scale: 0.8,
+    animationDelay: 0.74,
+    floatDuration: 6.7,
+    floatY: 3,
+    hideBelow: "md",
+  },
+];
+
+export const mobileHiddenMiniScreenIds = new Set([
+  "tl-2",
+  "tc-3",
+  "tr-2",
+  "r-2",
+  "b-2",
+]);

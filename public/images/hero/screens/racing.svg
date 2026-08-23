@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">
+  <defs>
+    <linearGradient id="skyracing" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#1c1c1c"/>
+      <stop offset="55%" stop-color="#141414"/>
+      <stop offset="100%" stop-color="#080808"/>
+    </linearGradient>
+    <radialGradient id="glowracing" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ef4444" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#080808" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="lightsracing" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  
+      <rect width="320" height="180" fill="url(#skyracing)"/>
+      <path d="M0 130 Q160 110 320 125 L320 180 L0 180 Z" fill="#111"/>
+      <path d="M0 140 L320 135" stroke="#fff" stroke-width="2" opacity="0.15" stroke-dasharray="20 10"/>
+      <rect x="60" y="115" width="50" height="14" rx="4" fill="#222" transform="skewX(-20)"/>
+      <rect x="65" y="118" width="8" height="8" rx="2" fill="#ef4444" opacity="0.9"/>
+      <rect x="180" y="120" width="55" height="15" rx="4" fill="#333" transform="skewX(-15)"/>
+      <rect x="185" y="123" width="8" height="8" rx="2" fill="#ffd978" opacity="0.8"/>
+      <ellipse cx="100" cy="122" rx="30" ry="8" fill="#f97316" opacity="0.15"/>
+      <ellipse cx="210" cy="127" rx="35" ry="8" fill="#ef4444" opacity="0.12"/>
+
+  <rect width="320" height="180" fill="#000" opacity="0.06"/>
+</svg>

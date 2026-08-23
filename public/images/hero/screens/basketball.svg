@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">
+  <defs>
+    <linearGradient id="skybasketball" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#2a1830"/>
+      <stop offset="55%" stop-color="#1a1020"/>
+      <stop offset="100%" stop-color="#0a0810"/>
+    </linearGradient>
+    <radialGradient id="glowbasketball" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f97316" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#0a0810" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="lightsbasketball" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  
+      <rect width="320" height="180" fill="url(#skybasketball)"/>
+      <ellipse cx="160" cy="210" rx="180" ry="60" fill="#0d0812"/>
+      <rect x="20" y="60" width="280" height="100" fill="#1a1220" opacity="0.6"/>
+      <rect x="130" y="30" width="60" height="4" fill="#555"/>
+      <rect x="155" y="30" width="10" height="50" fill="#666"/>
+      <ellipse cx="160" cy="78" rx="28" ry="6" fill="none" stroke="#f97316" stroke-width="2" opacity="0.7"/>
+      <ellipse cx="160" cy="95" rx="12" ry="22" fill="#111"/>
+      <ellipse cx="160" cy="72" rx="10" ry="10" fill="#222"/>
+      <path d="M148 95 L160 55 L172 95" fill="#333" opacity="0.9"/>
+      <circle cx="250" cy="40" r="20" fill="url(#glowbasketball)" opacity="0.5"/>
+      <circle cx="70" cy="45" r="15" fill="url(#glowbasketball)" opacity="0.35"/>
+
+  <rect width="320" height="180" fill="#000" opacity="0.06"/>
+</svg>

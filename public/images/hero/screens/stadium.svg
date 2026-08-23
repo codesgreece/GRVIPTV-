@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">
+  <defs>
+    <linearGradient id="skystadium" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#182028"/>
+      <stop offset="55%" stop-color="#101820"/>
+      <stop offset="100%" stop-color="#081008"/>
+    </linearGradient>
+    <radialGradient id="glowstadium" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#22c55e" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#081008" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="lightsstadium" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  
+      <rect width="320" height="180" fill="url(#skystadium)"/>
+      <ellipse cx="160" cy="200" rx="220" ry="90" fill="#0a1208"/>
+      <path d="M20 100 Q160 60 300 100 L300 180 L20 180 Z" fill="#143018"/>
+      <ellipse cx="160" cy="95" rx="140" ry="25" fill="#000" opacity="0.35"/>
+      <circle cx="80" cy="88" r="3" fill="#fff" opacity="0.4"/>
+      <circle cx="120" cy="85" r="3" fill="#fff" opacity="0.35"/>
+      <circle cx="200" cy="86" r="3" fill="#fff" opacity="0.4"/>
+      <circle cx="240" cy="88" r="3" fill="#fff" opacity="0.35"/>
+      <circle cx="160" cy="82" r="3" fill="#fff" opacity="0.45"/>
+      <rect x="0" y="0" width="320" height="40" fill="url(#lightsstadium)" opacity="0.5"/>
+
+  <rect width="320" height="180" fill="#000" opacity="0.06"/>
+</svg>

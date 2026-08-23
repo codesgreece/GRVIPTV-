@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">
+  <defs>
+    <linearGradient id="skydrama" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#182038"/>
+      <stop offset="55%" stop-color="#101828"/>
+      <stop offset="100%" stop-color="#080c14"/>
+    </linearGradient>
+    <radialGradient id="glowdrama" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#080c14" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="lightsdrama" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  
+      <rect width="320" height="180" fill="url(#skydrama)"/>
+      <rect x="0" y="100" width="320" height="80" fill="#060810"/>
+      <ellipse cx="100" cy="110" rx="18" ry="28" fill="#111"/>
+      <ellipse cx="100" cy="88" rx="14" ry="14" fill="#1a2030"/>
+      <ellipse cx="220" cy="108" rx="16" ry="26" fill="#151820"/>
+      <ellipse cx="220" cy="88" rx="13" ry="13" fill="#202830"/>
+      <rect x="60" y="130" width="200" height="2" fill="#d4a72c" opacity="0.3"/>
+      <circle cx="280" cy="40" r="25" fill="url(#glowdrama)" opacity="0.2"/>
+      <rect x="0" y="0" width="120" height="180" fill="#000" opacity="0.25"/>
+
+  <rect width="320" height="180" fill="#000" opacity="0.06"/>
+</svg>

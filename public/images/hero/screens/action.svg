@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">
+  <defs>
+    <linearGradient id="skyaction" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#401808"/>
+      <stop offset="55%" stop-color="#281008"/>
+      <stop offset="100%" stop-color="#120808"/>
+    </linearGradient>
+    <radialGradient id="glowaction" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f97316" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#120808" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="lightsaction" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  
+      <rect width="320" height="180" fill="url(#skyaction)"/>
+      <ellipse cx="200" cy="100" rx="120" ry="80" fill="url(#glowaction)" opacity="0.45"/>
+      <ellipse cx="80" cy="120" rx="60" ry="40" fill="#ff6600" opacity="0.25"/>
+      <rect x="40" y="100" width="30" height="50" fill="#111" opacity="0.9" transform="rotate(-15 55 125)"/>
+      <rect x="200" y="90" width="25" height="45" fill="#222" opacity="0.85" transform="rotate(10 212 112)"/>
+      <path d="M0 140 L320 120 L320 180 L0 180 Z" fill="#0a0604"/>
+      <line x1="120" y1="60" x2="200" y2="90" stroke="#ffd978" stroke-width="2" opacity="0.4"/>
+      <line x1="180" y1="50" x2="240" y2="80" stroke="#f97316" stroke-width="1.5" opacity="0.5"/>
+
+  <rect width="320" height="180" fill="#000" opacity="0.06"/>
+</svg>
