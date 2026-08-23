@@ -16,7 +16,7 @@ export function HeroVisual() {
       </div>
 
       {/* Composition stage — widescreen canvas for TV + mini screens */}
-      <div className="relative aspect-[16/10] w-full min-h-[240px] overflow-hidden sm:aspect-[16/11] sm:min-h-[340px] md:aspect-[16/10.5] md:min-h-[460px] lg:min-h-[520px] xl:min-h-[580px]">
+      <div className="relative aspect-[16/10] w-full min-h-[200px] overflow-hidden sm:aspect-[16/11] sm:min-h-[340px] md:aspect-[16/10.5] md:min-h-[460px] lg:min-h-[520px] xl:min-h-[580px]">
         <div className="max-sm:hidden">
           <MiniScreenWall />
         </div>
