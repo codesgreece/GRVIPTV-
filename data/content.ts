@@ -118,6 +118,54 @@ export const guaranteeStrip = {
   ],
 } as const;
 
+export const audiencePersonas = [
+  {
+    id: "family",
+    label: "Οικογένεια",
+    title: "Όλοι μαζί, μία οθόνη τη φορά",
+    description:
+      "Κανάλια, ταινίες και σειρές για κάθε ηλικία. Ρύθμισέ το σε Smart TV, tablet ή κινητό και απόλαυσε premium ψυχαγωγία στο σαλόνι.",
+    highlights: [
+      "226+ ελληνικά κανάλια",
+      "4.492+ ταινίες & σειρές",
+      "Πολλαπλές συσκευές ταυτόχρονα",
+    ],
+    accent: "gold" as const,
+    icon: "home" as const,
+    featured: false,
+  },
+  {
+    id: "sports",
+    label: "Φίλος του Αθλητισμού",
+    title: "Κάθε αγώνας, ζωντανά",
+    description:
+      "Super League, Champions League, EuroLeague, Formula 1 και αθλητικά από όλο τον κόσμο — Full HD & 4K χωρίς buffering.",
+    highlights: [
+      "Premium αθλητικά κανάλια",
+      "Live events χωρίς καθυστέρηση",
+      "Καθημερινή κάλυψη αγώνων",
+    ],
+    accent: "blue" as const,
+    icon: "trophy" as const,
+    featured: true,
+  },
+  {
+    id: "diaspora",
+    label: "Ο Ξενιτεμένος",
+    title: "Η Ελλάδα, όπου κι αν είσαι",
+    description:
+      "Από Γερμανία, Αγγλία, Βέλγιο ή οπουδήποτε στην Ευρώπη — δες ελληνικά κανάλια, ειδήσεις και σειρές σαν να είσαι στο σπίτι.",
+    highlights: [
+      "Ελληνικό περιεχόμενο παντού",
+      "Stable streaming από το εξωτερικό",
+      "Εύκολη εγκατάσταση σε 5 λεπτά",
+    ],
+    accent: "emerald" as const,
+    icon: "globe" as const,
+    featured: false,
+  },
+] as const;
+
 export const resellersAdmin = {
   name: "GREEK VIPTV ADMIN",
   role: "Head Admin Founder",

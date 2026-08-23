@@ -12,6 +12,7 @@ import { ReferralSection } from "@/components/ReferralSection";
 import { ResellersSection } from "@/components/ResellersSection";
 import { SetupPreview } from "@/components/SetupPreview";
 import { StatsSection } from "@/components/StatsSection";
+import { WhoIsItForSection } from "@/components/WhoIsItForSection";
 
 export default function HomePage() {
   return (
@@ -20,6 +21,7 @@ export default function HomePage() {
       <StatsSection />
       <LogosCarousel />
       <FeaturesSection />
+      <WhoIsItForSection />
       <PricingSection />
       <ResellersSection />
       <BecomeResellerSection />
