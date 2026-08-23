@@ -22,17 +22,15 @@ function ReferralSectionContent() {
   const incomingRef = searchParams.get("ref")?.trim().toUpperCase();
   const [copied, setCopied] = useState(false);
 
-  const demoCode = incomingRef || "GRVIP-YOURCODE";
   const shareUrl = useMemo(() => {
-    if (typeof window === "undefined") {
-      return `https://grviptv.vercel.app/paketa?ref=${demoCode}`;
-    }
+    if (!incomingRef || typeof window === "undefined") return null;
     const url = new URL("/paketa", window.location.origin);
-    url.searchParams.set("ref", demoCode);
+    url.searchParams.set("ref", incomingRef);
     return url.toString();
-  }, [demoCode]);
+  }, [incomingRef]);
 
   const onCopy = async () => {
+    if (!shareUrl) return;
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
@@ -85,41 +83,43 @@ function ReferralSectionContent() {
           ))}
         </div>
 
-        <Reveal delay={0.2} className="mx-auto mt-10 max-w-3xl">
-          <div className="rounded-2xl border border-white/10 bg-[#0B0B0B] p-5 sm:p-6">
-            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
-              <Link2 className="h-4 w-4 text-gold" />
-              Το link που μοιράζεσαι
-            </div>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <code className="flex-1 truncate rounded-lg border border-white/10 bg-black/50 px-4 py-3 text-sm text-emerald-300">
-                {shareUrl}
-              </code>
-              <button
-                type="button"
-                onClick={onCopy}
-                className={cn(
-                  "inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-semibold transition",
-                  copied
-                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
-                    : "border-white/15 bg-white/5 text-white hover:border-gold/40",
-                )}
-              >
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {copied ? "Αντιγράφηκε" : "Αντιγραφή"}
-              </button>
-            </div>
-            {incomingRef ? (
+        {incomingRef && shareUrl ? (
+          <Reveal delay={0.2} className="mx-auto mt-10 max-w-3xl">
+            <div className="rounded-2xl border border-white/10 bg-[#0B0B0B] p-5 sm:p-6">
+              <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
+                <Link2 className="h-4 w-4 text-gold" />
+                Το link που μοιράζεσαι
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <code className="flex-1 truncate rounded-lg border border-white/10 bg-black/50 px-4 py-3 text-sm text-emerald-300">
+                  {shareUrl}
+                </code>
+                <button
+                  type="button"
+                  onClick={onCopy}
+                  className={cn(
+                    "inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-semibold transition",
+                    copied
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                      : "border-white/15 bg-white/5 text-white hover:border-gold/40",
+                  )}
+                >
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copied ? "Αντιγράφηκε" : "Αντιγραφή"}
+                </button>
+              </div>
               <p className="mt-3 text-sm text-emerald-300">
-                Βρήκαμε referral code στη διεύθυνση: <strong>{incomingRef}</strong>
+                Ενεργός referral κωδικός: <strong>{incomingRef}</strong>
               </p>
-            ) : (
-              <p className="mt-3 text-sm text-text-dim">
-                Το παραπάνω είναι παράδειγμα. Μετά την αγορά θα λάβεις τον δικό σου κωδικό.
-              </p>
-            )}
-          </div>
-        </Reveal>
+            </div>
+          </Reveal>
+        ) : (
+          <Reveal delay={0.2} className="mx-auto mt-10 max-w-3xl">
+            <p className="rounded-2xl border border-white/10 bg-[#0B0B0B] px-5 py-4 text-center text-sm text-text-muted sm:text-base">
+              Μετά την αγορά θα λάβεις τον προσωπικό σου κωδικό και το link σου μέσω WhatsApp.
+            </p>
+          </Reveal>
+        )}
 
         <Reveal delay={0.24} className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button href={referralWhatsAppUrl()} className="font-extrabold">

@@ -88,7 +88,7 @@ export const referralProgram = {
       id: "get-code",
       title: "Πάρε τον κωδικό σου",
       description:
-        "Μετά την αγορά, σου στέλνουμε προσωπικό referral code (π.χ. GRVIP-CHARIS).",
+        "Μετά την αγορά, σου στέλνουμε προσωπικό referral code μέσω WhatsApp.",
     },
     {
       id: "share",
