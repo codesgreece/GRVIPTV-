@@ -245,11 +245,11 @@ h6 {
 }
 
 .animate-marquee {
-  animation: marquee 70s linear infinite;
+  animation: marquee 320s linear infinite;
 }
 
 .animate-marquee-reverse {
-  animation: marquee-reverse 78s linear infinite;
+  animation: marquee-reverse 380s linear infinite;
 }
 
 .marquee-mask {
