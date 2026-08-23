@@ -5,7 +5,7 @@ import { PricingSection } from "@/components/PricingSection";
 export const metadata: Metadata = {
   title: "Πακέτα",
   description:
-    "Επιλέξτε το ιδανικό πακέτο GRVIP OTT — 1 μήνας, 3 μήνες ή 12 μήνες με πλήρη πρόσβαση.",
+    "Επιλέξτε το ιδανικό πακέτο GRVIP OTT — 1, 3, 6 ή 12 μήνες με πλήρη πρόσβαση και προσφορές.",
 };
 
 export default function PaketaPage() {
