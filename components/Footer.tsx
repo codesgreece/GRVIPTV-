@@ -2,21 +2,21 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import {
   FacebookIcon,
   InstagramIcon,
   YoutubeIcon,
 } from "@/components/icons/SocialIcons";
+import { FooterPaymentMethods } from "@/components/FooterPaymentMethods";
 import { contactConfig } from "@/lib/contact";
 import { footerNav } from "@/lib/navigation";
-import { paysafeCardLinks } from "@/data/content";
 
 export function Footer() {
   return (
     <footer className="relative mt-8 border-t border-gold/15 bg-[#080808]">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
-      <div className="container-premium grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-5 lg:gap-8">
+      <div className="container-premium grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
         <div className="lg:col-span-1">
           <Image
             src="/images/logo.png"
@@ -65,46 +65,10 @@ export function Footer() {
         <FooterColumn title="Πλοήγηση" links={footerNav.navigation} />
         <FooterColumn title="Πληροφορίες" links={footerNav.info} />
         <FooterColumn title="Υποστήριξη" links={footerNav.support} />
+      </div>
 
-        <div>
-          <h3 className="mb-4 text-xs font-semibold tracking-[0.18em] text-gold uppercase">
-            Τρόποι Πληρωμής
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {["Paysafe Card", "Binance Card"].map((method) => (
-              <span
-                key={method}
-                className="rounded-md border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-text-dim"
-              >
-                {method}
-              </span>
-            ))}
-          </div>
-
-          <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.02] p-4">
-            <p className="text-sm font-semibold text-white">
-              Προμηθεύσου τις κάρτες σου από εδώ:
-            </p>
-            <p className="mt-3 text-xs font-bold tracking-[0.12em] text-gold uppercase">
-              Paysafe
-            </p>
-            <ul className="mt-2 space-y-2">
-              {paysafeCardLinks.map((link) => (
-                <li key={link.label}>
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-sm text-text-muted transition hover:text-gold"
-                  >
-                    {link.label}
-                    <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-70" />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+      <div className="container-premium pb-10">
+        <FooterPaymentMethods />
       </div>
 
       <div className="border-t border-white/10">
