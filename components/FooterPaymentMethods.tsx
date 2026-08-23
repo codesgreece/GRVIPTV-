@@ -73,16 +73,20 @@ export function FooterPaymentMethods() {
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 sm:gap-3">
             {paysafeCardLinks.map((link) => (
               <a
                 key={link.amount}
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative rounded-xl border border-white/8 bg-[#0B0B0B] p-2.5 transition duration-300 hover:-translate-y-0.5 hover:border-sky-400/45 hover:shadow-[0_12px_28px_rgba(14,165,233,0.2)]"
+                className="group relative rounded-xl border border-white/8 bg-[#0B0B0B] p-2 transition duration-300 hover:-translate-y-0.5 hover:border-sky-400/45 hover:shadow-[0_12px_28px_rgba(14,165,233,0.2)] sm:p-2.5"
               >
-                <PaysafeCardVisual amount={link.amount} className="mx-auto w-[112px]" />
+                <PaysafeCardVisual
+                  amount={link.amount}
+                  compact
+                  className="mx-auto max-w-[72px] sm:max-w-none"
+                />
                 <p className="mt-2 flex items-center justify-center gap-1 text-[11px] font-semibold text-text-dim transition group-hover:text-sky-300">
                   Αγορά
                   <ArrowUpRight className="h-3 w-3" />
