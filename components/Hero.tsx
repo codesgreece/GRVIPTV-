@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
 import { HeroVisual } from "@/components/HeroVisual";
+import { LiveViewersBadge } from "@/components/LiveViewersBadge";
 import { Button } from "@/components/ui/Button";
 
 const trustItems = [
@@ -56,10 +57,19 @@ export function Hero() {
           </motion.p>
 
           <motion.div
+            initial={reduce ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.24 }}
+            className="mt-4 sm:mt-5"
+          >
+            <LiveViewersBadge />
+          </motion.div>
+
+          <motion.div
             initial={reduce ? false : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.28 }}
-            className="mt-5 flex flex-col gap-2 min-[420px]:flex-row min-[420px]:items-stretch sm:mt-7 sm:gap-3"
+            className="mt-4 flex flex-col gap-2 min-[420px]:flex-row min-[420px]:items-stretch sm:mt-6 sm:gap-3"
           >
             <Button href="/paketa" className="w-full min-[420px]:flex-1">
               Ξεκινήστε Τώρα
