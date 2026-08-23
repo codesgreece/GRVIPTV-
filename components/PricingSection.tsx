@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { pricingPlans } from "@/data/content";
+import { telegramUrl } from "@/lib/contact";
 import { cn } from "@/lib/cn";
 
 type PricingSectionProps = {
@@ -77,7 +78,7 @@ export function PricingSection({ showHeading = true }: PricingSectionProps) {
                 </ul>
 
                 <Button
-                  href="/epikoinonia"
+                  href={telegramUrl()}
                   variant={plan.popular ? "gold" : "outline"}
                   fullWidth
                   className="mt-8 font-extrabold"

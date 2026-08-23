@@ -8,10 +8,6 @@ import { customerReviews, reviewsSummary, type Review } from "@/data/reviews";
 import { cn } from "@/lib/cn";
 
 const platformStyles = {
-  WhatsApp: {
-    label: "WhatsApp",
-    className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
-  },
   Telegram: {
     label: "Telegram",
     className: "border-sky-400/30 bg-sky-500/10 text-sky-300",
@@ -127,7 +123,7 @@ export function ReviewsSection() {
         <SectionHeading
           eyebrow="Κριτικές Πελατών"
           title="Τι Λένε οι Πελάτες μας"
-          description="Πραγματικές εμπειρίες από πελάτες που επικοινώνησαν μαζί μας μέσω WhatsApp, Telegram, Messenger και Viber."
+          description="Πραγματικές εμπειρίες από πελάτες που επικοινώνησαν μαζί μας μέσω Telegram, Messenger και Viber."
         />
 
         <Reveal className="mx-auto mb-10 flex max-w-3xl flex-col items-center justify-center gap-4 rounded-2xl border border-gold/25 bg-[#0A0A0A] px-6 py-5 sm:flex-row sm:gap-10">
@@ -151,7 +147,7 @@ export function ReviewsSection() {
           <div className="flex items-center gap-2 text-sm text-text-muted">
             <MessageCircle className="h-4 w-4 text-gold" />
             <Send className="h-4 w-4 text-gold" />
-            <span>WhatsApp · Telegram · Messenger · Viber</span>
+            <span>Telegram · Messenger · Viber</span>
           </div>
         </Reveal>
 

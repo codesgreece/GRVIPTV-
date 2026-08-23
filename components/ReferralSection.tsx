@@ -7,15 +7,8 @@ import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { referralProgram } from "@/data/content";
-import { contactConfig } from "@/lib/contact";
+import { telegramUrl } from "@/lib/contact";
 import { cn } from "@/lib/cn";
-
-function referralWhatsAppUrl(code?: string) {
-  const message = code
-    ? `Γεια! Ήρθα από referral code: ${code}. Θέλω να ενεργοποιήσω πακέτο GRVIP OTT.`
-    : "Γεια! Είμαι ήδη πελάτης και θέλω να πάρω τον προσωπικό μου referral code για το πρόγραμμα φίλων.";
-  return `${contactConfig.whatsapp}?text=${encodeURIComponent(message)}`;
-}
 
 function ReferralSectionContent() {
   const searchParams = useSearchParams();
@@ -116,18 +109,18 @@ function ReferralSectionContent() {
         ) : (
           <Reveal delay={0.2} className="mx-auto mt-10 max-w-3xl">
             <p className="rounded-2xl border border-white/10 bg-[#0B0B0B] px-5 py-4 text-center text-sm text-text-muted sm:text-base">
-              Μετά την αγορά θα λάβεις τον προσωπικό σου κωδικό και το link σου μέσω WhatsApp.
+              Μετά την αγορά θα λάβεις τον προσωπικό σου κωδικό και το link σου μέσω Telegram.
             </p>
           </Reveal>
         )}
 
         <Reveal delay={0.24} className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button href={referralWhatsAppUrl()} className="font-extrabold">
+          <Button href={telegramUrl()} className="font-extrabold">
             <MessageCircle className="h-4 w-4" />
             {referralProgram.ctaNew}
           </Button>
           <Button
-            href={referralWhatsAppUrl(incomingRef || undefined)}
+            href={telegramUrl()}
             variant="outline"
             className="font-extrabold"
           >

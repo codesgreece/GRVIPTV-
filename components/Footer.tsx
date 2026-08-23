@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { MessageCircle, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import {
   FacebookIcon,
   InstagramIcon,
@@ -36,11 +36,6 @@ export function Footer() {
                 label: "Facebook",
               },
               { href: contactConfig.telegram, icon: Send, label: "Telegram" },
-              {
-                href: contactConfig.whatsapp,
-                icon: MessageCircle,
-                label: "WhatsApp",
-              },
               {
                 href: contactConfig.instagram,
                 icon: InstagramIcon,

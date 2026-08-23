@@ -2,7 +2,7 @@ export type Review = {
   id: string;
   name: string;
   comment: string;
-  platform: "WhatsApp" | "Telegram" | "Messenger" | "Viber";
+  platform: "Telegram" | "Messenger" | "Viber";
   rating: 4.7 | 4.8 | 4.9 | 5;
 };
 
@@ -32,21 +32,21 @@ export const customerReviews: Review[] = [
     "id": "review-4",
     "name": "Νίκος",
     "comment": "Άψογη εμπειρία από την πρώτη μέρα",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.9
   },
   {
     "id": "review-5",
     "name": "Κώστας",
     "comment": "Ειλικρινά, πολύ καλύτερα από τις προσδοκίες",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 4.7
   },
   {
     "id": "review-6",
     "name": "Παναγιώτης",
     "comment": "Για ξενιτεμένους, σωτήριο",
-    "platform": "Messenger",
+    "platform": "Viber",
     "rating": 4.9
   },
   {
@@ -60,7 +60,7 @@ export const customerReviews: Review[] = [
     "id": "review-8",
     "name": "Χρήστος",
     "comment": "Γλύτωσα άπειρα λεφτά",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
@@ -81,14 +81,14 @@ export const customerReviews: Review[] = [
     "id": "review-11",
     "name": "Μιχάλης",
     "comment": "Μου έλυσαν το θέμα σε λίγα λεπτά",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.9
   },
   {
     "id": "review-12",
     "name": "Αλέξανδρος",
     "comment": "Πολύ επαγγελματική ομάδα",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 4.7
   },
   {
@@ -108,15 +108,15 @@ export const customerReviews: Review[] = [
   {
     "id": "review-15",
     "name": "Θανάσης",
-    "comment": "Με εξυπηρέτησαν στο WhatsApp σε 2 λεπτά",
-    "platform": "WhatsApp",
+    "comment": "Με εξυπηρέτησαν στο Telegram σε 2 λεπτά",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
     "id": "review-16",
     "name": "Σωτήρης",
     "comment": "Σοβαρός σέρβερ χωρίς κολλήματα",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 5
   },
   {
@@ -130,7 +130,7 @@ export const customerReviews: Review[] = [
     "id": "review-18",
     "name": "Λευτέρης",
     "comment": "Support 24/7 που όντως απαντάει",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 5
   },
   {
@@ -158,21 +158,21 @@ export const customerReviews: Review[] = [
     "id": "review-22",
     "name": "Τάσος",
     "comment": "Σοβαροί άνθρωποι, σοβαρή υπηρεσία",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.9
   },
   {
     "id": "review-23",
     "name": "Σάκης",
     "comment": "Απίστευτη ποικιλία ταινιών",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 5
   },
   {
     "id": "review-24",
     "name": "Μανώλης",
     "comment": "Άμεση εξυπηρέτηση",
-    "platform": "Messenger",
+    "platform": "Viber",
     "rating": 4.8
   },
   {
@@ -207,14 +207,14 @@ export const customerReviews: Review[] = [
     "id": "review-29",
     "name": "Χάρης",
     "comment": "Άψογη εμπειρία από την πρώτη μέρα",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.9
   },
   {
     "id": "review-30",
     "name": "Βαγγέλης",
     "comment": "Ειλικρινά, πολύ καλύτερα από τις προσδοκίες",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 4.7
   },
   {
@@ -235,7 +235,7 @@ export const customerReviews: Review[] = [
     "id": "review-33",
     "name": "Αριστείδης",
     "comment": "Είχα θέμα, τα παιδιά με βοήθησαν αμέσως",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
@@ -256,14 +256,14 @@ export const customerReviews: Review[] = [
     "id": "review-36",
     "name": "Ραφαήλ",
     "comment": "Εξαιρετική ποιότητα εικόνας",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.9
   },
   {
     "id": "review-37",
     "name": "Ορέστης",
     "comment": "Δεν έχω ξανακολλήσει από τότε που έφτιαξα",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 4.7
   },
   {
@@ -283,29 +283,29 @@ export const customerReviews: Review[] = [
   {
     "id": "review-40",
     "name": "Κατερίνα",
-    "comment": "Με εξυπηρέτησαν στο WhatsApp σε 2 λεπτά",
-    "platform": "WhatsApp",
+    "comment": "Με εξυπηρέτησαν στο Telegram σε 2 λεπτά",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
     "id": "review-41",
     "name": "Γεωργία",
     "comment": "Σοβαρός σέρβερ χωρίς κολλήματα",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 5
   },
   {
     "id": "review-42",
     "name": "Δήμητρα",
     "comment": "Ευγενέστατοι όλοι",
-    "platform": "Messenger",
+    "platform": "Viber",
     "rating": 4.8
   },
   {
     "id": "review-43",
     "name": "Βασιλική",
     "comment": "Support 24/7 που όντως απαντάει",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 5
   },
   {
@@ -333,21 +333,21 @@ export const customerReviews: Review[] = [
     "id": "review-47",
     "name": "Αγγελική",
     "comment": "Σοβαροί άνθρωποι, σοβαρή υπηρεσία",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.9
   },
   {
     "id": "review-48",
     "name": "Χριστίνα",
     "comment": "Πολύ εύκολη εγκατάσταση στο Fire Stick",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 5
   },
   {
     "id": "review-49",
     "name": "Άννα",
     "comment": "Το κράτησα 6 μήνες, αξίζει",
-    "platform": "Messenger",
+    "platform": "Viber",
     "rating": 4.8
   },
   {
@@ -361,7 +361,7 @@ export const customerReviews: Review[] = [
     "id": "review-51",
     "name": "Ιωάννα",
     "comment": "Full HD χωρίς κολλήματα, τέλειο",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
@@ -382,14 +382,14 @@ export const customerReviews: Review[] = [
     "id": "review-54",
     "name": "Αλεξάνδρα",
     "comment": "Άψογη εμπειρία από την πρώτη μέρα",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.9
   },
   {
     "id": "review-55",
     "name": "Ειρήνη",
     "comment": "Ειλικρινά, πολύ καλύτερα από τις προσδοκίες",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 4.7
   },
   {
@@ -410,14 +410,14 @@ export const customerReviews: Review[] = [
     "id": "review-58",
     "name": "Δημήτρης",
     "comment": "Είχα θέμα, τα παιδιά με βοήθησαν αμέσως",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
     "id": "review-59",
     "name": "Νίκος",
     "comment": "Πολύ γρήγορη ενεργοποίηση, χωρίς ταλαιπωρία",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 5
   },
   {
@@ -431,7 +431,7 @@ export const customerReviews: Review[] = [
     "id": "review-61",
     "name": "Παναγιώτης",
     "comment": "Εξαιρετική ποιότητα εικόνας",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.9
   },
   {
@@ -459,21 +459,21 @@ export const customerReviews: Review[] = [
     "id": "review-65",
     "name": "Στέλιος",
     "comment": "Απίστευτη ποικιλία ταινιών",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
     "id": "review-66",
     "name": "Μιχάλης",
     "comment": "Άμεση εξυπηρέτηση",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 5
   },
   {
     "id": "review-67",
     "name": "Αλέξανδρος",
     "comment": "Η καλύτερη υπηρεσία ever",
-    "platform": "Messenger",
+    "platform": "Viber",
     "rating": 4.8
   },
   {
@@ -508,14 +508,14 @@ export const customerReviews: Review[] = [
     "id": "review-72",
     "name": "Πέτρος",
     "comment": "Σοβαροί άνθρωποι, σοβαρή υπηρεσία",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
     "id": "review-73",
     "name": "Λευτέρης",
     "comment": "Πολύ εύκολη εγκατάσταση στο Fire Stick",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 5
   },
   {
@@ -536,7 +536,7 @@ export const customerReviews: Review[] = [
     "id": "review-76",
     "name": "Ηλίας",
     "comment": "Full HD χωρίς κολλήματα, τέλειο",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.7
   },
   {
@@ -557,14 +557,14 @@ export const customerReviews: Review[] = [
     "id": "review-79",
     "name": "Μανώλης",
     "comment": "Πολύ επαγγελματική ομάδα",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.9
   },
   {
     "id": "review-80",
     "name": "Σταύρος",
     "comment": "Καλύτερη επιλογή streaming που έχω δοκιμάσει",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 5
   },
   {
@@ -577,7 +577,7 @@ export const customerReviews: Review[] = [
   {
     "id": "review-82",
     "name": "Λάμπρος",
-    "comment": "Με εξυπηρέτησαν στο WhatsApp σε 2 λεπτά",
+    "comment": "Με εξυπηρέτησαν στο Telegram σε 2 λεπτά",
     "platform": "Viber",
     "rating": 5
   },
@@ -585,28 +585,28 @@ export const customerReviews: Review[] = [
     "id": "review-83",
     "name": "Φώτης",
     "comment": "Είχα θέμα, τα παιδιά με βοήθησαν αμέσως",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
     "id": "review-84",
     "name": "Χάρης",
     "comment": "Πολύ γρήγορη ενεργοποίηση, χωρίς ταλαιπωρία",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 4.9
   },
   {
     "id": "review-85",
     "name": "Βαγγέλης",
     "comment": "Αθλητικά κανάλια χωρίς καθυστέρηση",
-    "platform": "Messenger",
+    "platform": "Viber",
     "rating": 4.7
   },
   {
     "id": "review-86",
     "name": "Θεόδωρος",
     "comment": "Εξαιρετική ποιότητα εικόνας",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.9
   },
   {
@@ -634,21 +634,21 @@ export const customerReviews: Review[] = [
     "id": "review-90",
     "name": "Λουκάς",
     "comment": "Απίστευτη ποικιλία ταινιών",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
     "id": "review-91",
     "name": "Ραφαήλ",
     "comment": "Άμεση εξυπηρέτηση",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 5
   },
   {
     "id": "review-92",
     "name": "Ορέστης",
     "comment": "Η καλύτερη υπηρεσία ever",
-    "platform": "Messenger",
+    "platform": "Viber",
     "rating": 4.7
   },
   {
@@ -662,7 +662,7 @@ export const customerReviews: Review[] = [
     "id": "review-94",
     "name": "Ελένη",
     "comment": "Πολύ καλύτερο από Nova, οικονομικά",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.7
   },
   {
@@ -683,14 +683,14 @@ export const customerReviews: Review[] = [
     "id": "review-97",
     "name": "Δήμητρα",
     "comment": "Ειλικρινά, πολύ καλύτερα από τις προσδοκίες",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
     "id": "review-98",
     "name": "Βασιλική",
     "comment": "Πολύ εύκολη εγκατάσταση στο Fire Stick",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 5
   },
   {
@@ -711,14 +711,14 @@ export const customerReviews: Review[] = [
     "id": "review-101",
     "name": "Αναστασία",
     "comment": "Full HD χωρίς κολλήματα, τέλειο",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.7
   },
   {
     "id": "review-102",
     "name": "Αγγελική",
     "comment": "Σε 5 λεπτά ήμουν έτοιμος",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 4.9
   },
   {
@@ -732,7 +732,7 @@ export const customerReviews: Review[] = [
     "id": "review-104",
     "name": "Άννα",
     "comment": "Πολύ επαγγελματική ομάδα",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.9
   },
   {
@@ -752,7 +752,7 @@ export const customerReviews: Review[] = [
   {
     "id": "review-107",
     "name": "Νίκη",
-    "comment": "Με εξυπηρέτησαν στο WhatsApp σε 2 λεπτά",
+    "comment": "Με εξυπηρέτησαν στο Telegram σε 2 λεπτά",
     "platform": "Viber",
     "rating": 5
   },
@@ -760,21 +760,21 @@ export const customerReviews: Review[] = [
     "id": "review-108",
     "name": "Μαργαρίτα",
     "comment": "Σοβαρός σέρβερ χωρίς κολλήματα",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
     "id": "review-109",
     "name": "Αλεξάνδρα",
     "comment": "Ευγενέστατοι όλοι",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 4.9
   },
   {
     "id": "review-110",
     "name": "Ειρήνη",
     "comment": "Support 24/7 που όντως απαντάει",
-    "platform": "Messenger",
+    "platform": "Viber",
     "rating": 4.7
   },
   {
@@ -809,14 +809,14 @@ export const customerReviews: Review[] = [
     "id": "review-115",
     "name": "Κώστας",
     "comment": "Απίστευτη ποικιλία ταινιών",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
     "id": "review-116",
     "name": "Παναγιώτης",
     "comment": "Άμεση εξυπηρέτηση",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 5
   },
   {
@@ -837,7 +837,7 @@ export const customerReviews: Review[] = [
     "id": "review-119",
     "name": "Αντώνης",
     "comment": "Πολύ καλύτερο από Nova, οικονομικά",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.7
   },
   {
@@ -858,14 +858,14 @@ export const customerReviews: Review[] = [
     "id": "review-122",
     "name": "Αλέξανδρος",
     "comment": "Ειλικρινά, πολύ καλύτερα από τις προσδοκίες",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
     "id": "review-123",
     "name": "Ανδρέας",
     "comment": "Για ξενιτεμένους, σωτήριο",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 5
   },
   {
@@ -886,28 +886,28 @@ export const customerReviews: Review[] = [
     "id": "review-126",
     "name": "Σωτήρης",
     "comment": "Πολύ γρήγορη ενεργοποίηση, χωρίς ταλαιπωρία",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.7
   },
   {
     "id": "review-127",
     "name": "Πέτρος",
     "comment": "Αθλητικά κανάλια χωρίς καθυστέρηση",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 4.9
   },
   {
     "id": "review-128",
     "name": "Λευτέρης",
     "comment": "Μου έλυσαν το θέμα σε λίγα λεπτά",
-    "platform": "Messenger",
+    "platform": "Viber",
     "rating": 4.7
   },
   {
     "id": "review-129",
     "name": "Μάριος",
     "comment": "Πολύ επαγγελματική ομάδα",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
@@ -927,7 +927,7 @@ export const customerReviews: Review[] = [
   {
     "id": "review-132",
     "name": "Τάσος",
-    "comment": "Με εξυπηρέτησαν στο WhatsApp σε 2 λεπτά",
+    "comment": "Με εξυπηρέτησαν στο Telegram σε 2 λεπτά",
     "platform": "Viber",
     "rating": 5
   },
@@ -935,21 +935,21 @@ export const customerReviews: Review[] = [
     "id": "review-133",
     "name": "Σάκης",
     "comment": "Σοβαρός σέρβερ χωρίς κολλήματα",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.7
   },
   {
     "id": "review-134",
     "name": "Μανώλης",
     "comment": "Ευγενέστατοι όλοι",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 4.9
   },
   {
     "id": "review-135",
     "name": "Σταύρος",
     "comment": "Support 24/7 που όντως απαντάει",
-    "platform": "Messenger",
+    "platform": "Viber",
     "rating": 4.7
   },
   {
@@ -963,7 +963,7 @@ export const customerReviews: Review[] = [
     "id": "review-137",
     "name": "Λάμπρος",
     "comment": "Τέλεια λύση για την οικογένεια",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 5
   },
   {
@@ -984,14 +984,14 @@ export const customerReviews: Review[] = [
     "id": "review-140",
     "name": "Βαγγέλης",
     "comment": "Πολύ εύκολη εγκατάσταση στο Fire Stick",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
     "id": "review-141",
     "name": "Θεόδωρος",
     "comment": "Το κράτησα 6 μήνες, αξίζει",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 4.9
   },
   {
@@ -1012,14 +1012,14 @@ export const customerReviews: Review[] = [
     "id": "review-144",
     "name": "Αποστόλης",
     "comment": "Πολύ καλύτερο από Nova, οικονομικά",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.7
   },
   {
     "id": "review-145",
     "name": "Λουκάς",
     "comment": "Αξίζει κάθε ευρώ",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 4.8
   },
   {
@@ -1033,7 +1033,7 @@ export const customerReviews: Review[] = [
     "id": "review-147",
     "name": "Ορέστης",
     "comment": "Ειλικρινά, πολύ καλύτερα από τις προσδοκίες",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
@@ -1061,21 +1061,21 @@ export const customerReviews: Review[] = [
     "id": "review-151",
     "name": "Γεωργία",
     "comment": "Πολύ γρήγορη ενεργοποίηση, χωρίς ταλαιπωρία",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.7
   },
   {
     "id": "review-152",
     "name": "Δήμητρα",
     "comment": "Αθλητικά κανάλια χωρίς καθυστέρηση",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 4.9
   },
   {
     "id": "review-153",
     "name": "Βασιλική",
     "comment": "Εξαιρετική ποιότητα εικόνας",
-    "platform": "Messenger",
+    "platform": "Viber",
     "rating": 5
   },
   {
@@ -1110,21 +1110,21 @@ export const customerReviews: Review[] = [
     "id": "review-158",
     "name": "Χριστίνα",
     "comment": "Σοβαρός σέρβερ χωρίς κολλήματα",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.7
   },
   {
     "id": "review-159",
     "name": "Άννα",
     "comment": "Ευγενέστατοι όλοι",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 4.9
   },
   {
     "id": "review-160",
     "name": "Ευαγγελία",
     "comment": "Support 24/7 που όντως απαντάει",
-    "platform": "Messenger",
+    "platform": "Viber",
     "rating": 4.7
   },
   {
@@ -1138,7 +1138,7 @@ export const customerReviews: Review[] = [
     "id": "review-162",
     "name": "Νίκη",
     "comment": "Τέλεια λύση για την οικογένεια",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 5
   },
   {
@@ -1159,14 +1159,14 @@ export const customerReviews: Review[] = [
     "id": "review-165",
     "name": "Ειρήνη",
     "comment": "Πολύ εύκολη εγκατάσταση στο Fire Stick",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.8
   },
   {
     "id": "review-166",
     "name": "Γιώργος",
     "comment": "Το κράτησα 6 μήνες, αξίζει",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 4.9
   },
   {
@@ -1187,14 +1187,14 @@ export const customerReviews: Review[] = [
     "id": "review-169",
     "name": "Νίκος",
     "comment": "Σε 5 λεπτά ήμουν έτοιμος",
-    "platform": "WhatsApp",
+    "platform": "Telegram",
     "rating": 4.7
   },
   {
     "id": "review-170",
     "name": "Κώστας",
     "comment": "Μου έλυσαν το θέμα σε λίγα λεπτά",
-    "platform": "Telegram",
+    "platform": "Messenger",
     "rating": 4.8
   }
 ] as Review[];

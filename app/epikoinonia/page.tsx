@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { Mail, MessageCircle, Send } from "lucide-react";
+import { Mail, Send } from "lucide-react";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/Button";
 import { contactConfig } from "@/lib/contact";
@@ -92,19 +92,12 @@ export default function EpikoinoniaPage() {
           />
           <SupportCard
             icon={Send}
-            title="Telegram Support"
-            value="Άνοιγμα Telegram"
+            title="Telegram"
+            value={contactConfig.phone}
             href={contactConfig.telegram}
           />
-          <SupportCard
-            icon={MessageCircle}
-            title="WhatsApp"
-            value="Άνοιγμα WhatsApp"
-            href={contactConfig.whatsapp}
-          />
           <div className="rounded-2xl border border-gold/20 bg-gold/[0.05] p-5 text-sm text-text-muted">
-            Τα στοιχεία επικοινωνίας είναι placeholders. Ενημερώστε τα από το{" "}
-            <code className="text-gold">lib/contact.ts</code>.
+            Για άμεση εξυπηρέτηση, επικοινωνήστε μαζί μας στο Telegram.
           </div>
         </aside>
       </section>

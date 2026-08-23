@@ -115,13 +115,13 @@ export function SetupPageHero() {
           </Link>
           <span>·</span>
           <a
-            href={contactConfig.whatsapp}
+            href={contactConfig.telegram}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1 text-gold hover:underline"
           >
             <Timer className="h-3.5 w-3.5" />
-            Υποστήριξη WhatsApp
+            Υποστήριξη Telegram
           </a>
         </div>
       </div>

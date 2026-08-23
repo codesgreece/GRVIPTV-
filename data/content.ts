@@ -88,13 +88,13 @@ export const referralProgram = {
       id: "get-code",
       title: "Πάρε τον κωδικό σου",
       description:
-        "Μετά την αγορά, σου στέλνουμε προσωπικό referral code μέσω WhatsApp.",
+        "Μετά την αγορά, σου στέλνουμε προσωπικό referral code μέσω Telegram.",
     },
     {
       id: "share",
       title: "Το μοιράζεσαι",
       description:
-        "Στείλε το link σου ή πες στον φίλο να αναφέρει τον κωδικό στο WhatsApp κατά την παραγγελία.",
+        "Στείλε το link σου ή πες στον φίλο να αναφέρει τον κωδικό στο Telegram κατά την παραγγελία.",
     },
     {
       id: "reward",

@@ -5,16 +5,9 @@ import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { becomeResellerContent } from "@/data/content";
-import { contactConfig } from "@/lib/contact";
+import { telegramUrl } from "@/lib/contact";
 
 const icons = [TrendingUp, Package, Handshake, Headphones];
-
-function resellerWhatsAppUrl() {
-  const text = encodeURIComponent(
-    "Γεια σας! Ενδιαφέρομαι να γίνω συνεργάτης/reseller του GRVIP OTT. Θα ήθελα περισσότερες πληροφορίες για τιμές και όρους συνεργασίας.",
-  );
-  return `${contactConfig.whatsapp}?text=${text}`;
-}
 
 export function BecomeResellerSection() {
   return (
@@ -30,10 +23,7 @@ export function BecomeResellerSection() {
               align="left"
               className="mb-0 md:mb-0"
             />
-            <Button
-              href={resellerWhatsAppUrl()}
-              className="mt-8 font-extrabold"
-            >
+            <Button href={telegramUrl()} className="mt-8 font-extrabold">
               {becomeResellerContent.ctaLabel}
             </Button>
           </Reveal>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Headphones, MessageCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { contactConfig } from "@/lib/contact";
+import { contactConfig, telegramUrl } from "@/lib/contact";
 
 export function LiveChat() {
   const [open, setOpen] = useState(false);
@@ -37,12 +37,11 @@ export function LiveChat() {
             <div className="space-y-3 p-4 text-sm text-text-muted">
               <p>Καλώς ήρθατε στο GRVIP OTT Support.</p>
               <p>
-                Το live chat θα συνδεθεί σύντομα με πραγματικό provider. Προς το
-                παρόν επικοινωνήστε μαζί μας:
+                Για άμεση εξυπηρέτηση, στείλτε μας μήνυμα στο Telegram:
               </p>
               <div className="space-y-2">
-                <Button href="/epikoinonia" fullWidth className="text-sm">
-                  Φόρμα Επικοινωνίας
+                <Button href={telegramUrl()} fullWidth className="text-sm">
+                  Telegram Support
                 </Button>
                 <a
                   href={contactConfig.telegram}
@@ -50,7 +49,7 @@ export function LiveChat() {
                   rel="noreferrer"
                   className="flex items-center justify-center rounded-md border border-white/15 px-4 py-2.5 text-xs text-white transition hover:border-gold/40"
                 >
-                  Telegram Support
+                  {contactConfig.phone}
                 </a>
               </div>
             </div>

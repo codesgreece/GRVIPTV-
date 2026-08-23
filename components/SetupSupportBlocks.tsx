@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MessageCircle } from "lucide-react";
+import { Send } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { contactConfig } from "@/lib/contact";
 
@@ -28,18 +28,18 @@ export function SetupSupportBlocks() {
             Χρειάζεστε Περισσότερη Βοήθεια;
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-text-muted md:text-base">
-            Η ομάδα υποστήριξης είναι διαθέσιμη 24/7. Στείλτε μήνυμα και θα σας
-            βοηθήσουμε γρήγορα με το setup.
+            Η ομάδα υποστήριξης είναι διαθέσιμη 24/7. Στείλτε μήνυμα στο Telegram
+            και θα σας βοηθήσουμε γρήγορα με το setup.
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <a
-              href={contactConfig.whatsapp}
+              href={contactConfig.telegram}
               target="_blank"
               rel="noreferrer"
               className="font-ui flex items-center justify-center gap-2 rounded-md bg-gradient-to-r from-[#D4A72C] to-[#F2C75C] px-5 py-3 text-base font-bold tracking-normal normal-case text-black"
             >
-              <MessageCircle className="h-4 w-4" />
-              Chat στο WhatsApp
+              <Send className="h-4 w-4" />
+              Chat στο Telegram
             </a>
             <Link
               href="/epikoinonia"
