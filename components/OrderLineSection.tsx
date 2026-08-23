@@ -101,17 +101,20 @@ export function OrderLineSection() {
                       <ArrowRight className="h-4 w-4 shrink-0 text-gold" />
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+                    <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end sm:gap-2.5">
                       {item.cardAmounts.map((amount, cardIndex) => (
-                        <div key={`${item.planTitle}-${amount}-${cardIndex}`} className="flex items-center gap-1.5 sm:gap-2">
+                        <div
+                          key={`${item.planTitle}-${amount}-${cardIndex}`}
+                          className="flex shrink-0 items-center gap-2"
+                        >
                           {cardIndex > 0 ? (
-                            <span className="px-0.5 text-sm font-black text-gold">+</span>
+                            <span className="text-base font-black leading-none text-gold">+</span>
                           ) : null}
                           <a
                             href={getCardLink(amount)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block w-[72px] transition hover:scale-[1.04] sm:w-[80px]"
+                            className="block w-[92px] shrink-0 sm:w-[100px]"
                             aria-label={`Αγορά PaysafeCard ${amount} EUR`}
                           >
                             <PaysafeCardVisual amount={amount} />
@@ -127,17 +130,17 @@ export function OrderLineSection() {
                 <p className="mb-3 text-xs font-bold tracking-[0.14em] text-text-dim uppercase">
                   Όλες οι διαθέσιμες κάρτες
                 </p>
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
                   {paysafeCardLinks.map((link) => (
                     <a
                       key={link.amount}
                       href={link.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="transition hover:scale-[1.04]"
+                      className="block transition hover:scale-[1.03]"
                       aria-label={`Αγορά PaysafeCard ${link.amount} EUR`}
                     >
-                      <PaysafeCardVisual amount={link.amount} className="max-w-[88px] mx-auto" />
+                      <PaysafeCardVisual amount={link.amount} className="mx-auto w-[100px] sm:w-[108px]" />
                     </a>
                   ))}
                 </div>
