@@ -3,8 +3,6 @@ export const pricingPlans = [
     id: "1-month",
     title: "1 Μήνας",
     months: 1,
-    price: "€15",
-    originalPrice: "€20",
     period: "/ μήνα",
     popular: false,
     features: [
@@ -19,8 +17,6 @@ export const pricingPlans = [
     id: "3-months",
     title: "3 Μήνες",
     months: 3,
-    price: "€35",
-    originalPrice: "€47",
     period: "/ 3 μήνες",
     popular: true,
     badge: "ΠΙΟ ΔΗΜΟΦΙΛΕΣ",
@@ -36,8 +32,6 @@ export const pricingPlans = [
     id: "6-months",
     title: "6 Μήνες",
     months: 6,
-    price: "€46",
-    originalPrice: "€56",
     period: "/ 6 μήνες",
     popular: false,
     features: [
@@ -52,8 +46,6 @@ export const pricingPlans = [
     id: "12-months",
     title: "12 Μήνες",
     months: 12,
-    price: "€72",
-    originalPrice: "€89",
     period: "/ έτος",
     popular: false,
     features: [
@@ -120,10 +112,10 @@ export const orderLineContent = {
     },
   ],
   packageCardMap: [
-    { planTitle: "1 Μήνας", cardAmounts: [10, 5] as const },
-    { planTitle: "3 Μήνες", cardAmounts: [25, 10] as const },
-    { planTitle: "6 Μήνες", cardAmounts: [25, 10, 10] as const },
-    { planTitle: "12 Μήνες", cardAmounts: [25, 25, 25] as const },
+    { planId: "1-month", planTitle: "1 Μήνας" },
+    { planId: "3-months", planTitle: "3 Μήνες" },
+    { planId: "6-months", planTitle: "6 Μήνες" },
+    { planId: "12-months", planTitle: "12 Μήνες" },
   ],
   disclaimer:
     "Σε ώρες μεσάνυχτα, ώρες αιχμής ή κατά τη διάρκεια μεγάλων αθλητικών διοργανώσεων ενδέχεται καθυστέρηση στην ενεργοποίηση. Φρόντισε να ολοκληρώσεις την αγορά σου μερικές ώρες νωρίτερα.",

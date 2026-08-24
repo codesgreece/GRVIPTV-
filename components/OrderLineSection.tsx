@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   ArrowRight,
@@ -14,6 +15,8 @@ import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { orderLineContent, paysafeCardLinks } from "@/data/content";
 import { telegramUrl } from "@/lib/contact";
+import { defaultPublicPricing, formatEuroPrefix, type PublicPackagePrice } from "@/lib/customers/pricing";
+import { splitIntoPaysafeCards } from "@/lib/paysafe";
 
 const stepIcons = [Package, CreditCard, Send, Clock3] as const;
 
@@ -21,7 +24,36 @@ function getCardLink(amount: number) {
   return paysafeCardLinks.find((link) => link.amount === amount)?.href;
 }
 
-export function OrderLineSection() {
+export function OrderLineSection({ initialPrices }: { initialPrices?: PublicPackagePrice[] }) {
+  const [catalog, setCatalog] = useState<PublicPackagePrice[]>(
+    () => initialPrices ?? defaultPublicPricing(),
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const response = await fetch("/api/pricing", { cache: "no-store" });
+        if (!response.ok) return;
+        const payload = (await response.json()) as { pricing?: PublicPackagePrice[] };
+        if (!cancelled && payload.pricing?.length) setCatalog(payload.pricing);
+      } catch {
+        // Keep the central default catalog if the public API is temporarily unavailable.
+      }
+    };
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const byId = useMemo(
+    () => new Map(catalog.map((item) => [item.packageId, item])),
+    [catalog],
+  );
+
   return (
     <section id="paraggelia" className="relative overflow-x-hidden py-12 md:py-24">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(0,153,232,0.08),transparent_58%)]" />
@@ -89,43 +121,52 @@ export function OrderLineSection() {
               </h3>
 
               <div className="mt-4 space-y-3 sm:mt-5 sm:space-y-4">
-                {orderLineContent.packageCardMap.map((item) => (
-                  <div
-                    key={item.planTitle}
-                    className="rounded-xl border border-white/8 bg-black/30 p-2.5 sm:p-4"
-                  >
-                    <div className="mb-2 flex items-center justify-between gap-2 sm:mb-3">
-                      <p className="font-display text-sm font-bold text-white sm:text-base">
-                        {item.planTitle}
-                      </p>
-                      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-gold sm:h-4 sm:w-4" />
-                    </div>
+                {orderLineContent.packageCardMap.map((item) => {
+                  const live = byId.get(item.planId);
+                  const amount = live?.activePrice ?? 0;
+                  const cards = splitIntoPaysafeCards(amount);
 
-                    <div className="flex items-center justify-center gap-1 sm:justify-end sm:gap-2">
-                      {item.cardAmounts.map((amount, cardIndex) => (
-                        <div
-                          key={`${item.planTitle}-${amount}-${cardIndex}`}
-                          className="flex shrink-0 items-center gap-1 sm:gap-2"
-                        >
-                          {cardIndex > 0 ? (
-                            <span className="text-xs font-black leading-none text-gold sm:text-base">
-                              +
-                            </span>
-                          ) : null}
-                          <a
-                            href={getCardLink(amount)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block w-[58px] shrink-0 sm:w-[84px] md:w-[100px]"
-                            aria-label={`Αγορά PaysafeCard ${amount} EUR`}
-                          >
-                            <PaysafeCardVisual amount={amount} compact />
-                          </a>
+                  return (
+                    <div
+                      key={item.planTitle}
+                      className="rounded-xl border border-white/8 bg-black/30 p-2.5 sm:p-4"
+                    >
+                      <div className="mb-2 flex items-center justify-between gap-2 sm:mb-3">
+                        <div>
+                          <p className="font-display text-sm font-bold text-white sm:text-base">
+                            {item.planTitle}
+                          </p>
+                          <p className="text-[11px] text-text-dim">{formatEuroPrefix(amount)}</p>
                         </div>
-                      ))}
+                        <ArrowRight className="h-3.5 w-3.5 shrink-0 text-gold sm:h-4 sm:w-4" />
+                      </div>
+
+                      <div className="flex items-center justify-center gap-1 sm:justify-end sm:gap-2">
+                        {cards.map((cardAmount, cardIndex) => (
+                          <div
+                            key={`${item.planTitle}-${cardAmount}-${cardIndex}`}
+                            className="flex shrink-0 items-center gap-1 sm:gap-2"
+                          >
+                            {cardIndex > 0 ? (
+                              <span className="text-xs font-black leading-none text-gold sm:text-base">
+                                +
+                              </span>
+                            ) : null}
+                            <a
+                              href={getCardLink(cardAmount)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block w-[58px] shrink-0 sm:w-[84px] md:w-[100px]"
+                              aria-label={`Αγορά PaysafeCard ${cardAmount} EUR`}
+                            >
+                              <PaysafeCardVisual amount={cardAmount} compact />
+                            </a>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="mt-5 border-t border-white/8 pt-4 sm:mt-6 sm:pt-5">

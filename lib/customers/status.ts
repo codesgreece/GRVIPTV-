@@ -1,4 +1,4 @@
-import { CUSTOMER_PACKAGES, type Customer, type SubscriptionView } from "@/lib/customers/types";
+import { PACKAGE_OPTIONS, type Customer, type SubscriptionView } from "@/lib/customers/types";
 
 const ATHENS_TZ = "Europe/Athens";
 
@@ -55,11 +55,11 @@ export function daysRemainingFromExpiry(expiresAt: string, now = new Date()) {
 }
 
 export function getPackageLabel(packageId: Customer["packageId"]) {
-  return CUSTOMER_PACKAGES.find((item) => item.id === packageId)?.label ?? packageId;
+  return PACKAGE_OPTIONS.find((item) => item.id === packageId)?.label ?? packageId;
 }
 
 export function getPackageMonths(packageId: Customer["packageId"]) {
-  return CUSTOMER_PACKAGES.find((item) => item.id === packageId)?.months ?? 1;
+  return PACKAGE_OPTIONS.find((item) => item.id === packageId)?.months ?? 1;
 }
 
 export function addMonthsToYmd(ymd: string, months: number) {
@@ -138,6 +138,6 @@ export function getSubscriptionView(customer: Pick<Customer, "activatedAt" | "ex
 
 export function adminStatusFromDays(daysRemaining: number) {
   if (daysRemaining <= 0) return { tone: "expired" as const, label: "Έληξε" };
-  if (daysRemaining <= 30) return { tone: "orange" as const, label: "Λήγει σύντομα" };
+  if (daysRemaining <= 7) return { tone: "orange" as const, label: "Λήγει σύντομα" };
   return { tone: "green" as const, label: "Ενεργή" };
 }

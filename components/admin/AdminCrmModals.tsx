@@ -1,0 +1,188 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { Copy, MessageCircle, RefreshCw, X } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import {
+  activePrice,
+  formatEuro,
+  getPricingById,
+} from "@/lib/customers/pricing";
+import {
+  activationMessage,
+  expiredMessage,
+  expiringSoonMessage,
+  renewalMessage,
+} from "@/lib/customers/messages";
+import { CUSTOMER_PACKAGES, type CustomerView, type PackageId, type PackagePricing } from "@/lib/customers/types";
+import { cn } from "@/lib/cn";
+
+type MessagesModalProps = {
+  customer: CustomerView;
+  origin: string;
+  onClose: () => void;
+  onCopied: (message: string) => void;
+};
+
+export function AdminMessagesModal({ customer, origin, onClose, onCopied }: MessagesModalProps) {
+  const templates = useMemo(
+    () => [
+      { id: "activation", title: "Μήνυμα ενεργοποίησης", body: activationMessage(customer, origin) },
+      { id: "soon", title: "Μήνυμα λήξης σύντομα", body: expiringSoonMessage(customer) },
+      { id: "expired", title: "Μήνυμα ληγμένης συνδρομής", body: expiredMessage(customer) },
+      { id: "renewal", title: "Μήνυμα ανανέωσης", body: renewalMessage(customer, customer.subscriptions.at(-1), origin) },
+    ],
+    [customer, origin],
+  );
+
+  const copy = async (body: string) => {
+    await navigator.clipboard.writeText(body);
+    onCopied("Το μήνυμα αντιγράφηκε.");
+  };
+
+  return (
+    <Modal title={`💬 Μηνύματα — ${customer.name}`} onClose={onClose}>
+      <div className="grid gap-4">
+        {templates.map((item) => (
+          <article key={item.id} className="rounded-2xl border border-white/10 bg-black/30 p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="font-display text-base font-bold text-white">{item.title}</h3>
+              <Button variant="outline" onClick={() => void copy(item.body)}>
+                <Copy className="h-4 w-4" />
+                Αντιγραφή Μηνύματος
+              </Button>
+            </div>
+            <pre className="whitespace-pre-wrap text-sm leading-relaxed text-text-muted">{item.body}</pre>
+          </article>
+        ))}
+      </div>
+    </Modal>
+  );
+}
+
+type RenewModalProps = {
+  customer: CustomerView;
+  pricing: PackagePricing[];
+  saving: boolean;
+  onClose: () => void;
+  onConfirm: (packageId: PackageId) => void;
+};
+
+export function AdminRenewModal({ customer, pricing, saving, onClose, onConfirm }: RenewModalProps) {
+  const [packageId, setPackageId] = useState<PackageId>(customer.packageId);
+  const pkg = getPricingById(pricing, packageId);
+  const pay = activePrice(pkg);
+
+  return (
+    <Modal title={`🔄 Ανανέωση — ${customer.name}`} onClose={onClose}>
+      <p className="text-sm text-text-muted">
+        Το Magic Link μένει το ίδιο. Η νέα συνδρομή καταγράφεται στο ιστορικό με την τιμή που πληρώνει τώρα ο
+        πελάτης.
+      </p>
+
+      <label className="mt-5 block text-xs font-semibold tracking-[0.12em] text-text-dim uppercase">
+        Πακέτο
+      </label>
+      <select
+        value={packageId}
+        onChange={(event) => setPackageId(event.target.value as PackageId)}
+        className="admin-input mt-2"
+      >
+        {CUSTOMER_PACKAGES.map((item) => (
+          <option key={item.id} value={item.id}>
+            {item.label}
+          </option>
+        ))}
+      </select>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <PriceBox label="Αρχική τιμή" value={formatEuro(pkg.normalPrice)} />
+        <PriceBox
+          label="Ενεργή τιμή"
+          value={formatEuro(pay)}
+          hint={pkg.offerEnabled ? "Ισχύει προσφορά" : "Κανονική τιμή"}
+        />
+        <PriceBox label="Τιμή προσφοράς" value={formatEuro(pkg.offerPrice)} muted={!pkg.offerEnabled} />
+        <PriceBox
+          label="Τύπος"
+          value={pkg.offerEnabled ? "🔥 Προσφορά" : "Κανονική"}
+        />
+      </div>
+
+      <div className="mt-5 rounded-2xl border border-gold/30 bg-gold/10 p-4">
+        <p className="text-xs font-bold tracking-[0.14em] text-gold uppercase">Ο πελάτης πληρώνει</p>
+        <p className="mt-1 font-display text-3xl font-black text-white">{formatEuro(pay)}</p>
+      </div>
+
+      <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+        <Button className="font-extrabold sm:flex-1" disabled={saving} onClick={() => onConfirm(packageId)}>
+          <RefreshCw className="h-4 w-4" />
+          {saving ? "Ανανέωση…" : "Ολοκλήρωση ανανέωσης"}
+        </Button>
+        <Button variant="ghost" onClick={onClose}>
+          Ακύρωση
+        </Button>
+      </div>
+    </Modal>
+  );
+}
+
+function PriceBox({
+  label,
+  value,
+  hint,
+  muted,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  muted?: boolean;
+}) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-black/30 p-3">
+      <p className="text-[11px] font-semibold tracking-[0.12em] text-text-dim uppercase">{label}</p>
+      <p className={cn("mt-1 font-display text-xl font-black", muted ? "text-text-dim" : "text-white")}>
+        {value}
+      </p>
+      {hint ? <p className="mt-1 text-xs text-text-muted">{hint}</p> : null}
+    </div>
+  );
+}
+
+function Modal({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 pt-10 sm:pt-16">
+      <div className="w-full max-w-2xl rounded-3xl border border-gold/25 bg-[#0B0B0B] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.55)] sm:p-6">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <h2 className="font-display text-xl font-bold text-white">{title}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-white/10 p-2 text-text-muted hover:text-white"
+            aria-label="Κλείσιμο"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export function MessagesButton({ onClick }: { onClick: () => void }) {
+  return (
+    <Button variant="outline" onClick={onClick}>
+      <MessageCircle className="h-4 w-4" />
+      Μηνύματα
+    </Button>
+  );
+}
