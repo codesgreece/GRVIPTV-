@@ -14,16 +14,25 @@ import {
   Trash2,
 } from "lucide-react";
 import { AdminPricingManager } from "@/components/admin/AdminPricingManager";
-import { AdminMessagesModal, AdminRenewModal } from "@/components/admin/AdminCrmModals";
+import {
+  AdminMessagesModal,
+  AdminRenewModal,
+  AdminSpecialOfferModal,
+} from "@/components/admin/AdminCrmModals";
+import { AdminCustomerProfile } from "@/components/admin/AdminCustomerProfile";
+import { AdminNotificationCenter } from "@/components/admin/AdminNotificationCenter";
 import { Button } from "@/components/ui/Button";
 import { formatEuro } from "@/lib/customers/pricing";
 import { expiringSoonMessage } from "@/lib/customers/messages";
 import { addMonthsToYmd, adminStatusFromDays, getPackageMonths } from "@/lib/customers/status";
+import { priceTypeLabel } from "@/lib/customers/views";
 import {
   CUSTOMER_PACKAGES,
   DEFAULT_SETUP_GUIDE_PATH,
+  type AdminNotification,
   type CustomerInput,
   type CustomerStatus,
+  type CustomerTag,
   type CustomerView,
   type DashboardStats,
   type PackageId,
@@ -46,6 +55,13 @@ const emptyDashboard: DashboardStats = {
   expiringSoon: 0,
   expiredSubscriptions: 0,
   totalRevenue: 0,
+  totalCost: 0,
+  totalProfit: 0,
+  monthRevenue: 0,
+  monthProfit: 0,
+  topProfitPackageId: null,
+  topProfitPackageName: null,
+  topProfitPackageAmount: 0,
 };
 
 const emptyForm = (): FormState => ({
@@ -94,6 +110,18 @@ export function AdminPanel() {
   const [historyOpen, setHistoryOpen] = useState<string | null>(null);
   const [messagesFor, setMessagesFor] = useState<CustomerView | null>(null);
   const [renewFor, setRenewFor] = useState<CustomerView | null>(null);
+  const [specialFor, setSpecialFor] = useState<CustomerView | null>(null);
+  const [profileFor, setProfileFor] = useState<CustomerView | null>(null);
+  const [notifications, setNotifications] = useState<AdminNotification[]>([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [tags, setTags] = useState<CustomerTag[]>([]);
+  const [tagFilter, setTagFilter] = useState<string>("all");
+
+  const refreshProfile = (list: CustomerView[], id?: string | null) => {
+    if (!id) return;
+    const next = list.find((item) => item.id === id) ?? null;
+    setProfileFor(next);
+  };
 
   const loadCustomers = async () => {
     const response = await fetch("/api/admin/customers", { cache: "no-store" });
@@ -113,14 +141,19 @@ export function AdminPanel() {
       customers: CustomerView[];
       dashboard: DashboardStats;
       pricing: PackagePricing[];
+      notifications?: AdminNotification[];
+      tags?: CustomerTag[];
       store: StoreInfo;
     };
     setCustomers(payload.customers);
     setDashboard(payload.dashboard ?? emptyDashboard);
     setPricing(payload.pricing ?? []);
+    setNotifications(payload.notifications ?? []);
+    setTags(payload.tags ?? []);
     setStore(payload.store);
     setAuthed(true);
     setChecking(false);
+    refreshProfile(payload.customers, profileFor?.id ?? null);
   };
 
   useEffect(() => {
@@ -144,10 +177,11 @@ export function AdminPanel() {
     const needle = query.trim().toLocaleLowerCase("el");
     return customers.filter((customer) => {
       if (filter !== "all" && customer.status !== filter) return false;
+      if (tagFilter !== "all" && !(customer.tagIds ?? []).includes(tagFilter)) return false;
       if (!needle) return true;
       return customer.name.toLocaleLowerCase("el").includes(needle);
     });
-  }, [customers, filter, query]);
+  }, [customers, filter, query, tagFilter]);
 
   const login = async () => {
     setLoginError("");
@@ -290,6 +324,103 @@ export function AdminPanel() {
     await loadCustomers();
   };
 
+  const confirmSpecial = async (packageId: PackageId, amountPaid: number) => {
+    if (!specialFor) return;
+    setRenewing(true);
+    setError("");
+    const response = await fetch(`/api/admin/customers/${specialFor.id}/renew`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        packageId,
+        amountPaid,
+        priceType: "CUSTOMER_SPECIAL_OFFER",
+      }),
+    });
+    const payload = (await response.json()) as { customer?: CustomerView; error?: string };
+    setRenewing(false);
+    if (!response.ok || !payload.customer) {
+      setError(payload.error ?? "Αποτυχία ειδικής προσφοράς.");
+      return;
+    }
+    setSpecialFor(null);
+    setNotice(`Ειδική προσφορά εφαρμόστηκε στον «${payload.customer.name}».`);
+    await loadCustomers();
+  };
+
+  const syncCustomerTags = async (customerId: string, tagIds: string[]) => {
+    const response = await fetch(`/api/admin/customers/${customerId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tagIds }),
+    });
+    if (!response.ok) {
+      setError("Αποτυχία ενημέρωσης tags.");
+      return;
+    }
+    await loadCustomers();
+  };
+
+  const createTag = async (name: string, emoji: string) => {
+    const response = await fetch("/api/admin/tags", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, emoji }),
+    });
+    const payload = (await response.json()) as { error?: string };
+    if (!response.ok) {
+      setError(payload.error ?? "Αποτυχία δημιουργίας tag.");
+      return;
+    }
+    await loadCustomers();
+  };
+
+  const addNote = async (customerId: string, content: string) => {
+    const response = await fetch(`/api/admin/customers/${customerId}/notes`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content }),
+    });
+    if (!response.ok) {
+      setError("Αποτυχία σημείωσης.");
+      return;
+    }
+    await loadCustomers();
+  };
+
+  const updateNote = async (noteId: string, content: string) => {
+    const response = await fetch(`/api/admin/customers/${noteId}/notes`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ noteId, content }),
+    });
+    if (!response.ok) {
+      setError("Αποτυχία ενημέρωσης σημείωσης.");
+      return;
+    }
+    await loadCustomers();
+  };
+
+  const deleteNote = async (noteId: string) => {
+    const response = await fetch(`/api/admin/customers/${noteId}/notes?noteId=${noteId}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      setError("Αποτυχία διαγραφής σημείωσης.");
+      return;
+    }
+    await loadCustomers();
+  };
+
+  const openNotification = (notification: AdminNotification) => {
+    setNotificationsOpen(false);
+    if (notification.kind === "expiring_soon") setFilter("expiring");
+    else if (notification.kind === "expired" || notification.kind === "expired_today") setFilter("expired");
+    else setFilter("all");
+    const customer = customers.find((item) => item.id === notification.customerId);
+    if (customer) setProfileFor(customer);
+  };
+
   if (checking) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center text-sm text-text-muted">
@@ -343,13 +474,21 @@ export function AdminPanel() {
             Live στατιστικά, ανανεώσεις, ιστορικό πληρωμών και κεντρικές τιμές — χωρίς αλλαγή στα Magic Links.
           </p>
         </div>
-        <Button variant="outline" onClick={() => void logout()}>
-          <LogOut className="h-4 w-4" />
-          Έξοδος
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <AdminNotificationCenter
+            notifications={notifications}
+            open={notificationsOpen}
+            onToggle={() => setNotificationsOpen((current) => !current)}
+            onSelect={openNotification}
+          />
+          <Button variant="outline" onClick={() => void logout()}>
+            <LogOut className="h-4 w-4" />
+            Έξοδος
+          </Button>
+        </div>
       </div>
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {[
           { label: "Σύνολο Πελατών", value: String(dashboard.totalCustomers), icon: "👥" },
           { label: "Ενεργές Συνδρομές", value: String(dashboard.activeSubscriptions), icon: "🟢" },
@@ -362,6 +501,29 @@ export function AdminPanel() {
               {item.icon} {item.label}
             </p>
             <p className="mt-1 font-display text-2xl font-black text-white">{item.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {[
+          { label: "Συνολικό κόστος", value: formatEuro(dashboard.totalCost), icon: "📦" },
+          { label: "Καθαρό κέρδος", value: formatEuro(dashboard.totalProfit), icon: "📈" },
+          { label: "Έσοδα μήνα", value: formatEuro(dashboard.monthRevenue), icon: "📅" },
+          { label: "Κέρδος μήνα", value: formatEuro(dashboard.monthProfit), icon: "📈" },
+          {
+            label: "Top πακέτο κέρδους",
+            value: dashboard.topProfitPackageName
+              ? `${dashboard.topProfitPackageName} · ${formatEuro(dashboard.topProfitPackageAmount)}`
+              : "—",
+            icon: "👑",
+          },
+        ].map((item) => (
+          <div key={item.label} className="rounded-2xl border border-gold/15 bg-[#0B0B0B] p-4">
+            <p className="text-[11px] font-bold tracking-[0.14em] text-text-dim uppercase">
+              {item.icon} {item.label}
+            </p>
+            <p className="mt-1 font-display text-xl font-black text-white">{item.value}</p>
           </div>
         ))}
       </div>
@@ -564,6 +726,39 @@ export function AdminPanel() {
           ))}
         </div>
 
+        <div className="mb-4 flex flex-wrap gap-2">
+          <span className="self-center text-xs font-bold tracking-[0.12em] text-text-dim uppercase">
+            🏷️ Tag
+          </span>
+          <button
+            type="button"
+            onClick={() => setTagFilter("all")}
+            className={cn(
+              "rounded-full border px-3 py-1.5 text-xs font-semibold",
+              tagFilter === "all"
+                ? "border-gold/40 bg-gold/15 text-gold"
+                : "border-white/10 bg-black/30 text-text-muted",
+            )}
+          >
+            Όλα
+          </button>
+          {tags.map((tag) => (
+            <button
+              key={tag.id}
+              type="button"
+              onClick={() => setTagFilter(tag.id)}
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-xs font-semibold",
+                tagFilter === tag.id
+                  ? "border-gold/40 bg-gold/15 text-gold"
+                  : "border-white/10 bg-black/30 text-text-muted",
+              )}
+            >
+              {tag.emoji} {tag.name}
+            </button>
+          ))}
+        </div>
+
         {filtered.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-[#0B0B0B] p-8 text-center text-text-muted">
             Δεν υπάρχουν πελάτες σε αυτή την κατηγορία.
@@ -589,6 +784,18 @@ export function AdminPanel() {
                           {status.label}
                         </span>
                       </div>
+                      {(customer.tags ?? []).length > 0 ? (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {customer.tags.map((tag) => (
+                            <span
+                              key={tag.id}
+                              className="rounded-full border border-gold/20 bg-gold/10 px-2 py-0.5 text-[11px] font-semibold text-gold"
+                            >
+                              {tag.emoji} {tag.name}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
                       <p className="mt-1 text-sm text-gold">{customer.packageLabel}</p>
                       <div className="mt-3 grid gap-1 text-sm text-text-muted sm:grid-cols-3">
                         <p>Ενεργοποίηση: {formatDate(customer.activatedAt)}</p>
@@ -601,14 +808,21 @@ export function AdminPanel() {
                         </p>
                       </div>
                       <p className="mt-2 text-sm font-semibold text-white">
-                        💰 Σύνολο πληρωμών: {formatEuro(customer.totalPaid)}
+                        💰 Σύνολο πληρωμών: {formatEuro(customer.totalPaid)} · 📈 Κέρδος:{" "}
+                        {formatEuro(customer.totalProfit)}
                       </p>
                       <p className="mt-2 break-all text-xs text-text-dim">{link}</p>
                     </div>
                     <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                      <Button variant="outline" onClick={() => setProfileFor(customer)}>
+                        Προφίλ
+                      </Button>
                       <Button onClick={() => setRenewFor(customer)}>
                         <RefreshCw className="h-4 w-4" />
                         Ανανέωση
+                      </Button>
+                      <Button variant="outline" onClick={() => setSpecialFor(customer)}>
+                        🎁 Ειδική
                       </Button>
                       <Button variant="outline" onClick={() => setMessagesFor(customer)}>
                         💬 Μηνύματα
@@ -656,14 +870,16 @@ export function AdminPanel() {
                             <th className="px-3 py-2 font-semibold">Πακέτο</th>
                             <th className="px-3 py-2 font-semibold">Ενεργοποίηση</th>
                             <th className="px-3 py-2 font-semibold">Λήξη</th>
-                            <th className="px-3 py-2 font-semibold">Τιμή που πλήρωσε</th>
+                            <th className="px-3 py-2 font-semibold">Πληρωμή</th>
+                            <th className="px-3 py-2 font-semibold">Κόστος</th>
+                            <th className="px-3 py-2 font-semibold">Κέρδος</th>
                             <th className="px-3 py-2 font-semibold">Τύπος</th>
                           </tr>
                         </thead>
                         <tbody>
                           {customer.subscriptions.length === 0 ? (
                             <tr>
-                              <td className="px-3 py-3 text-text-muted" colSpan={5}>
+                              <td className="px-3 py-3 text-text-muted" colSpan={7}>
                                 Δεν υπάρχει ιστορικό ακόμα.
                               </td>
                             </tr>
@@ -677,7 +893,13 @@ export function AdminPanel() {
                                   {formatEuro(item.amountPaid)}
                                 </td>
                                 <td className="px-3 py-2 text-text-muted">
-                                  {item.priceType === "OFFER" ? "🔥 Προσφορά" : "Κανονική"}
+                                  {formatEuro(item.purchaseCostAtTime)}
+                                </td>
+                                <td className="px-3 py-2 font-semibold text-emerald-400">
+                                  {formatEuro(item.profitAtTime)}
+                                </td>
+                                <td className="px-3 py-2 text-text-muted">
+                                  {priceTypeLabel(item.priceType)}
                                 </td>
                               </tr>
                             ))
@@ -709,6 +931,52 @@ export function AdminPanel() {
           saving={renewing}
           onClose={() => setRenewFor(null)}
           onConfirm={(packageId) => void confirmRenew(packageId)}
+        />
+      ) : null}
+
+      {specialFor ? (
+        <AdminSpecialOfferModal
+          customer={specialFor}
+          pricing={pricing}
+          saving={renewing}
+          onClose={() => setSpecialFor(null)}
+          onConfirm={(packageId, amountPaid) => void confirmSpecial(packageId, amountPaid)}
+        />
+      ) : null}
+
+      {profileFor ? (
+        <AdminCustomerProfile
+          customer={profileFor}
+          allTags={tags}
+          onClose={() => setProfileFor(null)}
+          onRenew={() => {
+            setRenewFor(profileFor);
+          }}
+          onSpecial={() => {
+            setSpecialFor(profileFor);
+          }}
+          onMessages={() => {
+            setMessagesFor(profileFor);
+          }}
+          onEdit={() => {
+            startEdit(profileFor);
+            setProfileFor(null);
+          }}
+          onDelete={() => {
+            void remove(profileFor);
+            setProfileFor(null);
+          }}
+          onCopyLink={() =>
+            void copyText(
+              `${window.location.origin}${accountPath(profileFor.token)}`,
+              "Το Magic Link αντιγράφηκε.",
+            )
+          }
+          onTagsChange={(tagIds) => syncCustomerTags(profileFor.id, tagIds)}
+          onCreateTag={createTag}
+          onAddNote={(content) => addNote(profileFor.id, content)}
+          onUpdateNote={updateNote}
+          onDeleteNote={deleteNote}
         />
       ) : null}
     </div>
