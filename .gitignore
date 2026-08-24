@@ -34,8 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
-# customer magic-link store (local fallback)
+# customer magic-link / CRM store (local fallback)
 /data/.customers.json
+/data/.crm.json
 
 # vercel
 .vercel

@@ -1,9 +1,13 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { Customer } from "@/lib/customers/types";
+import { ensurePricing } from "@/lib/customers/pricing";
+import type { CrmData, Customer, PackagePricing, Subscription } from "@/lib/customers/types";
+import { makeSubscription } from "@/lib/customers/views";
 
-const REDIS_KEY = "grvip:customers";
-const FILE_PATH = path.join(process.cwd(), "data", ".customers.json");
+const CRM_REDIS_KEY = "grvip:crm";
+const LEGACY_REDIS_KEY = "grvip:customers";
+const CRM_FILE_PATH = path.join(process.cwd(), "data", ".crm.json");
+const LEGACY_FILE_PATH = path.join(process.cwd(), "data", ".customers.json");
 
 type StoreBackend = "upstash" | "file";
 
@@ -62,86 +66,223 @@ async function redisCommand(command: Array<string>) {
   return payload.result;
 }
 
-async function readFromFile(): Promise<Customer[]> {
+function parseJson(value: string): unknown {
   try {
-    const raw = await readFile(FILE_PATH, "utf8");
-    const parsed = JSON.parse(raw) as Customer[];
-    return Array.isArray(parsed) ? parsed : [];
+    return JSON.parse(value);
   } catch {
-    return [];
+    return null;
   }
 }
 
-async function writeToFile(customers: Customer[]) {
-  await mkdir(path.dirname(FILE_PATH), { recursive: true });
-  await writeFile(FILE_PATH, `${JSON.stringify(customers, null, 2)}\n`, "utf8");
+function isCrmData(value: unknown): value is CrmData {
+  if (!value || typeof value !== "object") return false;
+  const data = value as Partial<CrmData>;
+  return Array.isArray(data.customers);
 }
 
-async function readAll(): Promise<Customer[]> {
+function isCustomerArray(value: unknown): value is Customer[] {
+  return Array.isArray(value);
+}
+
+function emptyCrm(): CrmData {
+  return {
+    customers: [],
+    subscriptions: [],
+    pricing: ensurePricing([]),
+  };
+}
+
+function normalizeCrm(value: unknown): { data: CrmData; migrated: boolean } {
+  if (isCrmData(value)) {
+    return {
+      data: {
+        customers: value.customers ?? [],
+        subscriptions: Array.isArray(value.subscriptions) ? value.subscriptions : [],
+        pricing: ensurePricing(value.pricing),
+      },
+      migrated: !Array.isArray(value.subscriptions) || !Array.isArray(value.pricing),
+    };
+  }
+
+  if (isCustomerArray(value)) {
+    return {
+      data: {
+        customers: value,
+        subscriptions: [],
+        pricing: ensurePricing([]),
+      },
+      migrated: true,
+    };
+  }
+
+  return { data: emptyCrm(), migrated: false };
+}
+
+function backfillSubscriptions(data: CrmData): { data: CrmData; changed: boolean } {
+  const known = new Set(data.subscriptions.map((item) => item.customerId));
+  const extra: Subscription[] = [];
+
+  for (const customer of data.customers) {
+    if (known.has(customer.id)) continue;
+    extra.push(
+      makeSubscription({
+        customerId: customer.id,
+        packageId: customer.packageId,
+        startDate: customer.activatedAt,
+        endDate: customer.expiresAt,
+        pricing: data.pricing,
+        createdAt: customer.createdAt,
+      }),
+    );
+  }
+
+  if (extra.length === 0) return { data, changed: false };
+
+  return {
+    data: {
+      ...data,
+      subscriptions: [...data.subscriptions, ...extra],
+    },
+    changed: true,
+  };
+}
+
+async function readFileJson(filePath: string): Promise<unknown> {
+  try {
+    const raw = await readFile(filePath, "utf8");
+    return parseJson(raw);
+  } catch {
+    return null;
+  }
+}
+
+async function writeFileJson(filePath: string, value: unknown) {
+  await mkdir(path.dirname(filePath), { recursive: true });
+  await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+}
+
+async function readRaw(): Promise<{ value: unknown; fromLegacy: boolean }> {
   if (activeBackend() === "upstash") {
-    const result = await redisCommand(["GET", REDIS_KEY]);
-    if (!result || typeof result !== "string") return [];
-    try {
-      const parsed = JSON.parse(result) as Customer[];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
+    const crm = await redisCommand(["GET", CRM_REDIS_KEY]);
+    if (typeof crm === "string" && crm) {
+      return { value: parseJson(crm), fromLegacy: false };
     }
+
+    const legacy = await redisCommand(["GET", LEGACY_REDIS_KEY]);
+    if (typeof legacy === "string" && legacy) {
+      return { value: parseJson(legacy), fromLegacy: true };
+    }
+
+    return { value: null, fromLegacy: false };
   }
 
-  return readFromFile();
+  const crmFile = await readFileJson(CRM_FILE_PATH);
+  if (crmFile != null) return { value: crmFile, fromLegacy: false };
+
+  const legacyFile = await readFileJson(LEGACY_FILE_PATH);
+  if (legacyFile != null) return { value: legacyFile, fromLegacy: true };
+
+  return { value: null, fromLegacy: false };
 }
 
-async function writeAll(customers: Customer[]) {
+async function persistCrm(data: CrmData) {
   const mode = customerStoreMode();
   if (!mode.persistent) {
     throw new Error(mode.warning ?? "Το storage δεν είναι persistent στο Vercel.");
   }
 
   if (activeBackend() === "upstash") {
-    await redisCommand(["SET", REDIS_KEY, JSON.stringify(customers)]);
+    await redisCommand(["SET", CRM_REDIS_KEY, JSON.stringify(data)]);
     return;
   }
 
-  await writeToFile(customers);
+  await writeFileJson(CRM_FILE_PATH, data);
+}
+
+let writeChain: Promise<unknown> = Promise.resolve();
+
+function enqueueWrite<T>(work: () => Promise<T>): Promise<T> {
+  const next = writeChain.then(work, work);
+  writeChain = next.then(
+    () => undefined,
+    () => undefined,
+  );
+  return next;
+}
+
+export async function loadCrm(): Promise<CrmData> {
+  const raw = await readRaw();
+  const normalized = normalizeCrm(raw.value);
+  const filled = backfillSubscriptions(normalized.data);
+  const dirty = raw.fromLegacy || normalized.migrated || filled.changed;
+
+  if (dirty && customerStoreMode().persistent) {
+    await persistCrm(filled.data);
+  }
+
+  return filled.data;
+}
+
+export async function mutateCrm<T>(mutator: (data: CrmData) => T | Promise<T>): Promise<T> {
+  return enqueueWrite(async () => {
+    const data = await loadCrm();
+    const result = await mutator(data);
+    await persistCrm(data);
+    return result;
+  });
 }
 
 export async function listCustomers() {
-  const customers = await readAll();
-  return [...customers].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const data = await loadCrm();
+  return [...data.customers]
+    .filter((customer) => !customer.archivedAt)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export async function getCustomerByToken(token: string) {
-  const customers = await readAll();
-  return customers.find((customer) => customer.token === token) ?? null;
+  const data = await loadCrm();
+  return data.customers.find((customer) => customer.token === token && !customer.archivedAt) ?? null;
 }
 
 export async function getCustomerById(id: string) {
-  const customers = await readAll();
-  return customers.find((customer) => customer.id === id) ?? null;
+  const data = await loadCrm();
+  return data.customers.find((customer) => customer.id === id) ?? null;
 }
 
 export async function saveCustomer(customer: Customer) {
-  const customers = await readAll();
-  const index = customers.findIndex((item) => item.id === customer.id);
-  if (index >= 0) {
-    customers[index] = customer;
-  } else {
-    customers.push(customer);
-  }
-  await writeAll(customers);
-  return customer;
+  return mutateCrm((data) => {
+    const index = data.customers.findIndex((item) => item.id === customer.id);
+    if (index >= 0) {
+      data.customers[index] = customer;
+    } else {
+      data.customers.push(customer);
+    }
+    return customer;
+  });
 }
 
 export async function deleteCustomer(id: string) {
-  const customers = await readAll();
-  const next = customers.filter((customer) => customer.id !== id);
-  if (next.length === customers.length) return false;
-  await writeAll(next);
-  return true;
+  return mutateCrm((data) => {
+    const before = data.customers.length;
+    data.customers = data.customers.filter((customer) => customer.id !== id);
+    data.subscriptions = data.subscriptions.filter((item) => item.customerId !== id);
+    return data.customers.length !== before;
+  });
 }
 
 export async function tokenExists(token: string, ignoreId?: string) {
-  const customers = await readAll();
-  return customers.some((customer) => customer.token === token && customer.id !== ignoreId);
+  const data = await loadCrm();
+  return data.customers.some((customer) => customer.token === token && customer.id !== ignoreId);
+}
+
+export async function getPricingCatalog(): Promise<PackagePricing[]> {
+  const data = await loadCrm();
+  return data.pricing;
+}
+
+export async function replacePricing(pricing: PackagePricing[]) {
+  return mutateCrm((data) => {
+    data.pricing = ensurePricing(pricing);
+    return data.pricing;
+  });
 }

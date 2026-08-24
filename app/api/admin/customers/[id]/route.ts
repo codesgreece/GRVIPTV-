@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated, unauthorized } from "@/lib/customers/auth";
 import { parseCustomerInput, regenerateCustomerToken, removeCustomer, updateCustomer } from "@/lib/customers/service";
+import { loadCrm } from "@/lib/customers/store";
+import { toCustomerView } from "@/lib/customers/views";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +19,8 @@ export async function PUT(request: Request, context: RouteContext) {
     const input = parseCustomerInput(await request.json());
     const customer = await updateCustomer(id, input);
     if (!customer) return NextResponse.json({ error: "Δεν βρέθηκε." }, { status: 404 });
-    return NextResponse.json({ customer });
+    const data = await loadCrm();
+    return NextResponse.json({ customer: toCustomerView(customer, data.subscriptions) });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Αποτυχία ενημέρωσης.";
     return NextResponse.json({ error: message }, { status: 400 });
@@ -45,5 +48,6 @@ export async function POST(request: Request, context: RouteContext) {
 
   const customer = await regenerateCustomerToken(id);
   if (!customer) return NextResponse.json({ error: "Δεν βρέθηκε." }, { status: 404 });
-  return NextResponse.json({ customer });
+  const data = await loadCrm();
+  return NextResponse.json({ customer: toCustomerView(customer, data.subscriptions) });
 }

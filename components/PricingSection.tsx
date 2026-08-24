@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check, ShieldCheck, Sparkles, TrendingDown, Zap } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { PromoCountdown } from "@/components/PromoCountdown";
@@ -8,7 +8,8 @@ import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { pricingPlans } from "@/data/content";
 import { telegramUrl } from "@/lib/contact";
-import { getPlanDisplay, getPlanSavings, isPromoActive } from "@/lib/pricing-promo";
+import { defaultPublicPricing, type PublicPackagePrice } from "@/lib/customers/pricing";
+import { anyOfferActive, getPlanDisplay, getPlanSavings } from "@/lib/pricing-promo";
 import { cn } from "@/lib/cn";
 
 type PricingSectionProps = {
@@ -16,15 +17,35 @@ type PricingSectionProps = {
 };
 
 export function PricingSection({ showHeading = true }: PricingSectionProps) {
-  const [promoActive, setPromoActive] = useState(() => isPromoActive());
+  const [catalog, setCatalog] = useState<PublicPackagePrice[]>(() => defaultPublicPricing());
 
   useEffect(() => {
-    const syncPromo = () => setPromoActive(isPromoActive());
-    syncPromo();
+    let cancelled = false;
 
-    const timer = window.setInterval(syncPromo, 60_000);
-    return () => window.clearInterval(timer);
+    const load = async () => {
+      try {
+        const response = await fetch("/api/pricing", { cache: "no-store" });
+        if (!response.ok) return;
+        const payload = (await response.json()) as { pricing?: PublicPackagePrice[] };
+        if (!cancelled && payload.pricing?.length) setCatalog(payload.pricing);
+      } catch {
+        // Keep the central default catalog if the public API is temporarily unavailable.
+      }
+    };
+
+    void load();
+    const timer = window.setInterval(() => void load(), 60_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
   }, []);
+
+  const byId = useMemo(
+    () => new Map(catalog.map((item) => [item.packageId, item])),
+    [catalog],
+  );
+  const hasOffer = anyOfferActive(catalog);
 
   return (
     <section id="paketa" className="relative py-12 md:py-24">
@@ -37,12 +58,14 @@ export function PricingSection({ showHeading = true }: PricingSectionProps) {
           />
         ) : null}
 
-        <PromoCountdown />
+        <PromoCountdown hasOffer={hasOffer} />
 
         <div className="mx-auto grid max-w-6xl gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {pricingPlans.map((plan, i) => {
-            const display = getPlanDisplay(plan, promoActive);
-            const savings = getPlanSavings(plan, promoActive);
+            const live = byId.get(plan.id) ?? defaultPublicPricing().find((item) => item.packageId === plan.id);
+            if (!live) return null;
+            const display = getPlanDisplay(live);
+            const savings = getPlanSavings(live, catalog);
 
             return (
               <Reveal key={plan.id} delay={i * 0.08} className="h-full">

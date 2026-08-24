@@ -1,6 +1,14 @@
-import { CUSTOMER_PACKAGES, DEFAULT_SETUP_GUIDE_PATH, type Customer, type CustomerInput } from "@/lib/customers/types";
+import { CUSTOMER_PACKAGES, DEFAULT_SETUP_GUIDE_PATH, type Customer, type CustomerInput, type PackageId } from "@/lib/customers/types";
 import { createCustomerId, createMagicToken } from "@/lib/customers/token";
-import { deleteCustomer, getCustomerById, saveCustomer, tokenExists } from "@/lib/customers/store";
+import {
+  deleteCustomer,
+  getCustomerById,
+  mutateCrm,
+  tokenExists,
+} from "@/lib/customers/store";
+import { addMonthsToYmd, athensTodayYmd, getPackageMonths } from "@/lib/customers/status";
+import { makeSubscription, toCustomerView } from "@/lib/customers/views";
+import { getPricingById } from "@/lib/customers/pricing";
 
 function isYmd(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
@@ -24,7 +32,7 @@ export function parseCustomerInput(body: unknown): CustomerInput {
   const name = String(data.name ?? "").trim();
   const packageId = String(data.packageId ?? "").trim();
   const activatedAt = String(data.activatedAt ?? "").trim();
-  const expiresAt = String(data.expiresAt ?? "").trim();
+  const expiresAtInput = String(data.expiresAt ?? "").trim();
   const setupGuideUrl = String(data.setupGuideUrl ?? DEFAULT_SETUP_GUIDE_PATH).trim() || DEFAULT_SETUP_GUIDE_PATH;
 
   if (name.length < 2 || name.length > 80) {
@@ -35,7 +43,15 @@ export function parseCustomerInput(body: unknown): CustomerInput {
     throw new Error("Μη έγκυρο πακέτο.");
   }
 
-  if (!isYmd(activatedAt) || !isYmd(expiresAt)) {
+  if (!isYmd(activatedAt)) {
+    throw new Error("Μη έγκυρες ημερομηνίες.");
+  }
+
+  const expiresAt = isYmd(expiresAtInput)
+    ? expiresAtInput
+    : addMonthsToYmd(activatedAt, getPackageMonths(packageId as PackageId));
+
+  if (!isYmd(expiresAt)) {
     throw new Error("Μη έγκυρες ημερομηνίες.");
   }
 
@@ -79,22 +95,35 @@ export async function createCustomer(input: CustomerInput): Promise<Customer> {
     updatedAt: now,
   };
 
-  await saveCustomer(customer);
-  return customer;
+  return mutateCrm((data) => {
+    data.customers.push(customer);
+    data.subscriptions.push(
+      makeSubscription({
+        customerId: customer.id,
+        packageId: customer.packageId,
+        startDate: customer.activatedAt,
+        endDate: customer.expiresAt,
+        pricing: data.pricing,
+        createdAt: now,
+      }),
+    );
+    return customer;
+  });
 }
 
 export async function updateCustomer(id: string, input: CustomerInput) {
-  const existing = await getCustomerById(id);
-  if (!existing) return null;
+  return mutateCrm((data) => {
+    const index = data.customers.findIndex((item) => item.id === id);
+    if (index < 0) return null;
 
-  const customer: Customer = {
-    ...existing,
-    ...input,
-    updatedAt: new Date().toISOString(),
-  };
-
-  await saveCustomer(customer);
-  return customer;
+    const customer: Customer = {
+      ...data.customers[index],
+      ...input,
+      updatedAt: new Date().toISOString(),
+    };
+    data.customers[index] = customer;
+    return customer;
+  });
 }
 
 export async function regenerateCustomerToken(id: string) {
@@ -107,10 +136,65 @@ export async function regenerateCustomerToken(id: string) {
     updatedAt: new Date().toISOString(),
   };
 
-  await saveCustomer(customer);
-  return customer;
+  return mutateCrm((data) => {
+    const index = data.customers.findIndex((item) => item.id === id);
+    if (index < 0) return null;
+    data.customers[index] = customer;
+    return customer;
+  });
 }
 
 export async function removeCustomer(id: string) {
   return deleteCustomer(id);
 }
+
+export async function renewCustomer(id: string, packageId: PackageId) {
+  if (!CUSTOMER_PACKAGES.some((item) => item.id === packageId)) {
+    throw new Error("Μη έγκυρο πακέτο.");
+  }
+
+  return mutateCrm((data) => {
+    const index = data.customers.findIndex((item) => item.id === id && !item.archivedAt);
+    if (index < 0) return null;
+
+    const existing = data.customers[index];
+    const today = athensTodayYmd();
+    const expiresAt = addMonthsToYmd(today, getPackageMonths(packageId));
+    const now = new Date().toISOString();
+    const pkg = getPricingById(data.pricing, packageId);
+
+    const subscription = makeSubscription({
+      customerId: existing.id,
+      packageId,
+      startDate: today,
+      endDate: expiresAt,
+      pricing: data.pricing,
+      createdAt: now,
+    });
+
+    data.subscriptions.push(subscription);
+
+    const customer: Customer = {
+      ...existing,
+      packageId,
+      activatedAt: today,
+      expiresAt,
+      updatedAt: now,
+    };
+    data.customers[index] = customer;
+
+    return {
+      customer: toCustomerView(customer, data.subscriptions),
+      subscription,
+      charged: {
+        amountPaid: subscription.amountPaid,
+        priceType: subscription.priceType,
+        packageName: pkg.packageName,
+        normalPrice: pkg.normalPrice,
+        offerPrice: pkg.offerPrice,
+        offerEnabled: pkg.offerEnabled,
+      },
+    };
+  });
+}
+
