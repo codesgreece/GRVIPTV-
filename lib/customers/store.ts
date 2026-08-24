@@ -1,8 +1,8 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { ensurePricing, migrateStoredPricing } from "@/lib/customers/pricing";
-import type { CrmData, Customer, PackagePricing, Subscription } from "@/lib/customers/types";
-import { makeSubscription } from "@/lib/customers/views";
+import type { CrmData, Customer, CustomerNote, CustomerTag, PackagePricing, Subscription } from "@/lib/customers/types";
+import { ensureTags, makeSubscription, normalizeSubscription } from "@/lib/customers/views";
 
 const CRM_REDIS_KEY = "grvip:crm";
 const LEGACY_REDIS_KEY = "grvip:customers";
@@ -89,30 +89,75 @@ function emptyCrm(): CrmData {
     customers: [],
     subscriptions: [],
     pricing: migrateStoredPricing([]),
+    tags: ensureTags([]),
+    notes: [],
   };
+}
+
+function normalizeCustomers(customers: Customer[]): { customers: Customer[]; changed: boolean } {
+  let changed = false;
+  const next = customers.map((customer) => {
+    if (Array.isArray(customer.tagIds)) return customer;
+    changed = true;
+    return { ...customer, tagIds: [] };
+  });
+  return { customers: next, changed };
+}
+
+function normalizeSubscriptions(
+  subscriptions: Subscription[],
+  pricing: PackagePricing[],
+): { subscriptions: Subscription[]; changed: boolean } {
+  let changed = false;
+  const next = subscriptions.map((item) => {
+    const result = normalizeSubscription(item, pricing);
+    if (result.changed) changed = true;
+    return result.subscription;
+  });
+  return { subscriptions: next, changed };
 }
 
 function normalizeCrm(value: unknown): { data: CrmData; migrated: boolean } {
   if (isCrmData(value)) {
     const pricing = migrateStoredPricing(value.pricing);
+    const tags = ensureTags(value.tags);
+    const notes = Array.isArray(value.notes) ? (value.notes as CustomerNote[]) : [];
+    const customersResult = normalizeCustomers(value.customers ?? []);
+    const subscriptionsResult = normalizeSubscriptions(
+      Array.isArray(value.subscriptions) ? value.subscriptions : [],
+      pricing,
+    );
     const pricingChanged = JSON.stringify(value.pricing ?? []) !== JSON.stringify(pricing);
+    const tagsChanged = JSON.stringify(value.tags ?? []) !== JSON.stringify(tags);
+    const notesMissing = !Array.isArray(value.notes);
+
     return {
       data: {
-        customers: value.customers ?? [],
-        subscriptions: Array.isArray(value.subscriptions) ? value.subscriptions : [],
+        customers: customersResult.customers,
+        subscriptions: subscriptionsResult.subscriptions,
         pricing,
+        tags,
+        notes,
       },
       migrated:
-        pricingChanged || !Array.isArray(value.subscriptions) || !Array.isArray(value.pricing),
+        pricingChanged ||
+        tagsChanged ||
+        notesMissing ||
+        customersResult.changed ||
+        subscriptionsResult.changed ||
+        !Array.isArray(value.subscriptions) ||
+        !Array.isArray(value.pricing),
     };
   }
 
   if (isCustomerArray(value)) {
     return {
       data: {
-        customers: value,
+        customers: value.map((customer) => ({ ...customer, tagIds: customer.tagIds ?? [] })),
         subscriptions: [],
         pricing: migrateStoredPricing([]),
+        tags: ensureTags([]),
+        notes: [],
       },
       migrated: true,
     };
@@ -269,6 +314,7 @@ export async function deleteCustomer(id: string) {
     const before = data.customers.length;
     data.customers = data.customers.filter((customer) => customer.id !== id);
     data.subscriptions = data.subscriptions.filter((item) => item.customerId !== id);
+    data.notes = data.notes.filter((note) => note.customerId !== id);
     return data.customers.length !== before;
   });
 }
@@ -289,3 +335,5 @@ export async function replacePricing(pricing: PackagePricing[]) {
     return data.pricing;
   });
 }
+
+export type { CustomerTag };

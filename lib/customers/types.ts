@@ -13,7 +13,7 @@ export const DEFAULT_SETUP_GUIDE_PATH = "/odigos-egkatastasis";
 export const RENEW_PATH = "https://grviptv.xyz/paketa";
 
 export type CustomerStatus = "active" | "expiring" | "expired";
-export type PriceType = "NORMAL" | "OFFER";
+export type PriceType = "NORMAL" | "OFFER" | "CUSTOMER_SPECIAL_OFFER";
 
 export type Customer = {
   id: string;
@@ -26,6 +26,7 @@ export type Customer = {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  tagIds?: string[];
 };
 
 export type Subscription = {
@@ -36,6 +37,8 @@ export type Subscription = {
   startDate: string;
   endDate: string;
   amountPaid: number;
+  purchaseCostAtTime: number;
+  profitAtTime: number;
   priceType: PriceType;
   createdAt: string;
 };
@@ -51,10 +54,27 @@ export type PackagePricing = {
   minimumProfit: number;
 };
 
+export type CustomerTag = {
+  id: string;
+  name: string;
+  emoji: string;
+  createdAt: string;
+};
+
+export type CustomerNote = {
+  id: string;
+  customerId: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type CrmData = {
   customers: Customer[];
   subscriptions: Subscription[];
   pricing: PackagePricing[];
+  tags: CustomerTag[];
+  notes: CustomerNote[];
 };
 
 export type CustomerView = Customer & {
@@ -62,6 +82,9 @@ export type CustomerView = Customer & {
   status: CustomerStatus;
   packageLabel: string;
   totalPaid: number;
+  totalProfit: number;
+  tags: CustomerTag[];
+  notes: CustomerNote[];
   subscriptions: Subscription[];
 };
 
@@ -71,6 +94,31 @@ export type DashboardStats = {
   expiringSoon: number;
   expiredSubscriptions: number;
   totalRevenue: number;
+  totalCost: number;
+  totalProfit: number;
+  monthRevenue: number;
+  monthProfit: number;
+  topProfitPackageId: PackageId | null;
+  topProfitPackageName: string | null;
+  topProfitPackageAmount: number;
+};
+
+export type AdminNotificationKind =
+  | "expiring_soon"
+  | "expired_today"
+  | "expired"
+  | "new_activation";
+
+export type AdminNotification = {
+  id: string;
+  kind: AdminNotificationKind;
+  customerId: string;
+  customerName: string;
+  packageLabel: string;
+  expiresAt: string;
+  daysRemaining: number;
+  title: string;
+  detail: string;
 };
 
 export type CustomerInput = {
@@ -90,3 +138,11 @@ export type SubscriptionView = {
   statusLabel: string;
   statusHint: string;
 };
+
+export const DEFAULT_CUSTOMER_TAGS: Array<Omit<CustomerTag, "createdAt">> = [
+  { id: "tag-vip", name: "VIP", emoji: "👑" },
+  { id: "tag-old", name: "ΠΑΛΙΟΣ ΠΕΛΑΤΗΣ", emoji: "🔥" },
+  { id: "tag-new", name: "ΝΕΟΣ ΠΕΛΑΤΗΣ", emoji: "🆕" },
+  { id: "tag-offer", name: "ΠΡΟΣΦΟΡΑ", emoji: "🎁" },
+  { id: "tag-frequent", name: "ΣΥΧΝΗ ΑΝΑΝΕΩΣΗ", emoji: "⭐" },
+];

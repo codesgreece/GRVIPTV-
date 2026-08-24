@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated, unauthorized } from "@/lib/customers/auth";
-import { parseCustomerInput, regenerateCustomerToken, removeCustomer, updateCustomer } from "@/lib/customers/service";
+import {
+  parseCustomerInput,
+  regenerateCustomerToken,
+  removeCustomer,
+  setCustomerTags,
+  updateCustomer,
+} from "@/lib/customers/service";
 import { loadCrm } from "@/lib/customers/store";
 import { toCustomerView } from "@/lib/customers/views";
 
@@ -16,11 +22,18 @@ export async function PUT(request: Request, context: RouteContext) {
   const { id } = await context.params;
 
   try {
-    const input = parseCustomerInput(await request.json());
+    const body = await request.json();
+    if (body && typeof body === "object" && Array.isArray((body as { tagIds?: unknown }).tagIds)) {
+      const customer = await setCustomerTags(id, (body as { tagIds: string[] }).tagIds);
+      if (!customer) return NextResponse.json({ error: "Δεν βρέθηκε." }, { status: 404 });
+      return NextResponse.json({ customer });
+    }
+
+    const input = parseCustomerInput(body);
     const customer = await updateCustomer(id, input);
     if (!customer) return NextResponse.json({ error: "Δεν βρέθηκε." }, { status: 404 });
     const data = await loadCrm();
-    return NextResponse.json({ customer: toCustomerView(customer, data.subscriptions) });
+    return NextResponse.json({ customer: toCustomerView(customer, data) });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Αποτυχία ενημέρωσης.";
     return NextResponse.json({ error: message }, { status: 400 });
@@ -49,5 +62,5 @@ export async function POST(request: Request, context: RouteContext) {
   const customer = await regenerateCustomerToken(id);
   if (!customer) return NextResponse.json({ error: "Δεν βρέθηκε." }, { status: 404 });
   const data = await loadCrm();
-  return NextResponse.json({ customer: toCustomerView(customer, data.subscriptions) });
+  return NextResponse.json({ customer: toCustomerView(customer, data) });
 }
