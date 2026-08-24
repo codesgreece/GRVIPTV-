@@ -12,10 +12,10 @@ import {
   Trash2,
 } from "lucide-react";
 import { AdminModal } from "@/components/admin/AdminCrmModals";
+import { AdminSubscriptionHistory } from "@/components/admin/AdminSubscriptionHistory";
 import { Button } from "@/components/ui/Button";
 import { formatEuro } from "@/lib/customers/pricing";
 import { adminStatusFromDays } from "@/lib/customers/status";
-import { priceTypeLabel } from "@/lib/customers/views";
 import type { CustomerTag, CustomerView } from "@/lib/customers/types";
 import { cn } from "@/lib/cn";
 
@@ -41,6 +41,9 @@ function formatDate(iso: string) {
   if (!year || !month || !day) return iso;
   return `${day}/${month}/${year}`;
 }
+
+const actionBtnClass =
+  "h-auto min-h-10 w-full min-w-0 px-2 py-2 text-[11px] leading-tight whitespace-normal sm:min-h-0 sm:w-auto sm:px-6 sm:py-3 sm:text-base";
 
 export function AdminCustomerProfile({
   customer,
@@ -96,33 +99,33 @@ export function AdminCustomerProfile({
         <Info label="Συνολικό κέρδος" value={formatEuro(customer.totalProfit)} />
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-        <Button onClick={onRenew}>
-          <RefreshCw className="h-4 w-4" />
+      <div className="mt-4 grid w-full min-w-0 grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+        <Button className={actionBtnClass} onClick={onRenew}>
+          <RefreshCw className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
           Ανανέωση
         </Button>
-        <Button variant="outline" onClick={onSpecial}>
-          <Gift className="h-4 w-4" />
+        <Button variant="outline" className={actionBtnClass} onClick={onSpecial}>
+          <Gift className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
           Ειδική προσφορά
         </Button>
-        <Button variant="outline" onClick={onMessages}>
-          <MessageCircle className="h-4 w-4" />
+        <Button variant="outline" className={actionBtnClass} onClick={onMessages}>
+          <MessageCircle className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
           Μηνύματα
         </Button>
-        <Button variant="outline" onClick={onCopyLink}>
-          <Copy className="h-4 w-4" />
+        <Button variant="outline" className={actionBtnClass} onClick={onCopyLink}>
+          <Copy className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
           Αντιγραφή link
         </Button>
-        <Button href={`/account/${customer.token}`} variant="outline">
-          <ExternalLink className="h-4 w-4" />
+        <Button href={`/account/${customer.token}`} variant="outline" className={actionBtnClass}>
+          <ExternalLink className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
           Άνοιγμα
         </Button>
-        <Button variant="outline" onClick={onEdit}>
-          <Pencil className="h-4 w-4" />
+        <Button variant="outline" className={actionBtnClass} onClick={onEdit}>
+          <Pencil className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
           Επεξεργασία
         </Button>
-        <Button variant="ghost" onClick={onDelete}>
-          <Trash2 className="h-4 w-4" />
+        <Button variant="ghost" className={actionBtnClass} onClick={onDelete}>
+          <Trash2 className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
           Διαγραφή
         </Button>
       </div>
@@ -276,37 +279,7 @@ export function AdminCustomerProfile({
         </div>
       </section>
 
-      <section className="mt-4 overflow-x-auto rounded-2xl border border-white/10">
-        <h3 className="border-b border-white/8 px-3 py-3 font-display text-base font-bold text-white">
-          Ιστορικό συνδρομών
-        </h3>
-        <table className="min-w-full text-left text-sm">
-          <thead className="bg-white/4 text-[11px] tracking-[0.12em] text-text-dim uppercase">
-            <tr>
-              <th className="px-3 py-2 font-semibold">Πακέτο</th>
-              <th className="px-3 py-2 font-semibold">Ενεργοποίηση</th>
-              <th className="px-3 py-2 font-semibold">Λήξη</th>
-              <th className="px-3 py-2 font-semibold">Πληρωμή</th>
-              <th className="px-3 py-2 font-semibold">Κόστος</th>
-              <th className="px-3 py-2 font-semibold">Κέρδος</th>
-              <th className="px-3 py-2 font-semibold">Τύπος</th>
-            </tr>
-          </thead>
-          <tbody>
-            {customer.subscriptions.map((item) => (
-              <tr key={item.id} className="border-t border-white/8">
-                <td className="px-3 py-2 text-white">{item.packageName}</td>
-                <td className="px-3 py-2 text-text-muted">{formatDate(item.startDate)}</td>
-                <td className="px-3 py-2 text-text-muted">{formatDate(item.endDate)}</td>
-                <td className="px-3 py-2 font-semibold text-white">{formatEuro(item.amountPaid)}</td>
-                <td className="px-3 py-2 text-text-muted">{formatEuro(item.purchaseCostAtTime)}</td>
-                <td className="px-3 py-2 font-semibold text-emerald-400">{formatEuro(item.profitAtTime)}</td>
-                <td className="px-3 py-2 text-text-muted">{priceTypeLabel(item.priceType)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+      <AdminSubscriptionHistory subscriptions={customer.subscriptions} />
     </AdminModal>
   );
 }
