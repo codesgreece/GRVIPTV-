@@ -21,11 +21,11 @@ import {
 } from "@/components/admin/AdminCrmModals";
 import { AdminCustomerProfile } from "@/components/admin/AdminCustomerProfile";
 import { AdminNotificationCenter } from "@/components/admin/AdminNotificationCenter";
+import { AdminSubscriptionHistory } from "@/components/admin/AdminSubscriptionHistory";
 import { Button } from "@/components/ui/Button";
 import { formatEuro } from "@/lib/customers/pricing";
 import { expiringSoonMessage } from "@/lib/customers/messages";
 import { addMonthsToYmd, adminStatusFromDays, getPackageMonths } from "@/lib/customers/status";
-import { priceTypeLabel } from "@/lib/customers/views";
 import {
   CUSTOMER_PACKAGES,
   DEFAULT_SETUP_GUIDE_PATH,
@@ -87,6 +87,9 @@ function formatDate(iso: string) {
   if (!year || !month || !day) return iso;
   return `${day}/${month}/${year}`;
 }
+
+const actionBtnClass =
+  "h-auto min-h-10 w-full min-w-0 px-2 py-2 text-[11px] leading-tight whitespace-normal sm:min-h-0 sm:w-auto sm:px-6 sm:py-3 sm:text-base";
 
 export function AdminPanel() {
   const [password, setPassword] = useState("");
@@ -773,10 +776,10 @@ export function AdminPanel() {
               return (
                 <article
                   key={customer.id}
-                  className="rounded-2xl border border-white/10 bg-[#0B0B0B] p-4 sm:p-5"
+                  className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#0B0B0B] p-4 sm:p-5"
                 >
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                    <div>
+                  <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="font-display text-lg font-bold text-white">{customer.name}</h3>
                         <span className="inline-flex items-center gap-2 rounded-full border border-white/10 px-2.5 py-1 text-xs font-semibold text-text-muted">
@@ -813,100 +816,83 @@ export function AdminPanel() {
                       </p>
                       <p className="mt-2 break-all text-xs text-text-dim">{link}</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-                      <Button variant="outline" onClick={() => setProfileFor(customer)}>
+                    <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                      <Button
+                        variant="outline"
+                        className={actionBtnClass}
+                        onClick={() => setProfileFor(customer)}
+                      >
                         Προφίλ
                       </Button>
-                      <Button onClick={() => setRenewFor(customer)}>
-                        <RefreshCw className="h-4 w-4" />
+                      <Button className={actionBtnClass} onClick={() => setRenewFor(customer)}>
+                        <RefreshCw className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                         Ανανέωση
                       </Button>
-                      <Button variant="outline" onClick={() => setSpecialFor(customer)}>
+                      <Button
+                        variant="outline"
+                        className={actionBtnClass}
+                        onClick={() => setSpecialFor(customer)}
+                      >
                         🎁 Ειδική
                       </Button>
-                      <Button variant="outline" onClick={() => setMessagesFor(customer)}>
+                      <Button
+                        variant="outline"
+                        className={actionBtnClass}
+                        onClick={() => setMessagesFor(customer)}
+                      >
                         💬 Μηνύματα
                       </Button>
-                      <Button variant="outline" onClick={() => startEdit(customer)}>
-                        <Pencil className="h-4 w-4" />
+                      <Button
+                        variant="outline"
+                        className={actionBtnClass}
+                        onClick={() => startEdit(customer)}
+                      >
+                        <Pencil className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                         Επεξεργασία
                       </Button>
                       <Button
                         variant="outline"
+                        className={actionBtnClass}
                         onClick={() =>
                           void copyText(`${window.location.origin}${link}`, "Το Magic Link αντιγράφηκε.")
                         }
                       >
-                        <Copy className="h-4 w-4" />
+                        <Copy className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                         Αντιγραφή
                       </Button>
-                      <Button href={link} variant="outline">
-                        <ExternalLink className="h-4 w-4" />
+                      <Button href={link} variant="outline" className={actionBtnClass}>
+                        <ExternalLink className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                         Άνοιγμα
                       </Button>
                       <Button
                         variant="outline"
+                        className={cn(actionBtnClass, open && "border-gold/50 bg-gold/10 text-gold")}
                         onClick={() => setHistoryOpen(open ? null : customer.id)}
                       >
-                        <History className="h-4 w-4" />
+                        <History className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                         Ιστορικό
                       </Button>
-                      <Button variant="outline" onClick={() => void regenerate(customer)}>
-                        <RefreshCw className="h-4 w-4" />
+                      <Button
+                        variant="outline"
+                        className={actionBtnClass}
+                        onClick={() => void regenerate(customer)}
+                      >
+                        <RefreshCw className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                         Νέο link
                       </Button>
-                      <Button variant="ghost" onClick={() => void remove(customer)}>
-                        <Trash2 className="h-4 w-4" />
+                      <Button
+                        variant="ghost"
+                        className={actionBtnClass}
+                        onClick={() => void remove(customer)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                         Διαγραφή
                       </Button>
                     </div>
                   </div>
 
                   {open ? (
-                    <div className="mt-4 overflow-x-auto rounded-2xl border border-white/10">
-                      <table className="min-w-full text-left text-sm">
-                        <thead className="bg-white/4 text-[11px] tracking-[0.12em] text-text-dim uppercase">
-                          <tr>
-                            <th className="px-3 py-2 font-semibold">Πακέτο</th>
-                            <th className="px-3 py-2 font-semibold">Ενεργοποίηση</th>
-                            <th className="px-3 py-2 font-semibold">Λήξη</th>
-                            <th className="px-3 py-2 font-semibold">Πληρωμή</th>
-                            <th className="px-3 py-2 font-semibold">Κόστος</th>
-                            <th className="px-3 py-2 font-semibold">Κέρδος</th>
-                            <th className="px-3 py-2 font-semibold">Τύπος</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {customer.subscriptions.length === 0 ? (
-                            <tr>
-                              <td className="px-3 py-3 text-text-muted" colSpan={7}>
-                                Δεν υπάρχει ιστορικό ακόμα.
-                              </td>
-                            </tr>
-                          ) : (
-                            customer.subscriptions.map((item) => (
-                              <tr key={item.id} className="border-t border-white/8">
-                                <td className="px-3 py-2 text-white">{item.packageName}</td>
-                                <td className="px-3 py-2 text-text-muted">{formatDate(item.startDate)}</td>
-                                <td className="px-3 py-2 text-text-muted">{formatDate(item.endDate)}</td>
-                                <td className="px-3 py-2 font-semibold text-white">
-                                  {formatEuro(item.amountPaid)}
-                                </td>
-                                <td className="px-3 py-2 text-text-muted">
-                                  {formatEuro(item.purchaseCostAtTime)}
-                                </td>
-                                <td className="px-3 py-2 font-semibold text-emerald-400">
-                                  {formatEuro(item.profitAtTime)}
-                                </td>
-                                <td className="px-3 py-2 text-text-muted">
-                                  {priceTypeLabel(item.priceType)}
-                                </td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
+                    <AdminSubscriptionHistory subscriptions={customer.subscriptions} />
                   ) : null}
                 </article>
               );
