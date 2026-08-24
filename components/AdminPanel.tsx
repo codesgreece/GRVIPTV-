@@ -424,7 +424,7 @@ export function AdminPanel() {
         <h2 className="font-display text-xl font-bold text-white">
           {editingId ? "Επεξεργασία πελάτη" : "Δημιουργία νέου πελάτη"}
         </h2>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
+        <div className="mt-5 grid min-w-0 gap-4 md:grid-cols-2">
           <Field label="Ονοματεπώνυμο πελάτη">
             <input
               value={form.name}
@@ -725,11 +725,11 @@ function Field({
   className?: string;
 }) {
   return (
-    <label className={cn("block", className)}>
+    <label className={cn("block min-w-0", className)}>
       <span className="mb-2 block text-xs font-semibold tracking-[0.12em] text-text-dim uppercase">
         {label}
       </span>
-      {children}
+      <div className="min-w-0">{children}</div>
     </label>
   );
 }
