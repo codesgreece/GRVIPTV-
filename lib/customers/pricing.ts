@@ -16,8 +16,8 @@ export const DEFAULT_PACKAGE_PRICING: PackagePricing[] = [
     packageId: "3-months",
     packageName: "3 Μήνες",
     durationMonths: 3,
-    normalPrice: 40,
-    offerPrice: 30,
+    normalPrice: 47,
+    offerPrice: 35,
     purchaseCost: 3,
     offerEnabled: false,
     minimumProfit: 0,
@@ -26,8 +26,8 @@ export const DEFAULT_PACKAGE_PRICING: PackagePricing[] = [
     packageId: "6-months",
     packageName: "6 Μήνες",
     durationMonths: 6,
-    normalPrice: 55,
-    offerPrice: 45,
+    normalPrice: 56,
+    offerPrice: 46,
     purchaseCost: 6,
     offerEnabled: false,
     minimumProfit: 0,
@@ -36,13 +36,22 @@ export const DEFAULT_PACKAGE_PRICING: PackagePricing[] = [
     packageId: "12-months",
     packageName: "12 Μήνες",
     durationMonths: 12,
-    normalPrice: 75,
-    offerPrice: 55,
+    normalPrice: 89,
+    offerPrice: 72,
     purchaseCost: 15,
     offerEnabled: false,
     minimumProfit: 0,
   },
 ];
+
+/** Previous CRM seed — migrate stored catalogs that still have these defaults. */
+const LEGACY_CRM_SEED_PRICES: Partial<
+  Record<PackageId, { normalPrice: number; offerPrice: number }>
+> = {
+  "3-months": { normalPrice: 40, offerPrice: 30 },
+  "6-months": { normalPrice: 55, offerPrice: 45 },
+  "12-months": { normalPrice: 75, offerPrice: 55 },
+};
 
 export function packageLabel(id: PackageId): string {
   return PACKAGE_OPTIONS.find((item) => item.id === id)?.label ?? id;
@@ -62,12 +71,20 @@ export function ensurePricing(list: PackagePricing[] | undefined): PackagePricin
       return Number.isFinite(parsed) ? parsed : fallback;
     };
 
+    const legacy = LEGACY_CRM_SEED_PRICES[seed.packageId];
+    const currentNormal = num(existing.normalPrice, seed.normalPrice);
+    const currentOffer = num(existing.offerPrice, seed.offerPrice);
+    const stillLegacy =
+      legacy != null &&
+      currentNormal === legacy.normalPrice &&
+      currentOffer === legacy.offerPrice;
+
     return {
       packageId: seed.packageId,
       packageName: existing.packageName || seed.packageName,
       durationMonths: num(existing.durationMonths, seed.durationMonths),
-      normalPrice: num(existing.normalPrice, seed.normalPrice),
-      offerPrice: num(existing.offerPrice, seed.offerPrice),
+      normalPrice: stillLegacy ? seed.normalPrice : currentNormal,
+      offerPrice: stillLegacy ? seed.offerPrice : currentOffer,
       purchaseCost: num(existing.purchaseCost, seed.purchaseCost),
       offerEnabled: Boolean(existing.offerEnabled),
       minimumProfit: num(existing.minimumProfit, seed.minimumProfit),

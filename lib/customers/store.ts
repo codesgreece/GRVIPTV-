@@ -94,13 +94,16 @@ function emptyCrm(): CrmData {
 
 function normalizeCrm(value: unknown): { data: CrmData; migrated: boolean } {
   if (isCrmData(value)) {
+    const pricing = ensurePricing(value.pricing);
+    const pricingChanged = JSON.stringify(value.pricing ?? []) !== JSON.stringify(pricing);
     return {
       data: {
         customers: value.customers ?? [],
         subscriptions: Array.isArray(value.subscriptions) ? value.subscriptions : [],
-        pricing: ensurePricing(value.pricing),
+        pricing,
       },
-      migrated: !Array.isArray(value.subscriptions) || !Array.isArray(value.pricing),
+      migrated:
+        pricingChanged || !Array.isArray(value.subscriptions) || !Array.isArray(value.pricing),
     };
   }
 
