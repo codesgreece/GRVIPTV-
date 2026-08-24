@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { ensurePricing } from "@/lib/customers/pricing";
+import { ensurePricing, migrateStoredPricing } from "@/lib/customers/pricing";
 import type { CrmData, Customer, PackagePricing, Subscription } from "@/lib/customers/types";
 import { makeSubscription } from "@/lib/customers/views";
 
@@ -88,13 +88,13 @@ function emptyCrm(): CrmData {
   return {
     customers: [],
     subscriptions: [],
-    pricing: ensurePricing([]),
+    pricing: migrateStoredPricing([]),
   };
 }
 
 function normalizeCrm(value: unknown): { data: CrmData; migrated: boolean } {
   if (isCrmData(value)) {
-    const pricing = ensurePricing(value.pricing);
+    const pricing = migrateStoredPricing(value.pricing);
     const pricingChanged = JSON.stringify(value.pricing ?? []) !== JSON.stringify(pricing);
     return {
       data: {
@@ -112,7 +112,7 @@ function normalizeCrm(value: unknown): { data: CrmData; migrated: boolean } {
       data: {
         customers: value,
         subscriptions: [],
-        pricing: ensurePricing([]),
+        pricing: migrateStoredPricing([]),
       },
       migrated: true,
     };

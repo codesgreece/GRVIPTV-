@@ -71,23 +71,44 @@ export function ensurePricing(list: PackagePricing[] | undefined): PackagePricin
       return Number.isFinite(parsed) ? parsed : fallback;
     };
 
-    const legacy = LEGACY_CRM_SEED_PRICES[seed.packageId];
-    const currentNormal = num(existing.normalPrice, seed.normalPrice);
-    const currentOffer = num(existing.offerPrice, seed.offerPrice);
-    const stillLegacy =
-      legacy != null &&
-      currentNormal === legacy.normalPrice &&
-      currentOffer === legacy.offerPrice;
-
     return {
       packageId: seed.packageId,
       packageName: existing.packageName || seed.packageName,
       durationMonths: num(existing.durationMonths, seed.durationMonths),
-      normalPrice: stillLegacy ? seed.normalPrice : currentNormal,
-      offerPrice: stillLegacy ? seed.offerPrice : currentOffer,
+      normalPrice: num(existing.normalPrice, seed.normalPrice),
+      offerPrice: num(existing.offerPrice, seed.offerPrice),
       purchaseCost: num(existing.purchaseCost, seed.purchaseCost),
       offerEnabled: Boolean(existing.offerEnabled),
       minimumProfit: num(existing.minimumProfit, seed.minimumProfit),
+    };
+  });
+}
+
+function isLegacyCrmSeedCatalog(list: PackagePricing[]) {
+  return (Object.entries(LEGACY_CRM_SEED_PRICES) as Array<
+    [PackageId, { normalPrice: number; offerPrice: number }]
+  >).every(([packageId, legacy]) => {
+    const current = list.find((item) => item.packageId === packageId);
+    return (
+      current != null &&
+      current.normalPrice === legacy.normalPrice &&
+      current.offerPrice === legacy.offerPrice
+    );
+  });
+}
+
+export function migrateStoredPricing(list: PackagePricing[] | undefined): PackagePricing[] {
+  const normalized = ensurePricing(list);
+  if (!isLegacyCrmSeedCatalog(normalized)) return normalized;
+
+  return normalized.map((pkg) => {
+    if (!LEGACY_CRM_SEED_PRICES[pkg.packageId]) return pkg;
+    const seed = DEFAULT_PACKAGE_PRICING.find((item) => item.packageId === pkg.packageId);
+    if (!seed) return pkg;
+    return {
+      ...pkg,
+      normalPrice: seed.normalPrice,
+      offerPrice: seed.offerPrice,
     };
   });
 }

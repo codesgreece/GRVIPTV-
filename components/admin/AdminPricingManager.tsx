@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useRef, useState } from "react";
 import { AlertTriangle, Check, Save } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
@@ -20,10 +20,12 @@ type AdminPricingManagerProps = {
 
 function NumberField({
   label,
+  name,
   value,
   onChange,
 }: {
   label: string;
+  name: string;
   value: number;
   onChange: (value: number) => void;
 }) {
@@ -33,18 +35,32 @@ function NumberField({
         {label}
       </span>
       <input
+        name={name}
         type="number"
+        inputMode="decimal"
         min={0}
         step="0.01"
-        value={Number.isFinite(value) ? value : 0}
-        onChange={(event) => onChange(Number(event.target.value))}
+        defaultValue={Number.isFinite(value) ? value : 0}
+        onInput={(event) => {
+          const parsed = Number(event.currentTarget.value);
+          if (Number.isFinite(parsed)) onChange(parsed);
+        }}
         className="admin-input"
       />
     </label>
   );
 }
 
+function readNumber(form: HTMLFormElement, name: string, fallback: number) {
+  const field = form.elements.namedItem(name);
+  if (!(field instanceof HTMLInputElement)) return fallback;
+  const parsed = Number(field.value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
 export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingManagerProps) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const [formEpoch, setFormEpoch] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -55,9 +71,27 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
     onChange(pricing.map((pkg) => (pkg.packageId === packageId ? { ...pkg, ...patch } : pkg)));
   };
 
+  const readFormPricing = (): PackagePricing[] => {
+    const form = formRef.current;
+    if (!form) return pricing;
+
+    return pricing.map((pkg) => {
+      const offerBox = form.elements.namedItem(`${pkg.packageId}:offerEnabled`);
+      return {
+        ...pkg,
+        normalPrice: readNumber(form, `${pkg.packageId}:normalPrice`, pkg.normalPrice),
+        offerPrice: readNumber(form, `${pkg.packageId}:offerPrice`, pkg.offerPrice),
+        purchaseCost: readNumber(form, `${pkg.packageId}:purchaseCost`, pkg.purchaseCost),
+        minimumProfit: readNumber(form, `${pkg.packageId}:minimumProfit`, pkg.minimumProfit),
+        offerEnabled: offerBox instanceof HTMLInputElement ? offerBox.checked : pkg.offerEnabled,
+      };
+    });
+  };
+
   const toggleOffer = (pkg: PackagePricing, enabled: boolean) => {
+    const current = readFormPricing().find((item) => item.packageId === pkg.packageId) ?? pkg;
     if (enabled) {
-      const check = canEnableOffer({ ...pkg, offerEnabled: true });
+      const check = canEnableOffer({ ...current, offerEnabled: true });
       if (!check.ok) {
         setError(`⚠️ ${pkg.packageName}: ${check.message}`);
         setNotice("");
@@ -68,26 +102,30 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
     update(pkg.packageId, { offerEnabled: enabled });
   };
 
-  const save = async (next = pricing) => {
+  const save = async (next?: PackagePricing[]) => {
+    const payload = next ?? readFormPricing();
+    onChange(payload);
     setSaving(true);
     setError("");
     setNotice("");
-    const message = await onSave(next);
+    const message = await onSave(payload);
     setSaving(false);
     if (message) {
       setError(message);
       return;
     }
     setNotice("Οι τιμές αποθηκεύτηκαν και ισχύουν σε όλο το site.");
+    setFormEpoch((current) => current + 1);
   };
 
   const enableValidOffers = async () => {
-    const next = pricing.map((pkg) => {
+    const current = readFormPricing();
+    const next = current.map((pkg) => {
       const check = canEnableOffer({ ...pkg, offerEnabled: true });
       return { ...pkg, offerEnabled: check.ok };
     });
     onChange(next);
-    const failed = pricing.filter((pkg) => !canEnableOffer({ ...pkg, offerEnabled: true }).ok);
+    const failed = current.filter((pkg) => !canEnableOffer({ ...pkg, offerEnabled: true }).ok);
     if (failed.length) {
       setError(
         `⚠️ Δεν ενεργοποιήθηκε προσφορά για: ${failed.map((pkg) => pkg.packageName).join(", ")}. Η τιμή προσφοράς δεν αφήνει κέρδος.`,
@@ -97,7 +135,7 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
   };
 
   const disableAllOffers = async () => {
-    const next = pricing.map((pkg) => ({ ...pkg, offerEnabled: false }));
+    const next = readFormPricing().map((pkg) => ({ ...pkg, offerEnabled: false }));
     onChange(next);
     await save(next);
   };
@@ -123,7 +161,15 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
         </div>
       </div>
 
-      <div className="mt-5 grid gap-4">
+      <form
+        key={formEpoch}
+        ref={formRef}
+        className="mt-5 grid gap-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void save();
+        }}
+      >
         {pricing.map((pkg) => {
           const salePrice = pkg.offerEnabled ? pkg.offerPrice : pkg.normalPrice;
           const profit = profitForSale(pkg, salePrice);
@@ -140,6 +186,7 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
                 <label className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs font-semibold text-text-muted">
                   <input
                     type="checkbox"
+                    name={`${pkg.packageId}:offerEnabled`}
                     checked={pkg.offerEnabled}
                     onChange={(event) => toggleOffer(pkg, event.target.checked)}
                   />
@@ -150,21 +197,25 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
               <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-5">
                 <NumberField
                   label="Κανονική τιμή"
+                  name={`${pkg.packageId}:normalPrice`}
                   value={pkg.normalPrice}
                   onChange={(value) => update(pkg.packageId, { normalPrice: value })}
                 />
                 <NumberField
                   label="Τιμή προσφοράς"
+                  name={`${pkg.packageId}:offerPrice`}
                   value={pkg.offerPrice}
                   onChange={(value) => update(pkg.packageId, { offerPrice: value })}
                 />
                 <NumberField
                   label="Κόστος αγοράς"
+                  name={`${pkg.packageId}:purchaseCost`}
                   value={pkg.purchaseCost}
                   onChange={(value) => update(pkg.packageId, { purchaseCost: value })}
                 />
                 <NumberField
                   label="Ελάχιστο κέρδος"
+                  name={`${pkg.packageId}:minimumProfit`}
                   value={pkg.minimumProfit}
                   onChange={(value) => update(pkg.packageId, { minimumProfit: value })}
                 />
@@ -197,20 +248,20 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
             </article>
           );
         })}
-      </div>
 
-      {error ? <p className="mt-4 text-sm font-semibold text-rose-300">{error}</p> : null}
-      {notice ? (
-        <p className="mt-4 inline-flex items-center gap-2 text-sm text-emerald-400">
-          <Check className="h-4 w-4" />
-          {notice}
-        </p>
-      ) : null}
+        {error ? <p className="text-sm font-semibold text-rose-300">{error}</p> : null}
+        {notice ? (
+          <p className="inline-flex items-center gap-2 text-sm text-emerald-400">
+            <Check className="h-4 w-4" />
+            {notice}
+          </p>
+        ) : null}
 
-      <Button className="mt-5 font-extrabold" disabled={saving} onClick={() => void save()}>
-        <Save className="h-4 w-4" />
-        {saving ? "Αποθήκευση…" : "Αποθήκευση τιμών"}
-      </Button>
+        <Button type="submit" className="font-extrabold sm:w-fit" disabled={saving}>
+          <Save className="h-4 w-4" />
+          {saving ? "Αποθήκευση…" : "Αποθήκευση τιμών"}
+        </Button>
+      </form>
     </section>
   );
 }
