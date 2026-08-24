@@ -14,10 +14,13 @@ import { cn } from "@/lib/cn";
 
 type PricingSectionProps = {
   showHeading?: boolean;
+  initialPrices?: PublicPackagePrice[];
 };
 
-export function PricingSection({ showHeading = true }: PricingSectionProps) {
-  const [catalog, setCatalog] = useState<PublicPackagePrice[]>(() => defaultPublicPricing());
+export function PricingSection({ showHeading = true, initialPrices }: PricingSectionProps) {
+  const [catalog, setCatalog] = useState<PublicPackagePrice[]>(
+    () => initialPrices ?? defaultPublicPricing(),
+  );
 
   useEffect(() => {
     let cancelled = false;

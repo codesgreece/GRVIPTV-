@@ -24,8 +24,10 @@ function getCardLink(amount: number) {
   return paysafeCardLinks.find((link) => link.amount === amount)?.href;
 }
 
-export function OrderLineSection() {
-  const [catalog, setCatalog] = useState<PublicPackagePrice[]>(() => defaultPublicPricing());
+export function OrderLineSection({ initialPrices }: { initialPrices?: PublicPackagePrice[] }) {
+  const [catalog, setCatalog] = useState<PublicPackagePrice[]>(
+    () => initialPrices ?? defaultPublicPricing(),
+  );
 
   useEffect(() => {
     let cancelled = false;
