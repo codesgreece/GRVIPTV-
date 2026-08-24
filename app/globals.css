@@ -283,7 +283,11 @@ body.telegram-bar-visible .live-chat-anchor {
 }
 
 .admin-input {
+  box-sizing: border-box;
+  display: block;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border-radius: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.4);
@@ -300,6 +304,18 @@ body.telegram-bar-visible .live-chat-anchor {
 .admin-input option {
   background: #111;
   color: #fff;
+}
+
+input.admin-input[type="date"],
+input.admin-input[type="number"],
+select.admin-input {
+  min-width: 0;
+  max-width: 100%;
+}
+
+input.admin-input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.7;
+  margin-left: 0.25rem;
 }
 
 @media (prefers-reduced-motion: reduce) {

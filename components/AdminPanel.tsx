@@ -332,7 +332,7 @@ export function AdminPanel() {
   }
 
   return (
-    <div className="container-premium py-8 md:py-12">
+    <div className="container-premium min-w-0 overflow-x-hidden py-8 md:py-12">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-bold tracking-[0.18em] text-gold uppercase">Subscription CRM</p>
@@ -420,11 +420,11 @@ export function AdminPanel() {
         )}
       </section>
 
-      <section className="mb-8 rounded-3xl border border-gold/20 bg-[#0B0B0B] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.35)] sm:p-6">
+      <section className="mb-8 overflow-hidden rounded-3xl border border-gold/20 bg-[#0B0B0B] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.35)] sm:p-6">
         <h2 className="font-display text-xl font-bold text-white">
           {editingId ? "Επεξεργασία πελάτη" : "Δημιουργία νέου πελάτη"}
         </h2>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
+        <div className="mt-5 grid min-w-0 gap-4 md:grid-cols-2">
           <Field label="Ονοματεπώνυμο πελάτη">
             <input
               value={form.name}
@@ -725,11 +725,11 @@ function Field({
   className?: string;
 }) {
   return (
-    <label className={cn("block", className)}>
+    <label className={cn("block min-w-0", className)}>
       <span className="mb-2 block text-xs font-semibold tracking-[0.12em] text-text-dim uppercase">
         {label}
       </span>
-      {children}
+      <div className="min-w-0">{children}</div>
     </label>
   );
 }

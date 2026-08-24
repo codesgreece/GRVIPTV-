@@ -28,7 +28,7 @@ function NumberField({
   onChange: (value: number) => void;
 }) {
   return (
-    <label className="block">
+    <label className="block min-w-0">
       <span className="mb-2 block text-[11px] font-semibold tracking-[0.12em] text-text-dim uppercase">
         {label}
       </span>
@@ -147,7 +147,7 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
                 </label>
               </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-5">
                 <NumberField
                   label="Κανονική τιμή"
                   value={pkg.normalPrice}
