@@ -42,17 +42,28 @@ export function AdminMessagesModal({ customer, origin, onClose, onCopied }: Mess
 
   return (
     <Modal title={`💬 Μηνύματα — ${customer.name}`} onClose={onClose}>
-      <div className="grid gap-4">
+      <div className="grid min-w-0 gap-4">
         {templates.map((item) => (
-          <article key={item.id} className="rounded-2xl border border-white/10 bg-black/30 p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <h3 className="font-display text-base font-bold text-white">{item.title}</h3>
-              <Button variant="outline" onClick={() => void copy(item.body)}>
+          <article
+            key={item.id}
+            className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-black/30 p-3 sm:p-4"
+          >
+            <div className="mb-3 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="min-w-0 font-display text-sm font-bold text-white sm:text-base">
+                {item.title}
+              </h3>
+              <Button
+                variant="outline"
+                className="w-full shrink-0 px-3 py-2 text-xs sm:w-auto sm:text-sm"
+                onClick={() => void copy(item.body)}
+              >
                 <Copy className="h-4 w-4" />
-                Αντιγραφή Μηνύματος
+                Αντιγραφή
               </Button>
             </div>
-            <pre className="whitespace-pre-wrap text-sm leading-relaxed text-text-muted">{item.body}</pre>
+            <pre className="max-w-full overflow-x-auto whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[13px] leading-relaxed text-text-muted sm:text-sm">
+              {item.body}
+            </pre>
           </article>
         ))}
       </div>
@@ -95,7 +106,7 @@ export function AdminRenewModal({ customer, pricing, saving, onClose, onConfirm 
         ))}
       </select>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2">
         <PriceBox label="Αρχική τιμή" value={formatEuro(pkg.normalPrice)} />
         <PriceBox
           label="Ενεργή τιμή"
@@ -139,7 +150,7 @@ function PriceBox({
   muted?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-black/30 p-3">
+    <div className="min-w-0 rounded-xl border border-white/10 bg-black/30 p-3">
       <p className="text-[11px] font-semibold tracking-[0.12em] text-text-dim uppercase">{label}</p>
       <p className={cn("mt-1 font-display text-xl font-black", muted ? "text-text-dim" : "text-white")}>
         {value}
@@ -159,20 +170,22 @@ function Modal({
   children: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 pt-10 sm:pt-16">
-      <div className="w-full max-w-2xl rounded-3xl border border-gold/25 bg-[#0B0B0B] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.55)] sm:p-6">
-        <div className="mb-4 flex items-start justify-between gap-3">
-          <h2 className="font-display text-xl font-bold text-white">{title}</h2>
+    <div className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden bg-black/70 p-3 pt-8 sm:p-4 sm:pt-16">
+      <div className="mx-auto w-full min-w-0 max-w-2xl rounded-3xl border border-gold/25 bg-[#0B0B0B] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.55)] sm:p-6">
+        <div className="mb-4 flex min-w-0 items-start justify-between gap-3">
+          <h2 className="min-w-0 flex-1 break-words font-display text-lg font-bold text-white sm:text-xl">
+            {title}
+          </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-white/10 p-2 text-text-muted hover:text-white"
+            className="shrink-0 rounded-full border border-white/10 p-2 text-text-muted hover:text-white"
             aria-label="Κλείσιμο"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
-        {children}
+        <div className="min-w-0">{children}</div>
       </div>
     </div>
   );
