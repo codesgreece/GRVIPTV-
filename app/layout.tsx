@@ -1,11 +1,6 @@
 import type { Metadata } from "next";
 import { Cairo, Manrope, Rubik, Urbanist } from "next/font/google";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
-import { LiveChat } from "@/components/LiveChat";
-import { ScrollToTop } from "@/components/ScrollToTop";
-import { SpinWheelPopup } from "@/components/SpinWheelPopup";
-import { StickyTelegramBar } from "@/components/StickyTelegramBar";
+import { SiteChrome } from "@/components/SiteChrome";
 import "./globals.css";
 
 /** Same display family as lionott.co (headings) */
@@ -80,13 +75,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${cairo.variable} ${rubik.variable} ${urbanist.variable} ${manrope.variable} h-full`}
     >
       <body className="min-h-full flex flex-col bg-bg-deep text-text antialiased">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
-        <StickyTelegramBar />
-        <SpinWheelPopup />
-        <LiveChat />
-        <ScrollToTop />
+        <SiteChrome>{children}</SiteChrome>
       </body>
     </html>
   );

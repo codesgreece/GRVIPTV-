@@ -282,6 +282,26 @@ body.telegram-bar-visible .live-chat-anchor {
   }
 }
 
+.admin-input {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.4);
+  padding: 0.75rem 1rem;
+  color: #fff;
+  outline: none;
+}
+
+.admin-input:focus {
+  border-color: rgba(212, 167, 44, 0.45);
+  box-shadow: 0 0 0 2px rgba(212, 167, 44, 0.25);
+}
+
+.admin-input option {
+  background: #111;
+  color: #fff;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

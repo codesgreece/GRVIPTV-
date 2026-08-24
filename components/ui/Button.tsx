@@ -35,6 +35,15 @@ export function Button({
   );
 
   if (href) {
+    const external = href.startsWith("http://") || href.startsWith("https://");
+    if (external) {
+      return (
+        <a href={href} className={classes} target="_blank" rel="noreferrer" onClick={onClick}>
+          {children}
+        </a>
+      );
+    }
+
     return (
       <Link href={href} className={classes} onClick={onClick}>
         {children}
