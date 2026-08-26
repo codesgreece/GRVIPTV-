@@ -1,12 +1,16 @@
 import {
   CUSTOMER_PACKAGES,
   DEFAULT_SETUP_GUIDE_PATH,
+  SALESPEOPLE,
   type Customer,
   type CustomerInput,
   type CustomerNote,
   type CustomerTag,
   type PackageId,
   type PriceType,
+  type Prospect,
+  type ProspectInput,
+  type SalespersonId,
 } from "@/lib/customers/types";
 import { createCustomerId, createMagicToken } from "@/lib/customers/token";
 import {
@@ -307,5 +311,81 @@ export async function deleteCustomerNote(noteId: string) {
     const before = data.notes.length;
     data.notes = data.notes.filter((item) => item.id !== noteId);
     return data.notes.length !== before;
+  });
+}
+
+function isSalespersonId(value: string): value is SalespersonId {
+  return SALESPEOPLE.some((person) => person.id === value);
+}
+
+export function parseProspectInput(body: unknown): ProspectInput {
+  const data = (body ?? {}) as Record<string, unknown>;
+  const name = String(data.name ?? "").trim();
+  const salespersonId = String(data.salespersonId ?? "").trim();
+  const contactAt = String(data.contactAt ?? "").trim();
+  const note = String(data.note ?? "").trim();
+
+  if (name.length < 2 || name.length > 80) {
+    throw new Error("Το όνομα πρέπει να έχει 2-80 χαρακτήρες.");
+  }
+
+  if (!isSalespersonId(salespersonId)) {
+    throw new Error("Μη έγκυρος πωλητής.");
+  }
+
+  if (!isYmd(contactAt)) {
+    throw new Error("Μη έγκυρη ημερομηνία επικοινωνίας.");
+  }
+
+  if (note.length > 500) {
+    throw new Error("Η σημείωση πρέπει να έχει μέχρι 500 χαρακτήρες.");
+  }
+
+  return {
+    salespersonId,
+    name,
+    contactAt,
+    note: note || undefined,
+  };
+}
+
+export async function createProspect(input: ProspectInput) {
+  const now = new Date().toISOString();
+  const prospect: Prospect = {
+    id: createCustomerId(),
+    salespersonId: input.salespersonId,
+    name: input.name,
+    contactAt: input.contactAt,
+    note: input.note,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  return mutateCrm((data) => {
+    data.prospects.push(prospect);
+    return prospect;
+  });
+}
+
+export async function updateProspect(id: string, input: ProspectInput) {
+  return mutateCrm((data) => {
+    const index = data.prospects.findIndex((item) => item.id === id);
+    if (index < 0) return null;
+
+    const prospect: Prospect = {
+      ...data.prospects[index],
+      ...input,
+      updatedAt: new Date().toISOString(),
+    };
+    data.prospects[index] = prospect;
+    return prospect;
+  });
+}
+
+export async function removeProspect(id: string) {
+  return mutateCrm((data) => {
+    const before = data.prospects.length;
+    data.prospects = data.prospects.filter((item) => item.id !== id);
+    return data.prospects.length !== before;
   });
 }

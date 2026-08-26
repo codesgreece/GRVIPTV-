@@ -1,7 +1,15 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { ensurePricing, migrateStoredPricing } from "@/lib/customers/pricing";
-import type { CrmData, Customer, CustomerNote, CustomerTag, PackagePricing, Subscription } from "@/lib/customers/types";
+import type {
+  CrmData,
+  Customer,
+  CustomerNote,
+  CustomerTag,
+  PackagePricing,
+  Prospect,
+  Subscription,
+} from "@/lib/customers/types";
 import { ensureTags, makeSubscription, normalizeSubscription } from "@/lib/customers/views";
 
 const CRM_REDIS_KEY = "grvip:crm";
@@ -91,6 +99,7 @@ function emptyCrm(): CrmData {
     pricing: migrateStoredPricing([]),
     tags: ensureTags([]),
     notes: [],
+    prospects: [],
   };
 }
 
@@ -122,6 +131,7 @@ function normalizeCrm(value: unknown): { data: CrmData; migrated: boolean } {
     const pricing = migrateStoredPricing(value.pricing);
     const tags = ensureTags(value.tags);
     const notes = Array.isArray(value.notes) ? (value.notes as CustomerNote[]) : [];
+    const prospects = Array.isArray(value.prospects) ? (value.prospects as Prospect[]) : [];
     const customersResult = normalizeCustomers(value.customers ?? []);
     const subscriptionsResult = normalizeSubscriptions(
       Array.isArray(value.subscriptions) ? value.subscriptions : [],
@@ -130,6 +140,7 @@ function normalizeCrm(value: unknown): { data: CrmData; migrated: boolean } {
     const pricingChanged = JSON.stringify(value.pricing ?? []) !== JSON.stringify(pricing);
     const tagsChanged = JSON.stringify(value.tags ?? []) !== JSON.stringify(tags);
     const notesMissing = !Array.isArray(value.notes);
+    const prospectsMissing = !Array.isArray(value.prospects);
 
     return {
       data: {
@@ -138,11 +149,13 @@ function normalizeCrm(value: unknown): { data: CrmData; migrated: boolean } {
         pricing,
         tags,
         notes,
+        prospects,
       },
       migrated:
         pricingChanged ||
         tagsChanged ||
         notesMissing ||
+        prospectsMissing ||
         customersResult.changed ||
         subscriptionsResult.changed ||
         !Array.isArray(value.subscriptions) ||
@@ -158,6 +171,7 @@ function normalizeCrm(value: unknown): { data: CrmData; migrated: boolean } {
         pricing: migrateStoredPricing([]),
         tags: ensureTags([]),
         notes: [],
+        prospects: [],
       },
       migrated: true,
     };

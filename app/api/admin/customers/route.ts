@@ -24,6 +24,11 @@ export async function GET() {
     notifications: buildNotifications(customers),
     pricing: data.pricing,
     tags: data.tags,
+    prospects: [...data.prospects].sort((a, b) => {
+      const byDate = a.contactAt.localeCompare(b.contactAt);
+      if (byDate !== 0) return byDate;
+      return a.name.localeCompare(b.name, "el");
+    }),
     store: customerStoreMode(),
   });
 }

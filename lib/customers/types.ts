@@ -69,12 +69,38 @@ export type CustomerNote = {
   updatedAt: string;
 };
 
+export const SALESPEOPLE = [
+  { id: "dimos-leonidiou", name: "DIMOS LEONIDIOU" },
+  { id: "giannis-kalaouris", name: "Γιάννης Καλαούρης" },
+  { id: "andreas-leontios", name: "Ανδρέας Λεώντιος" },
+] as const;
+
+export type SalespersonId = (typeof SALESPEOPLE)[number]["id"];
+
+export type Prospect = {
+  id: string;
+  salespersonId: SalespersonId;
+  name: string;
+  contactAt: string;
+  note?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ProspectInput = {
+  salespersonId: SalespersonId;
+  name: string;
+  contactAt: string;
+  note?: string;
+};
+
 export type CrmData = {
   customers: Customer[];
   subscriptions: Subscription[];
   pricing: PackagePricing[];
   tags: CustomerTag[];
   notes: CustomerNote[];
+  prospects: Prospect[];
 };
 
 export type CustomerView = Customer & {

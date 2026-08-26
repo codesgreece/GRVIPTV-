@@ -21,6 +21,7 @@ import {
 } from "@/components/admin/AdminCrmModals";
 import { AdminCustomerProfile } from "@/components/admin/AdminCustomerProfile";
 import { AdminNotificationCenter } from "@/components/admin/AdminNotificationCenter";
+import { AdminProspectsManager } from "@/components/admin/AdminProspectsManager";
 import { AdminSubscriptionHistory } from "@/components/admin/AdminSubscriptionHistory";
 import { Button } from "@/components/ui/Button";
 import { formatEuro } from "@/lib/customers/pricing";
@@ -37,6 +38,8 @@ import {
   type DashboardStats,
   type PackageId,
   type PackagePricing,
+  type Prospect,
+  type ProspectInput,
 } from "@/lib/customers/types";
 import { cn } from "@/lib/cn";
 
@@ -119,6 +122,7 @@ export function AdminPanel() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [tags, setTags] = useState<CustomerTag[]>([]);
   const [tagFilter, setTagFilter] = useState<string>("all");
+  const [prospects, setProspects] = useState<Prospect[]>([]);
 
   const refreshProfile = (list: CustomerView[], id?: string | null) => {
     if (!id) return;
@@ -146,6 +150,7 @@ export function AdminPanel() {
       pricing: PackagePricing[];
       notifications?: AdminNotification[];
       tags?: CustomerTag[];
+      prospects?: Prospect[];
       store: StoreInfo;
     };
     setCustomers(payload.customers);
@@ -153,6 +158,7 @@ export function AdminPanel() {
     setPricing(payload.pricing ?? []);
     setNotifications(payload.notifications ?? []);
     setTags(payload.tags ?? []);
+    setProspects(payload.prospects ?? []);
     setStore(payload.store);
     setAuthed(true);
     setChecking(false);
@@ -415,6 +421,41 @@ export function AdminPanel() {
     await loadCustomers();
   };
 
+  const createProspect = async (input: ProspectInput) => {
+    const response = await fetch("/api/admin/prospects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+    const payload = (await response.json()) as { error?: string };
+    if (!response.ok) {
+      throw new Error(payload.error || "Αποτυχία δημιουργίας πιθανού πελάτη.");
+    }
+    await loadCustomers();
+  };
+
+  const updateProspect = async (id: string, input: ProspectInput) => {
+    const response = await fetch(`/api/admin/prospects/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+    const payload = (await response.json()) as { error?: string };
+    if (!response.ok) {
+      throw new Error(payload.error || "Αποτυχία ενημέρωσης πιθανού πελάτη.");
+    }
+    await loadCustomers();
+  };
+
+  const deleteProspect = async (id: string) => {
+    const response = await fetch(`/api/admin/prospects/${id}`, { method: "DELETE" });
+    const payload = (await response.json()) as { error?: string };
+    if (!response.ok) {
+      throw new Error(payload.error || "Αποτυχία διαγραφής πιθανού πελάτη.");
+    }
+    await loadCustomers();
+  };
+
   const openNotification = (notification: AdminNotification) => {
     setNotificationsOpen(false);
     if (notification.kind === "expiring_soon") setFilter("expiring");
@@ -542,6 +583,13 @@ export function AdminPanel() {
       )}
 
       <AdminPricingManager pricing={pricing} onChange={setPricing} onSave={savePricing} />
+
+      <AdminProspectsManager
+        prospects={prospects}
+        onCreate={createProspect}
+        onUpdate={updateProspect}
+        onDelete={deleteProspect}
+      />
 
       <section className="mb-8 rounded-3xl border border-amber-500/25 bg-[#0B0B0B] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.35)] sm:p-6">
         <h2 className="font-display text-xl font-bold text-white">⚠️ Λήγουν Σύντομα</h2>
