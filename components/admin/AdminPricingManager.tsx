@@ -31,7 +31,7 @@ function NumberField({
 }) {
   return (
     <label className="block min-w-0">
-      <span className="mb-2 block text-[11px] font-semibold tracking-[0.12em] text-text-dim uppercase">
+      <span className="mb-1 block text-[10px] font-semibold tracking-[0.12em] text-text-dim uppercase">
         {label}
       </span>
       <input
@@ -141,22 +141,29 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
   };
 
   return (
-    <section className="mb-8 rounded-3xl border border-gold/20 bg-[#0B0B0B] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.35)] sm:p-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <section className="rounded-2xl border border-white/10 bg-[#0B0B0B] p-4 sm:p-5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-bold tracking-[0.18em] text-gold uppercase">Central Pricing</p>
-          <h2 className="mt-1 font-display text-xl font-bold text-white">💰 Διαχείριση Πακέτων & Τιμών</h2>
-          <p className="mt-2 max-w-2xl text-sm text-text-muted">
-            Ένα σημείο αλήθειας για /paketa, κάρτες πακέτων, αγορά και ανανεώσεις. Αν δεν υπάρχει ενεργή
-            προσφορά, ισχύουν οι κανονικές τιμές.
+          <h2 className="font-display text-lg font-bold text-white">Πακέτα & τιμές</h2>
+          <p className="mt-0.5 text-xs text-text-muted">
+            Ισχύουν σε /paketa, κάρτες και ανανεώσεις. Χωρίς προσφορά → κανονικές τιμές.
           </p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button variant="outline" onClick={() => void enableValidOffers()}>
+        <div className="flex flex-wrap gap-1.5">
+          <Button
+            variant="outline"
+            className="h-8 px-3 py-1.5 text-xs sm:px-3 sm:py-1.5 sm:text-xs"
+            onClick={() => void enableValidOffers()}
+          >
             Προσφορά σε όλα
           </Button>
-          <Button variant="ghost" onClick={() => void disableAllOffers()} disabled={!anyOffer}>
-            Απενεργοποίηση προσφορών
+          <Button
+            variant="ghost"
+            className="h-8 px-3 py-1.5 text-xs sm:px-3 sm:py-1.5 sm:text-xs"
+            onClick={() => void disableAllOffers()}
+            disabled={!anyOffer}
+          >
+            Απενεργοποίηση
           </Button>
         </div>
       </div>
@@ -164,7 +171,7 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
       <form
         key={formEpoch}
         ref={formRef}
-        className="mt-5 grid gap-4"
+        className="mt-4 grid gap-3"
         onSubmit={(event) => {
           event.preventDefault();
           void save();
@@ -177,72 +184,74 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
           const offerP = offerProfit(pkg);
 
           return (
-            <article key={pkg.packageId} className="rounded-2xl border border-white/10 bg-black/30 p-4 sm:p-5">
-              <div className="flex flex-wrap items-center justify-between gap-3">
+            <article key={pkg.packageId} className="rounded-xl border border-white/10 bg-black/30 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <h3 className="font-display text-lg font-bold text-white">{pkg.packageName}</h3>
-                  <p className="text-xs text-text-dim">Διάρκεια: {pkg.durationMonths} μήνες</p>
+                  <h3 className="font-display text-base font-bold text-white">{pkg.packageName}</h3>
+                  <p className="text-[11px] text-text-dim">{pkg.durationMonths} μήνες</p>
                 </div>
-                <label className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs font-semibold text-text-muted">
+                <label className="inline-flex items-center gap-2 rounded-md border border-white/10 px-2.5 py-1 text-[11px] font-semibold text-text-muted">
                   <input
                     type="checkbox"
                     name={`${pkg.packageId}:offerEnabled`}
                     checked={pkg.offerEnabled}
                     onChange={(event) => toggleOffer(pkg, event.target.checked)}
                   />
-                  Προσφορά ενεργή
+                  Προσφορά
                 </label>
               </div>
 
-              <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              <div className="mt-3 grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-5">
                 <NumberField
-                  label="Κανονική τιμή"
+                  label="Κανονική"
                   name={`${pkg.packageId}:normalPrice`}
                   value={pkg.normalPrice}
                   onChange={(value) => update(pkg.packageId, { normalPrice: value })}
                 />
                 <NumberField
-                  label="Τιμή προσφοράς"
+                  label="Προσφορά"
                   name={`${pkg.packageId}:offerPrice`}
                   value={pkg.offerPrice}
                   onChange={(value) => update(pkg.packageId, { offerPrice: value })}
                 />
                 <NumberField
-                  label="Κόστος αγοράς"
+                  label="Κόστος"
                   name={`${pkg.packageId}:purchaseCost`}
                   value={pkg.purchaseCost}
                   onChange={(value) => update(pkg.packageId, { purchaseCost: value })}
                 />
                 <NumberField
-                  label="Ελάχιστο κέρδος"
+                  label="Ελάχ. κέρδος"
                   name={`${pkg.packageId}:minimumProfit`}
                   value={pkg.minimumProfit}
                   onChange={(value) => update(pkg.packageId, { minimumProfit: value })}
                 />
-                <div className="rounded-xl border border-white/10 bg-[#0B0B0B] p-3">
-                  <p className="text-[11px] font-semibold tracking-[0.12em] text-text-dim uppercase">
-                    Κέρδος ανά πώληση
+                <div className="rounded-lg border border-white/10 bg-[#0B0B0B] px-2.5 py-2">
+                  <p className="text-[10px] font-semibold tracking-[0.12em] text-text-dim uppercase">
+                    Κέρδος
                   </p>
                   <p
                     className={cn(
-                      "mt-2 font-display text-2xl font-black",
+                      "mt-1 font-display text-xl font-black",
                       profit > 0 ? "text-emerald-400" : "text-rose-400",
                     )}
                   >
-                    {formatEuro(profit)} {profit > 0 ? "🟢" : "🔴"}
+                    {formatEuro(profit)}
                   </p>
                 </div>
               </div>
 
-              <div className="mt-3 grid gap-2 text-sm text-text-muted sm:grid-cols-3">
-                <p>Κανονική: {formatEuro(pkg.normalPrice)}</p>
-                <p>Προσφορά: {formatEuro(pkg.offerPrice)} (κέρδος {formatEuro(offerP)})</p>
-                <p>Ενεργή χρέωση: {formatEuro(salePrice)}</p>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-muted">
+                <span>Κανονική {formatEuro(pkg.normalPrice)}</span>
+                <span>
+                  Προσφορά {formatEuro(pkg.offerPrice)} ({formatEuro(offerP)})
+                </span>
+                <span>Χρέωση {formatEuro(salePrice)}</span>
               </div>
 
               {!offerCheck.ok ? (
-                <p className="mt-3 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-200">
-                  ⚠️ {offerCheck.message}
+                <p className="mt-2 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1.5 text-xs font-semibold text-rose-200">
+                  {offerCheck.message}
                 </p>
               ) : null}
             </article>
@@ -257,7 +266,11 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
           </p>
         ) : null}
 
-        <Button type="submit" className="font-extrabold sm:w-fit" disabled={saving}>
+        <Button
+          type="submit"
+          className="h-9 px-4 py-2 text-sm font-extrabold sm:w-fit sm:px-4 sm:py-2 sm:text-sm"
+          disabled={saving}
+        >
           <Save className="h-4 w-4" />
           {saving ? "Αποθήκευση…" : "Αποθήκευση τιμών"}
         </Button>

@@ -146,22 +146,22 @@ export function AdminProspectsManager({ prospects, onCreate, onUpdate, onDelete 
   };
 
   return (
-    <section className="mb-8 overflow-hidden rounded-3xl border border-sky-500/20 bg-[#0B0B0B] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.35)] sm:p-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0B0B0B] p-4 sm:p-5">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="font-display text-xl font-bold text-white">Πιθανοί πελάτες</h2>
-          <p className="mt-1 text-sm text-text-muted">
-            Όνομα κάτω από κάθε πωλητή + ημερομηνία που είπαν να τους στείλεις.
+          <h2 className="font-display text-lg font-bold text-white">Πιθανοί πελάτες</h2>
+          <p className="mt-0.5 text-xs text-text-muted">
+            Όνομα ανά πωλητή + ημερομηνία επικοινωνίας.
           </p>
         </div>
-        <p className="text-xs font-semibold tracking-[0.12em] text-sky-300/90 uppercase">
-          {dueCount > 0 ? `${dueCount} για σήμερα / καθυστερημένοι` : `${prospects.length} συνολικά`}
+        <p className="text-[11px] font-semibold tracking-[0.12em] text-sky-300/90 uppercase">
+          {dueCount > 0 ? `${dueCount} σήμερα / καθυστ.` : `${prospects.length} συνολικά`}
         </p>
       </div>
 
-      {error ? <p className="mt-4 text-sm text-rose-400">{error}</p> : null}
+      {error ? <p className="mt-3 text-sm text-rose-400">{error}</p> : null}
 
-      <div className="mt-5 grid gap-4 xl:grid-cols-3">
+      <div className="mt-4 grid gap-3 xl:grid-cols-3">
         {SALESPEOPLE.map((person) => {
           const list = grouped[person.id];
           const draft = drafts[person.id];
@@ -170,17 +170,14 @@ export function AdminProspectsManager({ prospects, onCreate, onUpdate, onDelete 
           return (
             <article
               key={person.id}
-              className="flex min-w-0 flex-col rounded-2xl border border-white/10 bg-black/30 p-4"
+              className="flex min-w-0 flex-col rounded-xl border border-white/10 bg-black/30 p-3"
             >
-              <div className="border-b border-white/10 pb-3">
-                <p className="text-[11px] font-bold tracking-[0.14em] text-text-dim uppercase">
-                  Πωλητής
-                </p>
-                <h3 className="mt-1 font-display text-lg font-bold text-white">{person.name}</h3>
-                <p className="mt-1 text-xs text-text-muted">
+              <div className="border-b border-white/10 pb-2">
+                <h3 className="font-display text-base font-bold text-white">{person.name}</h3>
+                <p className="mt-0.5 text-[11px] text-text-muted">
                   {list.length === 0
-                    ? "Κανένας πιθανός πελάτης ακόμα"
-                    : `${list.length} ${list.length === 1 ? "πιθανός πελάτης" : "πιθανοί πελάτες"}`}
+                    ? "Κανένας ακόμα"
+                    : `${list.length} ${list.length === 1 ? "πιθανός" : "πιθανοί"}`}
                 </p>
               </div>
 
@@ -220,11 +217,11 @@ export function AdminProspectsManager({ prospects, onCreate, onUpdate, onDelete 
                 </label>
                 <Button
                   fullWidth
-                  className="font-extrabold"
+                  className="h-9 px-3 py-2 text-xs font-extrabold sm:px-3 sm:py-2 sm:text-xs"
                   disabled={creating}
                   onClick={() => void submitCreate(person.id)}
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-3.5 w-3.5" />
                   Προσθήκη
                 </Button>
               </div>
