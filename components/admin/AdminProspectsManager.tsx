@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarClock, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import {
@@ -47,6 +47,8 @@ function contactTone(contactAt: string) {
   if (contactAt === today) return "today" as const;
   return "upcoming" as const;
 }
+
+const tinyInput = "admin-input !rounded-md !px-2 !py-1.5 text-sm";
 
 export function AdminProspectsManager({ prospects, onCreate, onUpdate, onDelete }: Props) {
   const [drafts, setDrafts] = useState<Record<SalespersonId, Draft>>({
@@ -146,91 +148,58 @@ export function AdminProspectsManager({ prospects, onCreate, onUpdate, onDelete 
   };
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0B0B0B] p-4 sm:p-5">
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="font-display text-lg font-bold text-white">Πιθανοί πελάτες</h2>
-          <p className="mt-0.5 text-xs text-text-muted">
-            Όνομα ανά πωλητή + ημερομηνία επικοινωνίας.
-          </p>
-        </div>
-        <p className="text-[11px] font-semibold tracking-[0.12em] text-sky-300/90 uppercase">
-          {dueCount > 0 ? `${dueCount} σήμερα / καθυστ.` : `${prospects.length} συνολικά`}
+    <div>
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="font-display text-base font-bold text-white">Πιθανοί πελάτες</h2>
+        <p className="text-[11px] font-semibold text-sky-300/90">
+          {dueCount > 0 ? `${dueCount} σήμερα/καθυστ.` : `${prospects.length} συνολικά`}
         </p>
       </div>
 
-      {error ? <p className="mt-3 text-sm text-rose-400">{error}</p> : null}
+      {error ? <p className="mb-2 text-xs text-rose-400">{error}</p> : null}
 
-      <div className="mt-4 grid gap-3 xl:grid-cols-3">
+      <div className="grid gap-2 md:grid-cols-3 md:max-w-5xl">
         {SALESPEOPLE.map((person) => {
           const list = grouped[person.id];
           const draft = drafts[person.id];
           const creating = savingId === person.id;
 
           return (
-            <article
-              key={person.id}
-              className="flex min-w-0 flex-col rounded-xl border border-white/10 bg-black/30 p-3"
-            >
-              <div className="border-b border-white/10 pb-2">
-                <h3 className="font-display text-base font-bold text-white">{person.name}</h3>
-                <p className="mt-0.5 text-[11px] text-text-muted">
-                  {list.length === 0
-                    ? "Κανένας ακόμα"
-                    : `${list.length} ${list.length === 1 ? "πιθανός" : "πιθανοί"}`}
-                </p>
+            <div key={person.id} className="min-w-0 rounded-md border border-white/10 p-2">
+              <div className="mb-1.5 flex items-baseline justify-between gap-2">
+                <h3 className="truncate text-sm font-bold text-white">{person.name}</h3>
+                <span className="shrink-0 text-[11px] text-text-dim">{list.length}</span>
               </div>
 
-              <div className="mt-4 space-y-3">
-                <label className="block">
-                  <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.12em] text-text-dim uppercase">
-                    Όνομα
-                  </span>
-                  <input
-                    value={draft.name}
-                    onChange={(event) => setDraft(person.id, { name: event.target.value })}
-                    className="admin-input"
-                    placeholder="π.χ. Νίκος"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.12em] text-text-dim uppercase">
-                    Να τον/την στείλω στις
-                  </span>
-                  <input
-                    type="date"
-                    value={draft.contactAt}
-                    onChange={(event) => setDraft(person.id, { contactAt: event.target.value })}
-                    className="admin-input"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.12em] text-text-dim uppercase">
-                    Σημείωση (προαιρετικό)
-                  </span>
-                  <input
-                    value={draft.note}
-                    onChange={(event) => setDraft(person.id, { note: event.target.value })}
-                    className="admin-input"
-                    placeholder="π.χ. μετά τις 18:00"
-                  />
-                </label>
+              <div className="mb-1.5 flex gap-1">
+                <input
+                  value={draft.name}
+                  onChange={(event) => setDraft(person.id, { name: event.target.value })}
+                  className={cn(tinyInput, "min-w-0 flex-1")}
+                  placeholder="Όνομα"
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") void submitCreate(person.id);
+                  }}
+                />
+                <input
+                  type="date"
+                  value={draft.contactAt}
+                  onChange={(event) => setDraft(person.id, { contactAt: event.target.value })}
+                  className={cn(tinyInput, "w-[7.5rem] shrink-0")}
+                />
                 <Button
-                  fullWidth
-                  className="h-9 px-3 py-2 text-xs font-extrabold sm:px-3 sm:py-2 sm:text-xs"
-                  disabled={creating}
+                  className="h-7 w-7 shrink-0 !px-0 !py-0 sm:h-7 sm:w-7 sm:!px-0 sm:!py-0"
+                  disabled={creating || !draft.name.trim()}
                   onClick={() => void submitCreate(person.id)}
+                  aria-label="Προσθήκη"
                 >
                   <Plus className="h-3.5 w-3.5" />
-                  Προσθήκη
                 </Button>
               </div>
 
-              <div className="mt-4 flex-1 space-y-2">
+              <ul className="space-y-1">
                 {list.length === 0 ? (
-                  <p className="rounded-xl border border-dashed border-white/10 px-3 py-4 text-center text-sm text-text-dim">
-                    Πρόσθεσε το πρώτο όνομα εδώ.
-                  </p>
+                  <li className="px-1 py-1 text-[11px] text-text-dim">Κενό</li>
                 ) : (
                   list.map((prospect) => {
                     const tone = contactTone(prospect.contactAt);
@@ -238,104 +207,101 @@ export function AdminProspectsManager({ prospects, onCreate, onUpdate, onDelete 
                     const busy = savingId === prospect.id;
 
                     return (
-                      <div
+                      <li
                         key={prospect.id}
                         className={cn(
-                          "rounded-xl border p-3",
+                          "rounded-md border px-2 py-1.5",
                           tone === "overdue" && "border-rose-500/30 bg-rose-500/10",
                           tone === "today" && "border-amber-500/30 bg-amber-500/10",
-                          tone === "upcoming" && "border-white/10 bg-white/[0.03]",
+                          tone === "upcoming" && "border-white/8 bg-white/[0.02]",
                         )}
                       >
                         {editing ? (
-                          <div className="space-y-2">
+                          <div className="grid gap-1">
                             <input
                               value={editDraft.name}
                               onChange={(event) =>
                                 setEditDraft((current) => ({ ...current, name: event.target.value }))
                               }
-                              className="admin-input"
+                              className={tinyInput}
                             />
-                            <input
-                              type="date"
-                              value={editDraft.contactAt}
-                              onChange={(event) =>
-                                setEditDraft((current) => ({
-                                  ...current,
-                                  contactAt: event.target.value,
-                                }))
-                              }
-                              className="admin-input"
-                            />
+                            <div className="grid grid-cols-[1fr_auto_auto] gap-1">
+                              <input
+                                type="date"
+                                value={editDraft.contactAt}
+                                onChange={(event) =>
+                                  setEditDraft((current) => ({
+                                    ...current,
+                                    contactAt: event.target.value,
+                                  }))
+                                }
+                                className={tinyInput}
+                              />
+                              <Button
+                                className="h-8 px-2 py-1 text-[11px] sm:px-2 sm:py-1 sm:text-[11px]"
+                                disabled={busy}
+                                onClick={() => void submitEdit(prospect)}
+                              >
+                                OK
+                              </Button>
+                              <Button
+                                variant="outline"
+                                className="h-8 w-8 !px-0 !py-0 sm:!px-0 sm:!py-0"
+                                onClick={() => setEditingId(null)}
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
                             <input
                               value={editDraft.note}
                               onChange={(event) =>
                                 setEditDraft((current) => ({ ...current, note: event.target.value }))
                               }
-                              className="admin-input"
+                              className={tinyInput}
                               placeholder="Σημείωση"
                             />
-                            <div className="flex gap-2">
-                              <Button
-                                className="flex-1 py-2 text-sm"
-                                disabled={busy}
-                                onClick={() => void submitEdit(prospect)}
-                              >
-                                Αποθήκευση
-                              </Button>
-                              <Button
-                                variant="outline"
-                                className="py-2 text-sm"
-                                onClick={() => setEditingId(null)}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
                           </div>
                         ) : (
-                          <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center justify-between gap-2">
                             <div className="min-w-0">
-                              <p className="truncate font-semibold text-white">{prospect.name}</p>
-                              <p className="mt-1 flex items-center gap-1.5 text-xs text-text-muted">
-                                <CalendarClock className="h-3.5 w-3.5 shrink-0" />
+                              <p className="truncate text-sm font-semibold text-white">{prospect.name}</p>
+                              <p className="text-[11px] text-text-muted">
                                 {formatDate(prospect.contactAt)}
                                 {tone === "today" ? " · σήμερα" : null}
-                                {tone === "overdue" ? " · καθυστέρηση" : null}
+                                {tone === "overdue" ? " · καθυστ." : null}
+                                {prospect.note ? ` · ${prospect.note}` : null}
                               </p>
-                              {prospect.note ? (
-                                <p className="mt-1 text-xs text-text-dim">{prospect.note}</p>
-                              ) : null}
                             </div>
-                            <div className="flex shrink-0 gap-1">
+                            <div className="flex shrink-0">
                               <button
                                 type="button"
-                                className="rounded-lg p-2 text-text-muted transition hover:bg-white/5 hover:text-gold"
+                                className="rounded p-1 text-text-muted hover:text-gold"
                                 onClick={() => startEdit(prospect)}
                                 aria-label="Επεξεργασία"
                               >
-                                <Pencil className="h-4 w-4" />
+                                <Pencil className="h-3.5 w-3.5" />
                               </button>
                               <button
                                 type="button"
-                                className="rounded-lg p-2 text-text-muted transition hover:bg-white/5 hover:text-rose-400"
+                                className="rounded p-1 text-text-muted hover:text-rose-400"
                                 disabled={busy}
                                 onClick={() => void submitDelete(prospect.id)}
                                 aria-label="Διαγραφή"
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3.5 w-3.5" />
                               </button>
                             </div>
                           </div>
                         )}
-                      </div>
+                      </li>
                     );
                   })
                 )}
-              </div>
-            </article>
+              </ul>
+            </div>
           );
         })}
       </div>
-    </section>
+    </div>
   );
 }

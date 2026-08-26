@@ -534,11 +534,10 @@ export function AdminPanel() {
   }
 
   return (
-    <div className="container-premium min-w-0 overflow-x-hidden py-5 md:py-8">
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="container-premium min-w-0 overflow-x-hidden py-4 md:py-6">
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-black text-white md:text-3xl">GRVIP Admin</h1>
-          <p className="mt-0.5 text-xs text-text-muted">CRM συνδρομών · Magic Links σταθερά</p>
+          <h1 className="font-display text-xl font-black text-white md:text-2xl">GRVIP Admin</h1>
         </div>
         <div className="flex items-center gap-2">
           <AdminNotificationCenter
@@ -558,7 +557,7 @@ export function AdminPanel() {
         </div>
       </div>
 
-      <nav className="mb-5 flex gap-1 overflow-x-auto border-b border-white/10">
+      <nav className="mb-3 flex gap-0.5 overflow-x-auto border-b border-white/10">
         {ADMIN_TABS.map((item) => {
           const badge =
             item.id === "customers"
@@ -574,7 +573,7 @@ export function AdminPanel() {
               type="button"
               onClick={() => setTab(item.id)}
               className={cn(
-                "shrink-0 border-b-2 px-3 py-2.5 text-sm font-semibold transition-colors",
+                "shrink-0 border-b-2 px-2.5 py-1.5 text-xs font-semibold transition-colors sm:text-sm",
                 tab === item.id
                   ? "border-gold text-gold"
                   : "border-transparent text-text-muted hover:text-white",
@@ -599,115 +598,96 @@ export function AdminPanel() {
       </nav>
 
       {tab === "overview" ? (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
-            {[
-              { label: "Πελάτες", value: String(dashboard.totalCustomers) },
-              { label: "Ενεργοί", value: String(dashboard.activeSubscriptions) },
-              { label: "Λήγουν", value: String(dashboard.expiringSoon) },
-              { label: "Ληγμένοι", value: String(dashboard.expiredSubscriptions) },
-              { label: "Έσοδα", value: formatEuro(dashboard.totalRevenue) },
-            ].map((item) => (
-              <div key={item.label} className="rounded-xl border border-white/10 bg-[#0B0B0B] px-3 py-2.5">
-                <p className="text-[10px] font-bold tracking-[0.12em] text-text-dim uppercase">
-                  {item.label}
-                </p>
-                <p className="mt-0.5 font-display text-lg font-black text-white sm:text-xl">{item.value}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
-            {[
-              { label: "Κόστος", value: formatEuro(dashboard.totalCost) },
-              { label: "Κέρδος", value: formatEuro(dashboard.totalProfit) },
-              { label: "Έσοδα μήνα", value: formatEuro(dashboard.monthRevenue) },
-              { label: "Κέρδος μήνα", value: formatEuro(dashboard.monthProfit) },
-              {
-                label: "Top πακέτο",
-                value: dashboard.topProfitPackageName
-                  ? `${dashboard.topProfitPackageName} · ${formatEuro(dashboard.topProfitPackageAmount)}`
-                  : "—",
-              },
-            ].map((item) => (
-              <div key={item.label} className="rounded-xl border border-gold/15 bg-[#0B0B0B] px-3 py-2.5">
-                <p className="text-[10px] font-bold tracking-[0.12em] text-text-dim uppercase">
-                  {item.label}
-                </p>
-                <p className="mt-0.5 font-display text-base font-black text-white">{item.value}</p>
-              </div>
-            ))}
+        <div className="space-y-3">
+          <div className="overflow-x-auto rounded-lg border border-white/10 md:max-w-4xl">
+            <div className="flex min-w-[640px] divide-x divide-white/10">
+              {[
+                { label: "Πελάτες", value: String(dashboard.totalCustomers) },
+                { label: "Ενεργοί", value: String(dashboard.activeSubscriptions) },
+                { label: "Λήγουν", value: String(dashboard.expiringSoon) },
+                { label: "Ληγμένοι", value: String(dashboard.expiredSubscriptions) },
+                { label: "Έσοδα", value: formatEuro(dashboard.totalRevenue) },
+                { label: "Κόστος", value: formatEuro(dashboard.totalCost) },
+                { label: "Κέρδος", value: formatEuro(dashboard.totalProfit) },
+                { label: "Μήνας", value: formatEuro(dashboard.monthProfit) },
+                {
+                  label: "Top",
+                  value: dashboard.topProfitPackageName
+                    ? `${dashboard.topProfitPackageName} ${formatEuro(dashboard.topProfitPackageAmount)}`
+                    : "—",
+                },
+              ].map((item) => (
+                <div key={item.label} className="min-w-0 flex-1 px-2 py-1.5">
+                  <p className="text-[9px] font-bold tracking-[0.08em] text-text-dim uppercase">
+                    {item.label}
+                  </p>
+                  <p className="mt-0.5 truncate text-sm font-bold text-white">{item.value}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
           {store?.warning ? (
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-sm text-amber-100">
+            <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-100">
               {store.warning}
             </div>
           ) : (
-            <p className="text-[11px] text-text-dim">
+            <p className="text-[10px] text-text-dim">
               Store: {store?.backend === "upstash" ? "Upstash Redis" : "τοπικό αρχείο"}
             </p>
           )}
 
-          <section className="rounded-xl border border-amber-500/25 bg-[#0B0B0B] p-3 sm:p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="font-display text-base font-bold text-white">Λήγουν σύντομα</h2>
+          <div>
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <h2 className="text-sm font-bold text-white">Λήγουν σύντομα</h2>
               <button
                 type="button"
-                className="text-xs font-semibold text-gold hover:underline"
+                className="text-[11px] font-semibold text-gold hover:underline"
                 onClick={() => {
                   setFilter("expiring");
                   setTab("customers");
                 }}
               >
-                Όλοι οι πελάτες →
+                Πελάτες →
               </button>
             </div>
             {expiringSoon.length === 0 ? (
-              <p className="mt-3 rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-text-muted">
-                Κανένας πελάτης δεν λήγει τις επόμενες 7 ημέρες.
-              </p>
+              <p className="text-xs text-text-muted">Κανένας στις επόμενες 7 ημέρες.</p>
             ) : (
-              <div className="mt-3 grid gap-2">
+              <ul className="divide-y divide-white/8 rounded-lg border border-white/10">
                 {expiringSoon.map((customer) => (
-                  <article
+                  <li
                     key={customer.id}
-                    className="rounded-lg border border-amber-500/20 bg-black/30 px-3 py-2.5"
+                    className="flex flex-wrap items-center justify-between gap-2 px-2.5 py-1.5"
                   >
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0">
-                        <h3 className="font-display text-sm font-bold text-white">{customer.name}</h3>
-                        <p className="text-xs text-text-muted">
-                          {customer.packageLabel} · λήξη {formatDate(customer.expiresAt)} ·{" "}
-                          {customer.daysRemaining}{" "}
-                          {customer.daysRemaining === 1 ? "ημέρα" : "ημέρες"}
-                        </p>
-                      </div>
-                      <div className="flex gap-1.5">
-                        <Button
-                          className={actionBtnClass}
-                          onClick={() => setRenewFor(customer)}
-                        >
-                          <RefreshCw className="h-3.5 w-3.5" />
-                          Ανανέωση
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className={actionBtnClass}
-                          onClick={() =>
-                            void copyText(expiringSoonMessage(customer), "Το μήνυμα αντιγράφηκε.")
-                          }
-                        >
-                          <Copy className="h-3.5 w-3.5" />
-                          Μήνυμα
-                        </Button>
-                      </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-white">{customer.name}</p>
+                      <p className="text-[11px] text-text-muted">
+                        {customer.packageLabel} · {formatDate(customer.expiresAt)} ·{" "}
+                        {customer.daysRemaining}η
+                      </p>
                     </div>
-                  </article>
+                    <div className="flex gap-1">
+                      <Button className={actionBtnClass} onClick={() => setRenewFor(customer)}>
+                        <RefreshCw className="h-3.5 w-3.5" />
+                        Ανανέωση
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className={actionBtnClass}
+                        onClick={() =>
+                          void copyText(expiringSoonMessage(customer), "Το μήνυμα αντιγράφηκε.")
+                        }
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        Msg
+                      </Button>
+                    </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
-          </section>
+          </div>
         </div>
       ) : null}
 

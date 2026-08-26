@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/Button";
 import {
   canEnableOffer,
   formatEuro,
-  offerProfit,
   profitForSale,
 } from "@/lib/customers/pricing";
 import type { PackagePricing } from "@/lib/customers/types";
@@ -18,45 +17,15 @@ type AdminPricingManagerProps = {
   onSave: (pricing: PackagePricing[]) => Promise<string | null>;
 };
 
-function NumberField({
-  label,
-  name,
-  value,
-  onChange,
-}: {
-  label: string;
-  name: string;
-  value: number;
-  onChange: (value: number) => void;
-}) {
-  return (
-    <label className="block min-w-0">
-      <span className="mb-1 block text-[10px] font-semibold tracking-[0.12em] text-text-dim uppercase">
-        {label}
-      </span>
-      <input
-        name={name}
-        type="number"
-        inputMode="decimal"
-        min={0}
-        step="0.01"
-        defaultValue={Number.isFinite(value) ? value : 0}
-        onInput={(event) => {
-          const parsed = Number(event.currentTarget.value);
-          if (Number.isFinite(parsed)) onChange(parsed);
-        }}
-        className="admin-input"
-      />
-    </label>
-  );
-}
-
 function readNumber(form: HTMLFormElement, name: string, fallback: number) {
   const field = form.elements.namedItem(name);
   if (!(field instanceof HTMLInputElement)) return fallback;
   const parsed = Number(field.value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
+
+const cellInput =
+  "admin-input !rounded-md !px-1.5 !py-1 text-sm tabular-nums w-full max-w-[4.5rem]";
 
 export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingManagerProps) {
   const formRef = useRef<HTMLFormElement>(null);
@@ -93,7 +62,7 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
     if (enabled) {
       const check = canEnableOffer({ ...current, offerEnabled: true });
       if (!check.ok) {
-        setError(`⚠️ ${pkg.packageName}: ${check.message}`);
+        setError(`${pkg.packageName}: ${check.message}`);
         setNotice("");
         return;
       }
@@ -114,7 +83,7 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
       setError(message);
       return;
     }
-    setNotice("Οι τιμές αποθηκεύτηκαν και ισχύουν σε όλο το site.");
+    setNotice("Οι τιμές αποθηκεύτηκαν.");
     setFormEpoch((current) => current + 1);
   };
 
@@ -128,7 +97,7 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
     const failed = current.filter((pkg) => !canEnableOffer({ ...pkg, offerEnabled: true }).ok);
     if (failed.length) {
       setError(
-        `⚠️ Δεν ενεργοποιήθηκε προσφορά για: ${failed.map((pkg) => pkg.packageName).join(", ")}. Η τιμή προσφοράς δεν αφήνει κέρδος.`,
+        `Χωρίς προσφορά: ${failed.map((pkg) => pkg.packageName).join(", ")} (δεν αφήνει κέρδος).`,
       );
     }
     await save(next);
@@ -141,29 +110,24 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
   };
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-[#0B0B0B] p-4 sm:p-5">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="font-display text-lg font-bold text-white">Πακέτα & τιμές</h2>
-          <p className="mt-0.5 text-xs text-text-muted">
-            Ισχύουν σε /paketa, κάρτες και ανανεώσεις. Χωρίς προσφορά → κανονικές τιμές.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-1.5">
+    <div>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-display text-base font-bold text-white">Πακέτα & τιμές</h2>
+        <div className="flex flex-wrap gap-1">
           <Button
             variant="outline"
-            className="h-8 px-3 py-1.5 text-xs sm:px-3 sm:py-1.5 sm:text-xs"
+            className="h-7 px-2.5 py-1 text-[11px] sm:px-2.5 sm:py-1 sm:text-[11px]"
             onClick={() => void enableValidOffers()}
           >
-            Προσφορά σε όλα
+            Προσφορά όλα
           </Button>
           <Button
             variant="ghost"
-            className="h-8 px-3 py-1.5 text-xs sm:px-3 sm:py-1.5 sm:text-xs"
+            className="h-7 px-2.5 py-1 text-[11px] sm:px-2.5 sm:py-1 sm:text-[11px]"
             onClick={() => void disableAllOffers()}
             disabled={!anyOffer}
           >
-            Απενεργοποίηση
+            Off προσφορές
           </Button>
         </div>
       </div>
@@ -171,120 +135,153 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
       <form
         key={formEpoch}
         ref={formRef}
-        className="mt-4 grid gap-3"
         onSubmit={(event) => {
           event.preventDefault();
           void save();
         }}
       >
-        {pricing.map((pkg) => {
-          const salePrice = pkg.offerEnabled ? pkg.offerPrice : pkg.normalPrice;
-          const profit = profitForSale(pkg, salePrice);
-          const offerCheck = canEnableOffer({ ...pkg, offerEnabled: true });
-          const offerP = offerProfit(pkg);
+        <div className="overflow-x-auto rounded-lg border border-white/10 md:max-w-3xl">
+          <table className="w-full border-collapse text-left text-sm">
+            <thead>
+              <tr className="border-b border-white/10 bg-white/[0.03] text-[10px] font-bold tracking-[0.1em] text-text-dim uppercase">
+                <th className="px-2 py-1.5 font-bold">Πακέτο</th>
+                <th className="w-20 px-1 py-1.5 font-bold">Κανον.</th>
+                <th className="w-20 px-1 py-1.5 font-bold">Προσφ.</th>
+                <th className="w-16 px-1 py-1.5 font-bold">Κόστος</th>
+                <th className="w-16 px-1 py-1.5 font-bold">Ελάχ.</th>
+                <th className="w-16 px-1 py-1.5 font-bold">Κέρδος</th>
+                <th className="w-10 px-1 py-1.5 font-bold">On</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pricing.map((pkg) => {
+                const salePrice = pkg.offerEnabled ? pkg.offerPrice : pkg.normalPrice;
+                const profit = profitForSale(pkg, salePrice);
+                const offerCheck = canEnableOffer({ ...pkg, offerEnabled: true });
 
-          return (
-            <article key={pkg.packageId} className="rounded-xl border border-white/10 bg-black/30 p-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <h3 className="font-display text-base font-bold text-white">{pkg.packageName}</h3>
-                  <p className="text-[11px] text-text-dim">{pkg.durationMonths} μήνες</p>
-                </div>
-                <label className="inline-flex items-center gap-2 rounded-md border border-white/10 px-2.5 py-1 text-[11px] font-semibold text-text-muted">
-                  <input
-                    type="checkbox"
-                    name={`${pkg.packageId}:offerEnabled`}
-                    checked={pkg.offerEnabled}
-                    onChange={(event) => toggleOffer(pkg, event.target.checked)}
-                  />
-                  Προσφορά
-                </label>
-              </div>
+                return (
+                  <tr key={pkg.packageId} className="border-b border-white/8 last:border-0">
+                    <td className="px-2 py-1.5 align-middle">
+                      <p className="font-semibold text-white">{pkg.packageName}</p>
+                      {!offerCheck.ok ? (
+                        <p className="max-w-[9rem] text-[10px] leading-tight text-rose-300">
+                          {offerCheck.message}
+                        </p>
+                      ) : null}
+                    </td>
+                    <td className="px-1.5 py-1.5 align-middle">
+                      <input
+                        name={`${pkg.packageId}:normalPrice`}
+                        type="number"
+                        inputMode="decimal"
+                        min={0}
+                        step="0.01"
+                        defaultValue={pkg.normalPrice}
+                        onInput={(event) => {
+                          const parsed = Number(event.currentTarget.value);
+                          if (Number.isFinite(parsed)) update(pkg.packageId, { normalPrice: parsed });
+                        }}
+                        className={cellInput}
+                      />
+                    </td>
+                    <td className="px-1.5 py-1.5 align-middle">
+                      <input
+                        name={`${pkg.packageId}:offerPrice`}
+                        type="number"
+                        inputMode="decimal"
+                        min={0}
+                        step="0.01"
+                        defaultValue={pkg.offerPrice}
+                        onInput={(event) => {
+                          const parsed = Number(event.currentTarget.value);
+                          if (Number.isFinite(parsed)) update(pkg.packageId, { offerPrice: parsed });
+                        }}
+                        className={cellInput}
+                      />
+                    </td>
+                    <td className="px-1.5 py-1.5 align-middle">
+                      <input
+                        name={`${pkg.packageId}:purchaseCost`}
+                        type="number"
+                        inputMode="decimal"
+                        min={0}
+                        step="0.01"
+                        defaultValue={pkg.purchaseCost}
+                        onInput={(event) => {
+                          const parsed = Number(event.currentTarget.value);
+                          if (Number.isFinite(parsed)) update(pkg.packageId, { purchaseCost: parsed });
+                        }}
+                        className={cellInput}
+                      />
+                    </td>
+                    <td className="px-1.5 py-1.5 align-middle">
+                      <input
+                        name={`${pkg.packageId}:minimumProfit`}
+                        type="number"
+                        inputMode="decimal"
+                        min={0}
+                        step="0.01"
+                        defaultValue={pkg.minimumProfit}
+                        onInput={(event) => {
+                          const parsed = Number(event.currentTarget.value);
+                          if (Number.isFinite(parsed)) update(pkg.packageId, { minimumProfit: parsed });
+                        }}
+                        className={cellInput}
+                      />
+                    </td>
+                    <td className="px-2 py-1.5 align-middle">
+                      <span
+                        className={cn(
+                          "font-display text-sm font-black tabular-nums",
+                          profit > 0 ? "text-emerald-400" : "text-rose-400",
+                        )}
+                      >
+                        {formatEuro(profit)}
+                      </span>
+                    </td>
+                    <td className="px-2 py-1.5 align-middle">
+                      <input
+                        type="checkbox"
+                        name={`${pkg.packageId}:offerEnabled`}
+                        checked={pkg.offerEnabled}
+                        onChange={(event) => toggleOffer(pkg, event.target.checked)}
+                        aria-label={`Προσφορά ${pkg.packageName}`}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
 
-              <div className="mt-3 grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-5">
-                <NumberField
-                  label="Κανονική"
-                  name={`${pkg.packageId}:normalPrice`}
-                  value={pkg.normalPrice}
-                  onChange={(value) => update(pkg.packageId, { normalPrice: value })}
-                />
-                <NumberField
-                  label="Προσφορά"
-                  name={`${pkg.packageId}:offerPrice`}
-                  value={pkg.offerPrice}
-                  onChange={(value) => update(pkg.packageId, { offerPrice: value })}
-                />
-                <NumberField
-                  label="Κόστος"
-                  name={`${pkg.packageId}:purchaseCost`}
-                  value={pkg.purchaseCost}
-                  onChange={(value) => update(pkg.packageId, { purchaseCost: value })}
-                />
-                <NumberField
-                  label="Ελάχ. κέρδος"
-                  name={`${pkg.packageId}:minimumProfit`}
-                  value={pkg.minimumProfit}
-                  onChange={(value) => update(pkg.packageId, { minimumProfit: value })}
-                />
-                <div className="rounded-lg border border-white/10 bg-[#0B0B0B] px-2.5 py-2">
-                  <p className="text-[10px] font-semibold tracking-[0.12em] text-text-dim uppercase">
-                    Κέρδος
-                  </p>
-                  <p
-                    className={cn(
-                      "mt-1 font-display text-xl font-black",
-                      profit > 0 ? "text-emerald-400" : "text-rose-400",
-                    )}
-                  >
-                    {formatEuro(profit)}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-muted">
-                <span>Κανονική {formatEuro(pkg.normalPrice)}</span>
-                <span>
-                  Προσφορά {formatEuro(pkg.offerPrice)} ({formatEuro(offerP)})
-                </span>
-                <span>Χρέωση {formatEuro(salePrice)}</span>
-              </div>
-
-              {!offerCheck.ok ? (
-                <p className="mt-2 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1.5 text-xs font-semibold text-rose-200">
-                  {offerCheck.message}
-                </p>
-              ) : null}
-            </article>
-          );
-        })}
-
-        {error ? <p className="text-sm font-semibold text-rose-300">{error}</p> : null}
+        {error ? <p className="mt-2 text-xs font-semibold text-rose-300">{error}</p> : null}
         {notice ? (
-          <p className="inline-flex items-center gap-2 text-sm text-emerald-400">
-            <Check className="h-4 w-4" />
+          <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-emerald-400">
+            <Check className="h-3.5 w-3.5" />
             {notice}
           </p>
         ) : null}
 
         <Button
           type="submit"
-          className="h-9 px-4 py-2 text-sm font-extrabold sm:w-fit sm:px-4 sm:py-2 sm:text-sm"
+          className="mt-3 h-8 px-3 py-1.5 text-xs font-extrabold sm:px-3 sm:py-1.5 sm:text-xs"
           disabled={saving}
         >
-          <Save className="h-4 w-4" />
-          {saving ? "Αποθήκευση…" : "Αποθήκευση τιμών"}
+          <Save className="h-3.5 w-3.5" />
+          {saving ? "Αποθήκευση…" : "Αποθήκευση"}
         </Button>
       </form>
-    </section>
+    </div>
   );
 }
 
 export function PricingWarningBanner({ show }: { show: boolean }) {
   if (!show) return null;
   return (
-    <div className="mb-4 flex gap-2 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-100">
-      <AlertTriangle className="h-4 w-4 shrink-0" />
-      Η τιμή προσφοράς δεν αφήνει κέρδος. Διόρθωσε την τιμή πριν την ενεργοποίηση.
+    <div className="mb-3 flex gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-100">
+      <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+      Η τιμή προσφοράς δεν αφήνει κέρδος.
     </div>
   );
 }
