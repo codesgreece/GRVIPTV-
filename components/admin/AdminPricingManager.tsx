@@ -24,9 +24,6 @@ function readNumber(form: HTMLFormElement, name: string, fallback: number) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-const cellInput =
-  "admin-input !rounded-md !px-1.5 !py-1 text-sm tabular-nums w-full max-w-[4.5rem]";
-
 export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingManagerProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [formEpoch, setFormEpoch] = useState(0);
@@ -96,9 +93,7 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
     onChange(next);
     const failed = current.filter((pkg) => !canEnableOffer({ ...pkg, offerEnabled: true }).ok);
     if (failed.length) {
-      setError(
-        `Χωρίς προσφορά: ${failed.map((pkg) => pkg.packageName).join(", ")} (δεν αφήνει κέρδος).`,
-      );
+      setError(`Χωρίς προσφορά: ${failed.map((pkg) => pkg.packageName).join(", ")}`);
     }
     await save(next);
   };
@@ -110,20 +105,20 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
   };
 
   return (
-    <div>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-display text-base font-bold text-white">Πακέτα & τιμές</h2>
-        <div className="flex flex-wrap gap-1">
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-base font-bold text-white">Πακέτα & τιμές</h2>
+        <div className="flex flex-wrap gap-1.5">
           <Button
             variant="outline"
-            className="h-7 px-2.5 py-1 text-[11px] sm:px-2.5 sm:py-1 sm:text-[11px]"
+            className="h-8 px-2.5 py-1.5 text-xs sm:px-2.5 sm:py-1.5 sm:text-xs"
             onClick={() => void enableValidOffers()}
           >
             Προσφορά όλα
           </Button>
           <Button
             variant="ghost"
-            className="h-7 px-2.5 py-1 text-[11px] sm:px-2.5 sm:py-1 sm:text-[11px]"
+            className="h-8 px-2.5 py-1.5 text-xs sm:px-2.5 sm:py-1.5 sm:text-xs"
             onClick={() => void disableAllOffers()}
             disabled={!anyOffer}
           >
@@ -135,129 +130,88 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
       <form
         key={formEpoch}
         ref={formRef}
+        className="space-y-2"
         onSubmit={(event) => {
           event.preventDefault();
           void save();
         }}
       >
-        <div className="overflow-x-auto rounded-lg border border-white/10 md:max-w-3xl">
-          <table className="w-full border-collapse text-left text-sm">
-            <thead>
-              <tr className="border-b border-white/10 bg-white/[0.03] text-[10px] font-bold tracking-[0.1em] text-text-dim uppercase">
-                <th className="px-2 py-1.5 font-bold">Πακέτο</th>
-                <th className="w-20 px-1 py-1.5 font-bold">Κανον.</th>
-                <th className="w-20 px-1 py-1.5 font-bold">Προσφ.</th>
-                <th className="w-16 px-1 py-1.5 font-bold">Κόστος</th>
-                <th className="w-16 px-1 py-1.5 font-bold">Ελάχ.</th>
-                <th className="w-16 px-1 py-1.5 font-bold">Κέρδος</th>
-                <th className="w-10 px-1 py-1.5 font-bold">On</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pricing.map((pkg) => {
-                const salePrice = pkg.offerEnabled ? pkg.offerPrice : pkg.normalPrice;
-                const profit = profitForSale(pkg, salePrice);
-                const offerCheck = canEnableOffer({ ...pkg, offerEnabled: true });
+        {pricing.map((pkg) => {
+          const salePrice = pkg.offerEnabled ? pkg.offerPrice : pkg.normalPrice;
+          const profit = profitForSale(pkg, salePrice);
+          const offerCheck = canEnableOffer({ ...pkg, offerEnabled: true });
 
-                return (
-                  <tr key={pkg.packageId} className="border-b border-white/8 last:border-0">
-                    <td className="px-2 py-1.5 align-middle">
-                      <p className="font-semibold text-white">{pkg.packageName}</p>
-                      {!offerCheck.ok ? (
-                        <p className="max-w-[9rem] text-[10px] leading-tight text-rose-300">
-                          {offerCheck.message}
-                        </p>
-                      ) : null}
-                    </td>
-                    <td className="px-1.5 py-1.5 align-middle">
-                      <input
-                        name={`${pkg.packageId}:normalPrice`}
-                        type="number"
-                        inputMode="decimal"
-                        min={0}
-                        step="0.01"
-                        defaultValue={pkg.normalPrice}
-                        onInput={(event) => {
-                          const parsed = Number(event.currentTarget.value);
-                          if (Number.isFinite(parsed)) update(pkg.packageId, { normalPrice: parsed });
-                        }}
-                        className={cellInput}
-                      />
-                    </td>
-                    <td className="px-1.5 py-1.5 align-middle">
-                      <input
-                        name={`${pkg.packageId}:offerPrice`}
-                        type="number"
-                        inputMode="decimal"
-                        min={0}
-                        step="0.01"
-                        defaultValue={pkg.offerPrice}
-                        onInput={(event) => {
-                          const parsed = Number(event.currentTarget.value);
-                          if (Number.isFinite(parsed)) update(pkg.packageId, { offerPrice: parsed });
-                        }}
-                        className={cellInput}
-                      />
-                    </td>
-                    <td className="px-1.5 py-1.5 align-middle">
-                      <input
-                        name={`${pkg.packageId}:purchaseCost`}
-                        type="number"
-                        inputMode="decimal"
-                        min={0}
-                        step="0.01"
-                        defaultValue={pkg.purchaseCost}
-                        onInput={(event) => {
-                          const parsed = Number(event.currentTarget.value);
-                          if (Number.isFinite(parsed)) update(pkg.packageId, { purchaseCost: parsed });
-                        }}
-                        className={cellInput}
-                      />
-                    </td>
-                    <td className="px-1.5 py-1.5 align-middle">
-                      <input
-                        name={`${pkg.packageId}:minimumProfit`}
-                        type="number"
-                        inputMode="decimal"
-                        min={0}
-                        step="0.01"
-                        defaultValue={pkg.minimumProfit}
-                        onInput={(event) => {
-                          const parsed = Number(event.currentTarget.value);
-                          if (Number.isFinite(parsed)) update(pkg.packageId, { minimumProfit: parsed });
-                        }}
-                        className={cellInput}
-                      />
-                    </td>
-                    <td className="px-2 py-1.5 align-middle">
-                      <span
-                        className={cn(
-                          "font-display text-sm font-black tabular-nums",
-                          profit > 0 ? "text-emerald-400" : "text-rose-400",
-                        )}
-                      >
-                        {formatEuro(profit)}
-                      </span>
-                    </td>
-                    <td className="px-2 py-1.5 align-middle">
-                      <input
-                        type="checkbox"
-                        name={`${pkg.packageId}:offerEnabled`}
-                        checked={pkg.offerEnabled}
-                        onChange={(event) => toggleOffer(pkg, event.target.checked)}
-                        aria-label={`Προσφορά ${pkg.packageName}`}
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+          return (
+            <article
+              key={pkg.packageId}
+              className="rounded-xl border border-white/10 bg-[#0B0B0B] p-3"
+            >
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <h3 className="text-sm font-bold text-white">{pkg.packageName}</h3>
+                <label className="inline-flex items-center gap-1.5 text-xs text-text-muted">
+                  <input
+                    type="checkbox"
+                    name={`${pkg.packageId}:offerEnabled`}
+                    checked={pkg.offerEnabled}
+                    onChange={(event) => toggleOffer(pkg, event.target.checked)}
+                  />
+                  Προσφορά
+                </label>
+              </div>
 
-        {error ? <p className="mt-2 text-xs font-semibold text-rose-300">{error}</p> : null}
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-5">
+                {(
+                  [
+                    ["normalPrice", "Κανονική", pkg.normalPrice],
+                    ["offerPrice", "Προσφορά", pkg.offerPrice],
+                    ["purchaseCost", "Κόστος", pkg.purchaseCost],
+                    ["minimumProfit", "Ελάχ.", pkg.minimumProfit],
+                  ] as const
+                ).map(([key, label, value]) => (
+                  <label key={key} className="min-w-0 block">
+                    <span className="mb-1 block text-[10px] font-semibold tracking-wide text-text-dim uppercase">
+                      {label}
+                    </span>
+                    <input
+                      name={`${pkg.packageId}:${key}`}
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      step="0.01"
+                      defaultValue={value}
+                      onInput={(event) => {
+                        const parsed = Number(event.currentTarget.value);
+                        if (Number.isFinite(parsed)) update(pkg.packageId, { [key]: parsed });
+                      }}
+                      className="admin-input"
+                    />
+                  </label>
+                ))}
+                <div className="col-span-2 rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 sm:col-span-4 lg:col-span-1">
+                  <p className="text-[10px] font-semibold tracking-wide text-text-dim uppercase">
+                    Κέρδος τώρα
+                  </p>
+                  <p
+                    className={cn(
+                      "mt-0.5 text-base font-black tabular-nums",
+                      profit > 0 ? "text-emerald-400" : "text-rose-400",
+                    )}
+                  >
+                    {formatEuro(profit)}
+                  </p>
+                </div>
+              </div>
+
+              {!offerCheck.ok ? (
+                <p className="mt-2 text-[11px] font-semibold text-rose-300">{offerCheck.message}</p>
+              ) : null}
+            </article>
+          );
+        })}
+
+        {error ? <p className="text-xs font-semibold text-rose-300">{error}</p> : null}
         {notice ? (
-          <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-emerald-400">
+          <p className="inline-flex items-center gap-1.5 text-xs text-emerald-400">
             <Check className="h-3.5 w-3.5" />
             {notice}
           </p>
@@ -265,10 +219,10 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
 
         <Button
           type="submit"
-          className="mt-3 h-8 px-3 py-1.5 text-xs font-extrabold sm:px-3 sm:py-1.5 sm:text-xs"
+          className="h-9 px-4 py-2 text-sm font-extrabold sm:px-4 sm:py-2 sm:text-sm"
           disabled={saving}
         >
-          <Save className="h-3.5 w-3.5" />
+          <Save className="h-4 w-4" />
           {saving ? "Αποθήκευση…" : "Αποθήκευση"}
         </Button>
       </form>

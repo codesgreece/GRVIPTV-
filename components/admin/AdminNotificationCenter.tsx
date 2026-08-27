@@ -24,17 +24,18 @@ export function AdminNotificationCenter({
       <button
         type="button"
         onClick={onToggle}
-        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-[#0B0B0B] px-3 py-2 text-sm font-semibold text-white hover:border-gold/30"
+        aria-label="Ειδοποιήσεις"
+        className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-[#0B0B0B] px-2.5 text-sm font-semibold text-white hover:border-gold/30"
       >
         <span className="relative">
           <Bell className="h-4 w-4 text-gold" />
           {count > 0 ? (
-            <span className="absolute -top-2 -right-2 inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-black text-white">
+            <span className="absolute -top-2 -right-2 inline-flex min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-black text-white">
               {count > 99 ? "99+" : count}
             </span>
           ) : null}
         </span>
-        Ειδοποιήσεις
+        <span className="hidden sm:inline">Ειδοποιήσεις</span>
       </button>
 
       {open ? (

@@ -48,8 +48,6 @@ function contactTone(contactAt: string) {
   return "upcoming" as const;
 }
 
-const tinyInput = "admin-input !rounded-md !px-2 !py-1.5 text-sm";
-
 export function AdminProspectsManager({ prospects, onCreate, onUpdate, onDelete }: Props) {
   const [drafts, setDrafts] = useState<Record<SalespersonId, Draft>>({
     "dimos-leonidiou": emptyDraft(),
@@ -88,6 +86,10 @@ export function AdminProspectsManager({ prospects, onCreate, onUpdate, onDelete 
 
   const submitCreate = async (salespersonId: SalespersonId) => {
     const draft = drafts[salespersonId];
+    if (!draft.name.trim()) {
+      setError("Γράψε όνομα πριν την προσθήκη.");
+      return;
+    }
     setError("");
     setSavingId(salespersonId);
     try {
@@ -148,58 +150,67 @@ export function AdminProspectsManager({ prospects, onCreate, onUpdate, onDelete 
   };
 
   return (
-    <div>
-      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="font-display text-base font-bold text-white">Πιθανοί πελάτες</h2>
-        <p className="text-[11px] font-semibold text-sky-300/90">
+    <div className="space-y-3">
+      <div className="flex items-baseline justify-between gap-2">
+        <h2 className="text-base font-bold text-white">Πιθανοί πελάτες</h2>
+        <p className="text-xs text-sky-300/90">
           {dueCount > 0 ? `${dueCount} σήμερα/καθυστ.` : `${prospects.length} συνολικά`}
         </p>
       </div>
 
-      {error ? <p className="mb-2 text-xs text-rose-400">{error}</p> : null}
+      {error ? <p className="text-xs text-rose-400">{error}</p> : null}
 
-      <div className="grid gap-2 md:grid-cols-3 md:max-w-5xl">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {SALESPEOPLE.map((person) => {
           const list = grouped[person.id];
           const draft = drafts[person.id];
           const creating = savingId === person.id;
 
           return (
-            <div key={person.id} className="min-w-0 rounded-md border border-white/10 p-2">
-              <div className="mb-1.5 flex items-baseline justify-between gap-2">
-                <h3 className="truncate text-sm font-bold text-white">{person.name}</h3>
-                <span className="shrink-0 text-[11px] text-text-dim">{list.length}</span>
-              </div>
+            <section
+              key={person.id}
+              className="flex flex-col rounded-xl border border-white/10 bg-[#0B0B0B] p-3"
+            >
+              <header className="mb-3 flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+                <h3 className="text-sm font-bold text-white">{person.name}</h3>
+                <span className="rounded bg-white/5 px-1.5 py-0.5 text-[11px] text-text-dim">
+                  {list.length}
+                </span>
+              </header>
 
-              <div className="mb-1.5 flex gap-1">
+              <div className="mb-3 space-y-2">
                 <input
                   value={draft.name}
                   onChange={(event) => setDraft(person.id, { name: event.target.value })}
-                  className={cn(tinyInput, "min-w-0 flex-1")}
+                  className="admin-input"
                   placeholder="Όνομα"
                   onKeyDown={(event) => {
                     if (event.key === "Enter") void submitCreate(person.id);
                   }}
                 />
-                <input
-                  type="date"
-                  value={draft.contactAt}
-                  onChange={(event) => setDraft(person.id, { contactAt: event.target.value })}
-                  className={cn(tinyInput, "w-[7.5rem] shrink-0")}
-                />
-                <Button
-                  className="h-7 w-7 shrink-0 !px-0 !py-0 sm:h-7 sm:w-7 sm:!px-0 sm:!py-0"
-                  disabled={creating || !draft.name.trim()}
-                  onClick={() => void submitCreate(person.id)}
-                  aria-label="Προσθήκη"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                </Button>
+                <div className="flex gap-2">
+                  <input
+                    type="date"
+                    value={draft.contactAt}
+                    onChange={(event) => setDraft(person.id, { contactAt: event.target.value })}
+                    className="admin-input min-w-0 flex-1"
+                  />
+                  <Button
+                    className="h-9 shrink-0 px-3 py-2 text-xs sm:px-3 sm:py-2 sm:text-xs"
+                    disabled={creating}
+                    onClick={() => void submitCreate(person.id)}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add
+                  </Button>
+                </div>
               </div>
 
-              <ul className="space-y-1">
+              <ul className="min-h-0 flex-1 space-y-1.5">
                 {list.length === 0 ? (
-                  <li className="px-1 py-1 text-[11px] text-text-dim">Κενό</li>
+                  <li className="rounded-lg border border-dashed border-white/10 px-2 py-3 text-center text-xs text-text-dim">
+                    Κανένας ακόμα
+                  </li>
                 ) : (
                   list.map((prospect) => {
                     const tone = contactTone(prospect.contactAt);
@@ -210,39 +221,47 @@ export function AdminProspectsManager({ prospects, onCreate, onUpdate, onDelete 
                       <li
                         key={prospect.id}
                         className={cn(
-                          "rounded-md border px-2 py-1.5",
-                          tone === "overdue" && "border-rose-500/30 bg-rose-500/10",
-                          tone === "today" && "border-amber-500/30 bg-amber-500/10",
-                          tone === "upcoming" && "border-white/8 bg-white/[0.02]",
+                          "rounded-lg border px-2.5 py-2",
+                          tone === "overdue" && "border-rose-500/35 bg-rose-500/10",
+                          tone === "today" && "border-amber-500/35 bg-amber-500/10",
+                          tone === "upcoming" && "border-white/10 bg-black/20",
                         )}
                       >
                         {editing ? (
-                          <div className="grid gap-1">
+                          <div className="space-y-2">
                             <input
                               value={editDraft.name}
                               onChange={(event) =>
                                 setEditDraft((current) => ({ ...current, name: event.target.value }))
                               }
-                              className={tinyInput}
+                              className="admin-input"
                             />
-                            <div className="grid grid-cols-[1fr_auto_auto] gap-1">
-                              <input
-                                type="date"
-                                value={editDraft.contactAt}
-                                onChange={(event) =>
-                                  setEditDraft((current) => ({
-                                    ...current,
-                                    contactAt: event.target.value,
-                                  }))
-                                }
-                                className={tinyInput}
-                              />
+                            <input
+                              type="date"
+                              value={editDraft.contactAt}
+                              onChange={(event) =>
+                                setEditDraft((current) => ({
+                                  ...current,
+                                  contactAt: event.target.value,
+                                }))
+                              }
+                              className="admin-input"
+                            />
+                            <input
+                              value={editDraft.note}
+                              onChange={(event) =>
+                                setEditDraft((current) => ({ ...current, note: event.target.value }))
+                              }
+                              className="admin-input"
+                              placeholder="Σημείωση"
+                            />
+                            <div className="flex gap-2">
                               <Button
-                                className="h-8 px-2 py-1 text-[11px] sm:px-2 sm:py-1 sm:text-[11px]"
+                                className="h-8 flex-1 px-2 py-1.5 text-xs sm:px-2 sm:py-1.5 sm:text-xs"
                                 disabled={busy}
                                 onClick={() => void submitEdit(prospect)}
                               >
-                                OK
+                                Αποθήκευση
                               </Button>
                               <Button
                                 variant="outline"
@@ -252,20 +271,12 @@ export function AdminProspectsManager({ prospects, onCreate, onUpdate, onDelete 
                                 <X className="h-3.5 w-3.5" />
                               </Button>
                             </div>
-                            <input
-                              value={editDraft.note}
-                              onChange={(event) =>
-                                setEditDraft((current) => ({ ...current, note: event.target.value }))
-                              }
-                              className={tinyInput}
-                              placeholder="Σημείωση"
-                            />
                           </div>
                         ) : (
-                          <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
                               <p className="truncate text-sm font-semibold text-white">{prospect.name}</p>
-                              <p className="text-[11px] text-text-muted">
+                              <p className="mt-0.5 text-[11px] text-text-muted">
                                 {formatDate(prospect.contactAt)}
                                 {tone === "today" ? " · σήμερα" : null}
                                 {tone === "overdue" ? " · καθυστ." : null}
@@ -275,7 +286,7 @@ export function AdminProspectsManager({ prospects, onCreate, onUpdate, onDelete 
                             <div className="flex shrink-0">
                               <button
                                 type="button"
-                                className="rounded p-1 text-text-muted hover:text-gold"
+                                className="rounded p-1.5 text-text-muted hover:bg-white/5 hover:text-gold"
                                 onClick={() => startEdit(prospect)}
                                 aria-label="Επεξεργασία"
                               >
@@ -283,7 +294,7 @@ export function AdminProspectsManager({ prospects, onCreate, onUpdate, onDelete 
                               </button>
                               <button
                                 type="button"
-                                className="rounded p-1 text-text-muted hover:text-rose-400"
+                                className="rounded p-1.5 text-text-muted hover:bg-white/5 hover:text-rose-400"
                                 disabled={busy}
                                 onClick={() => void submitDelete(prospect.id)}
                                 aria-label="Διαγραφή"
@@ -298,7 +309,7 @@ export function AdminProspectsManager({ prospects, onCreate, onUpdate, onDelete 
                   })
                 )}
               </ul>
-            </div>
+            </section>
           );
         })}
       </div>

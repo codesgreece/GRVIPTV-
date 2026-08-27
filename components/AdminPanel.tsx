@@ -100,7 +100,7 @@ function formatDate(iso: string) {
 }
 
 const actionBtnClass =
-  "h-auto min-h-8 w-full min-w-0 px-2 py-1.5 text-[11px] leading-tight whitespace-normal sm:w-auto sm:px-3 sm:py-2 sm:text-xs";
+  "h-9 min-h-9 w-full min-w-0 justify-center px-2.5 py-1.5 text-[11px] leading-tight whitespace-nowrap sm:h-9 sm:px-3 sm:py-2 sm:text-xs";
 
 export function AdminPanel() {
   const [password, setPassword] = useState("");
@@ -534,11 +534,9 @@ export function AdminPanel() {
   }
 
   return (
-    <div className="container-premium min-w-0 overflow-x-hidden py-4 md:py-6">
-      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-display text-xl font-black text-white md:text-2xl">GRVIP Admin</h1>
-        </div>
+    <div className="mx-auto w-full max-w-5xl min-w-0 overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h1 className="font-display text-xl font-black text-white sm:text-2xl">GRVIP Admin</h1>
         <div className="flex items-center gap-2">
           <AdminNotificationCenter
             notifications={notifications}
@@ -548,16 +546,16 @@ export function AdminPanel() {
           />
           <Button
             variant="outline"
-            className="h-9 px-3 py-2 text-xs sm:px-3 sm:py-2 sm:text-xs"
+            className="h-9 px-2.5 py-2 text-xs sm:px-3 sm:py-2 sm:text-xs"
             onClick={() => void logout()}
           >
             <LogOut className="h-3.5 w-3.5" />
-            Έξοδος
+            <span className="hidden sm:inline">Έξοδος</span>
           </Button>
         </div>
       </div>
 
-      <nav className="mb-3 flex gap-0.5 overflow-x-auto border-b border-white/10">
+      <nav className="mb-4 flex gap-1 overflow-x-auto border-b border-white/10 pb-px [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {ADMIN_TABS.map((item) => {
           const badge =
             item.id === "customers"
@@ -573,7 +571,7 @@ export function AdminPanel() {
               type="button"
               onClick={() => setTab(item.id)}
               className={cn(
-                "shrink-0 border-b-2 px-2.5 py-1.5 text-xs font-semibold transition-colors sm:text-sm",
+                "shrink-0 border-b-2 px-3 py-2 text-sm font-semibold transition-colors",
                 tab === item.id
                   ? "border-gold text-gold"
                   : "border-transparent text-text-muted hover:text-white",
@@ -583,7 +581,7 @@ export function AdminPanel() {
               {badge != null && badge > 0 ? (
                 <span
                   className={cn(
-                    "ml-1.5 rounded-md px-1.5 py-0.5 text-[10px] font-bold",
+                    "ml-1.5 rounded px-1.5 py-0.5 text-[10px] font-bold",
                     item.id === "overview" || item.id === "prospects"
                       ? "bg-amber-500/20 text-amber-200"
                       : "bg-white/10 text-text-dim",
@@ -598,51 +596,52 @@ export function AdminPanel() {
       </nav>
 
       {tab === "overview" ? (
-        <div className="space-y-3">
-          <div className="overflow-x-auto rounded-lg border border-white/10 md:max-w-4xl">
-            <div className="flex min-w-[640px] divide-x divide-white/10">
-              {[
-                { label: "Πελάτες", value: String(dashboard.totalCustomers) },
-                { label: "Ενεργοί", value: String(dashboard.activeSubscriptions) },
-                { label: "Λήγουν", value: String(dashboard.expiringSoon) },
-                { label: "Ληγμένοι", value: String(dashboard.expiredSubscriptions) },
-                { label: "Έσοδα", value: formatEuro(dashboard.totalRevenue) },
-                { label: "Κόστος", value: formatEuro(dashboard.totalCost) },
-                { label: "Κέρδος", value: formatEuro(dashboard.totalProfit) },
-                { label: "Μήνας", value: formatEuro(dashboard.monthProfit) },
-                {
-                  label: "Top",
-                  value: dashboard.topProfitPackageName
-                    ? `${dashboard.topProfitPackageName} ${formatEuro(dashboard.topProfitPackageAmount)}`
-                    : "—",
-                },
-              ].map((item) => (
-                <div key={item.label} className="min-w-0 flex-1 px-2 py-1.5">
-                  <p className="text-[9px] font-bold tracking-[0.08em] text-text-dim uppercase">
-                    {item.label}
-                  </p>
-                  <p className="mt-0.5 truncate text-sm font-bold text-white">{item.value}</p>
-                </div>
-              ))}
-            </div>
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-3 md:grid-cols-3">
+            {[
+              { label: "Πελάτες", value: String(dashboard.totalCustomers) },
+              { label: "Ενεργοί", value: String(dashboard.activeSubscriptions) },
+              { label: "Λήγουν", value: String(dashboard.expiringSoon) },
+              { label: "Ληγμένοι", value: String(dashboard.expiredSubscriptions) },
+              { label: "Έσοδα", value: formatEuro(dashboard.totalRevenue) },
+              { label: "Κέρδος", value: formatEuro(dashboard.totalProfit) },
+              { label: "Κόστος", value: formatEuro(dashboard.totalCost) },
+              { label: "Κέρδος μήνα", value: formatEuro(dashboard.monthProfit) },
+              {
+                label: "Top πακέτο",
+                value: dashboard.topProfitPackageName
+                  ? `${dashboard.topProfitPackageName}`
+                  : "—",
+              },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="rounded-xl border border-white/10 bg-[#0B0B0B] px-3 py-2.5"
+              >
+                <p className="text-[10px] font-semibold tracking-wide text-text-dim uppercase">
+                  {item.label}
+                </p>
+                <p className="mt-1 truncate text-base font-bold text-white sm:text-lg">{item.value}</p>
+              </div>
+            ))}
           </div>
 
           {store?.warning ? (
-            <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-100">
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
               {store.warning}
             </div>
           ) : (
-            <p className="text-[10px] text-text-dim">
+            <p className="text-[11px] text-text-dim">
               Store: {store?.backend === "upstash" ? "Upstash Redis" : "τοπικό αρχείο"}
             </p>
           )}
 
-          <div>
-            <div className="mb-1.5 flex items-center justify-between gap-2">
+          <section className="rounded-xl border border-white/10 bg-[#0B0B0B] p-3">
+            <div className="mb-2 flex items-center justify-between gap-2">
               <h2 className="text-sm font-bold text-white">Λήγουν σύντομα</h2>
               <button
                 type="button"
-                className="text-[11px] font-semibold text-gold hover:underline"
+                className="text-xs font-semibold text-gold hover:underline"
                 onClick={() => {
                   setFilter("expiring");
                   setTab("customers");
@@ -654,11 +653,11 @@ export function AdminPanel() {
             {expiringSoon.length === 0 ? (
               <p className="text-xs text-text-muted">Κανένας στις επόμενες 7 ημέρες.</p>
             ) : (
-              <ul className="divide-y divide-white/8 rounded-lg border border-white/10">
+              <ul className="space-y-2">
                 {expiringSoon.map((customer) => (
                   <li
                     key={customer.id}
-                    className="flex flex-wrap items-center justify-between gap-2 px-2.5 py-1.5"
+                    className="flex flex-col gap-2 rounded-lg border border-amber-500/20 bg-black/30 p-2.5 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-white">{customer.name}</p>
@@ -667,7 +666,7 @@ export function AdminPanel() {
                         {customer.daysRemaining}η
                       </p>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="grid grid-cols-2 gap-1.5 sm:flex">
                       <Button className={actionBtnClass} onClick={() => setRenewFor(customer)}>
                         <RefreshCw className="h-3.5 w-3.5" />
                         Ανανέωση
@@ -680,14 +679,14 @@ export function AdminPanel() {
                         }
                       >
                         <Copy className="h-3.5 w-3.5" />
-                        Msg
+                        Μήνυμα
                       </Button>
                     </div>
                   </li>
                 ))}
               </ul>
             )}
-          </div>
+          </section>
         </div>
       ) : null}
 
@@ -705,24 +704,14 @@ export function AdminPanel() {
       ) : null}
 
       {tab === "customers" ? (
-        <div className="space-y-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="font-display text-lg font-bold text-white">
-              Πελάτες
-              <span className="ml-2 text-sm font-normal text-text-dim">({filtered.length})</span>
-            </h2>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <div className="relative w-full sm:w-64">
-                <Search className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-text-dim" />
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  className="admin-input pl-8"
-                  placeholder="Αναζήτηση"
-                />
-              </div>
+        <div className="space-y-3">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-base font-bold text-white">
+                Πελάτες <span className="font-normal text-text-dim">({filtered.length})</span>
+              </h2>
               <Button
-                className={cn(actionBtnClass, "sm:w-auto")}
+                className="h-9 shrink-0 px-3 py-2 text-xs sm:px-3 sm:py-2 sm:text-xs"
                 onClick={() => {
                   setShowCreateForm((current) => !current);
                   if (editingId) {
@@ -734,17 +723,27 @@ export function AdminPanel() {
                 }}
               >
                 <Plus className="h-3.5 w-3.5" />
-                {showCreateForm || editingId ? "Κλείσιμο φόρμας" : "Νέος πελάτης"}
+                {showCreateForm || editingId ? "Κλείσιμο" : "Νέος"}
               </Button>
+            </div>
+            <div className="relative w-full">
+              <Search className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-text-dim" />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                className="admin-input pl-8"
+                placeholder="Αναζήτηση ονόματος"
+                autoComplete="off"
+              />
             </div>
           </div>
 
           {showCreateForm || editingId ? (
-            <section className="overflow-hidden rounded-xl border border-gold/20 bg-[#0B0B0B] p-3 sm:p-4">
-              <h3 className="font-display text-base font-bold text-white">
-                {editingId ? "Επεξεργασία πελάτη" : "Νέος πελάτης"}
+            <section className="rounded-xl border border-gold/20 bg-[#0B0B0B] p-3">
+              <h3 className="text-sm font-bold text-white">
+                {editingId ? "Επεξεργασία" : "Νέος πελάτης"}
               </h3>
-              <div className="mt-3 grid min-w-0 gap-3 md:grid-cols-2">
+              <div className="mt-3 grid min-w-0 gap-2 sm:grid-cols-2">
                 <Field label="Ονοματεπώνυμο">
                   <input
                     value={form.name}
@@ -793,7 +792,7 @@ export function AdminPanel() {
                     className="admin-input"
                   />
                 </Field>
-                <Field label="Οδηγός εγκατάστασης" className="md:col-span-2">
+                <Field label="Οδηγός εγκατάστασης" className="sm:col-span-2">
                   <input
                     value={form.setupGuideUrl}
                     onChange={(event) =>
@@ -805,17 +804,17 @@ export function AdminPanel() {
                 </Field>
               </div>
 
-              {error ? <p className="mt-3 text-sm text-rose-400">{error}</p> : null}
-              {notice ? <p className="mt-3 text-sm text-emerald-400">{notice}</p> : null}
+              {error ? <p className="mt-2 text-sm text-rose-400">{error}</p> : null}
+              {notice ? <p className="mt-2 text-sm text-emerald-400">{notice}</p> : null}
 
               {createdLink ? (
                 <div className="mt-3 rounded-lg border border-gold/25 bg-gold/8 p-3">
                   <p className="text-[10px] font-bold tracking-[0.14em] text-gold uppercase">Magic Link</p>
                   <p className="mt-1 break-all text-xs text-white">{createdLink}</p>
-                  <div className="mt-2 flex flex-col gap-1.5 sm:flex-row">
+                  <div className="mt-2 grid grid-cols-2 gap-1.5">
                     <Button
                       variant="outline"
-                      className={cn(actionBtnClass, "sm:flex-1")}
+                      className={actionBtnClass}
                       onClick={() => void copyText(createdLink, "Το Magic Link αντιγράφηκε.")}
                     >
                       <Copy className="h-3.5 w-3.5" />
@@ -823,7 +822,7 @@ export function AdminPanel() {
                     </Button>
                     <Button
                       href={createdLink.replace(window.location.origin, "")}
-                      className={cn(actionBtnClass, "sm:flex-1")}
+                      className={actionBtnClass}
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
                       Άνοιγμα
@@ -872,55 +871,55 @@ export function AdminPanel() {
                 type="button"
                 onClick={() => setFilter(id)}
                 className={cn(
-                  "rounded-md border px-2.5 py-1 text-[11px] font-bold tracking-[0.08em] uppercase",
+                  "rounded-md border px-2.5 py-1 text-[11px] font-bold uppercase",
                   filter === id
                     ? "border-gold/40 bg-gold/15 text-gold"
-                    : "border-white/10 bg-black/30 text-text-muted hover:border-gold/20",
+                    : "border-white/10 bg-black/30 text-text-muted",
                 )}
               >
                 {label}
               </button>
             ))}
-            {tags.length > 0 ? (
-              <>
-                <span className="mx-1 self-center text-white/20">|</span>
+          </div>
+
+          {tags.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => setTagFilter("all")}
+                className={cn(
+                  "rounded-md border px-2 py-1 text-[11px] font-semibold",
+                  tagFilter === "all"
+                    ? "border-gold/40 bg-gold/15 text-gold"
+                    : "border-white/10 bg-black/30 text-text-muted",
+                )}
+              >
+                Tags · όλα
+              </button>
+              {tags.map((tag) => (
                 <button
+                  key={tag.id}
                   type="button"
-                  onClick={() => setTagFilter("all")}
+                  onClick={() => setTagFilter(tag.id)}
                   className={cn(
-                    "rounded-md border px-2.5 py-1 text-[11px] font-semibold",
-                    tagFilter === "all"
+                    "rounded-md border px-2 py-1 text-[11px] font-semibold",
+                    tagFilter === tag.id
                       ? "border-gold/40 bg-gold/15 text-gold"
                       : "border-white/10 bg-black/30 text-text-muted",
                   )}
                 >
-                  Tags · όλα
+                  {tag.emoji} {tag.name}
                 </button>
-                {tags.map((tag) => (
-                  <button
-                    key={tag.id}
-                    type="button"
-                    onClick={() => setTagFilter(tag.id)}
-                    className={cn(
-                      "rounded-md border px-2.5 py-1 text-[11px] font-semibold",
-                      tagFilter === tag.id
-                        ? "border-gold/40 bg-gold/15 text-gold"
-                        : "border-white/10 bg-black/30 text-text-muted",
-                    )}
-                  >
-                    {tag.emoji} {tag.name}
-                  </button>
-                ))}
-              </>
-            ) : null}
-          </div>
+              ))}
+            </div>
+          ) : null}
 
           {filtered.length === 0 ? (
             <div className="rounded-xl border border-white/10 bg-[#0B0B0B] p-6 text-center text-sm text-text-muted">
               Δεν υπάρχουν πελάτες σε αυτή την κατηγορία.
             </div>
           ) : (
-            <div className="grid gap-2.5">
+            <div className="grid gap-2">
               {filtered.map((customer) => {
                 const status = adminStatusFromDays(customer.daysRemaining);
                 const link = accountPath(customer.token);
@@ -929,89 +928,85 @@ export function AdminPanel() {
                 return (
                   <article
                     key={customer.id}
-                    className="min-w-0 overflow-hidden rounded-xl border border-white/10 bg-[#0B0B0B] p-3"
+                    className="rounded-xl border border-white/10 bg-[#0B0B0B] p-3"
                   >
-                    <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-display text-base font-bold text-white">{customer.name}</h3>
-                          <span className="inline-flex items-center gap-1.5 rounded-md border border-white/10 px-2 py-0.5 text-[11px] font-semibold text-text-muted">
-                            <span className={cn("h-1.5 w-1.5 rounded-full", statusDot(status.tone))} />
-                            {status.label}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-sm font-bold text-white sm:text-base">{customer.name}</h3>
+                      <span className="inline-flex items-center gap-1.5 rounded-md border border-white/10 px-2 py-0.5 text-[11px] text-text-muted">
+                        <span className={cn("h-1.5 w-1.5 rounded-full", statusDot(status.tone))} />
+                        {status.label}
+                      </span>
+                    </div>
+                    {(customer.tags ?? []).length > 0 ? (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {customer.tags.map((tag) => (
+                          <span
+                            key={tag.id}
+                            className="rounded-md border border-gold/20 bg-gold/10 px-1.5 py-0.5 text-[10px] font-semibold text-gold"
+                          >
+                            {tag.emoji} {tag.name}
                           </span>
-                        </div>
-                        {(customer.tags ?? []).length > 0 ? (
-                          <div className="mt-1.5 flex flex-wrap gap-1">
-                            {customer.tags.map((tag) => (
-                              <span
-                                key={tag.id}
-                                className="rounded-md border border-gold/20 bg-gold/10 px-1.5 py-0.5 text-[10px] font-semibold text-gold"
-                              >
-                                {tag.emoji} {tag.name}
-                              </span>
-                            ))}
-                          </div>
-                        ) : null}
-                        <p className="mt-1 text-xs text-gold">{customer.packageLabel}</p>
-                        <p className="mt-1 text-xs text-text-muted">
-                          {formatDate(customer.activatedAt)} → {formatDate(customer.expiresAt)} ·{" "}
-                          <span className="font-semibold text-white">
-                            {customer.daysRemaining > 0 ? `${customer.daysRemaining}η` : "0η"}
-                          </span>
-                          {" · "}
-                          {formatEuro(customer.totalPaid)} / κέρδος {formatEuro(customer.totalProfit)}
-                        </p>
+                        ))}
                       </div>
-                      <div className="grid w-full min-w-0 grid-cols-2 gap-1.5 sm:flex sm:flex-wrap sm:justify-end">
-                        <Button
-                          variant="outline"
-                          className={actionBtnClass}
-                          onClick={() => setProfileFor(customer)}
-                        >
-                          Προφίλ
-                        </Button>
-                        <Button className={actionBtnClass} onClick={() => setRenewFor(customer)}>
-                          <RefreshCw className="h-3.5 w-3.5 shrink-0" />
-                          Ανανέωση
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className={actionBtnClass}
-                          onClick={() =>
-                            void copyText(
-                              `${window.location.origin}${link}`,
-                              "Το Magic Link αντιγράφηκε.",
-                            )
-                          }
-                        >
-                          <Copy className="h-3.5 w-3.5 shrink-0" />
-                          Link
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className={cn(actionBtnClass, open && "border-gold/50 bg-gold/10 text-gold")}
-                          onClick={() => setHistoryOpen(open ? null : customer.id)}
-                        >
-                          <History className="h-3.5 w-3.5 shrink-0" />
-                          Ιστορικό
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className={actionBtnClass}
-                          onClick={() => startEdit(customer)}
-                        >
-                          <Pencil className="h-3.5 w-3.5 shrink-0" />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          className={actionBtnClass}
-                          onClick={() => void remove(customer)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5 shrink-0" />
-                          Διαγραφή
-                        </Button>
-                      </div>
+                    ) : null}
+                    <p className="mt-1 text-xs text-gold">{customer.packageLabel}</p>
+                    <p className="mt-1 text-xs text-text-muted">
+                      {formatDate(customer.activatedAt)} → {formatDate(customer.expiresAt)} ·{" "}
+                      {customer.daysRemaining > 0 ? `${customer.daysRemaining}η` : "0η"} ·{" "}
+                      {formatEuro(customer.totalPaid)} / κέρδος {formatEuro(customer.totalProfit)}
+                    </p>
+
+                    <div className="mt-3 grid grid-cols-3 gap-1.5">
+                      <Button
+                        variant="outline"
+                        className={actionBtnClass}
+                        onClick={() => setProfileFor(customer)}
+                      >
+                        Προφίλ
+                      </Button>
+                      <Button className={actionBtnClass} onClick={() => setRenewFor(customer)}>
+                        <RefreshCw className="h-3.5 w-3.5 shrink-0" />
+                        Ανανέωση
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className={actionBtnClass}
+                        onClick={() =>
+                          void copyText(
+                            `${window.location.origin}${link}`,
+                            "Το Magic Link αντιγράφηκε.",
+                          )
+                        }
+                      >
+                        <Copy className="h-3.5 w-3.5 shrink-0" />
+                        Link
+                      </Button>
+                    </div>
+                    <div className="mt-1.5 grid grid-cols-3 gap-1.5">
+                      <Button
+                        variant="outline"
+                        className={cn(actionBtnClass, open && "border-gold/50 bg-gold/10 text-gold")}
+                        onClick={() => setHistoryOpen(open ? null : customer.id)}
+                      >
+                        <History className="h-3.5 w-3.5 shrink-0" />
+                        Ιστορικό
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className={actionBtnClass}
+                        onClick={() => startEdit(customer)}
+                      >
+                        <Pencil className="h-3.5 w-3.5 shrink-0" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className={actionBtnClass}
+                        onClick={() => void remove(customer)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                        Διαγραφή
+                      </Button>
                     </div>
 
                     {open ? (
