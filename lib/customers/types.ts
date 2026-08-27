@@ -1,19 +1,65 @@
-export const PACKAGE_OPTIONS = [
-  { id: "1-month", label: "1 Μήνας", months: 1 },
-  { id: "3-months", label: "3 Μήνες", months: 3 },
-  { id: "6-months", label: "6 Μήνες", months: 6 },
-  { id: "12-months", label: "12 Μήνες", months: 12 },
+export const PAID_PACKAGE_OPTIONS = [
+  { id: "1-month", label: "1 Μήνας", months: 1, minutes: 0 },
+  { id: "3-months", label: "3 Μήνες", months: 3, minutes: 0 },
+  { id: "6-months", label: "6 Μήνες", months: 6, minutes: 0 },
+  { id: "12-months", label: "12 Μήνες", months: 12, minutes: 0 },
 ] as const;
+
+export const TRIAL_PACKAGE_OPTIONS = [
+  { id: "trial-30min", label: "Trial 30 λεπτών", months: 0, minutes: 30 },
+  { id: "trial-1hour", label: "Trial 1 ώρας", months: 0, minutes: 60 },
+  { id: "trial-1day", label: "Trial 1 ημέρας", months: 0, minutes: 1_440 },
+] as const;
+
+export const PACKAGE_OPTIONS = [...PAID_PACKAGE_OPTIONS, ...TRIAL_PACKAGE_OPTIONS] as const;
 
 export const CUSTOMER_PACKAGES = PACKAGE_OPTIONS;
 
 export type PackageId = (typeof PACKAGE_OPTIONS)[number]["id"];
+export type PaidPackageId = (typeof PAID_PACKAGE_OPTIONS)[number]["id"];
 
 export const DEFAULT_SETUP_GUIDE_PATH = "/odigos-egkatastasis";
 export const RENEW_PATH = "https://grviptv.xyz/paketa";
 
 export type CustomerStatus = "active" | "expiring" | "expired";
 export type PriceType = "NORMAL" | "OFFER" | "CUSTOMER_SPECIAL_OFFER";
+
+export type CreditRates = Record<PackageId, number>;
+
+export const DEFAULT_CREDIT_RATES_WHOLE: CreditRates = {
+  "1-month": 1,
+  "3-months": 3,
+  "6-months": 6,
+  "12-months": 12,
+  "trial-30min": 0,
+  "trial-1hour": 0,
+  "trial-1day": 0,
+};
+
+export const DEFAULT_CREDIT_RATES_FRACTIONAL: CreditRates = {
+  "1-month": 0.1,
+  "3-months": 0.3,
+  "6-months": 0.6,
+  "12-months": 1,
+  "trial-30min": 0,
+  "trial-1hour": 0,
+  "trial-1day": 0,
+};
+
+export type Server = {
+  id: string;
+  name: string;
+  creditsRemaining: number;
+  creditRates: CreditRates;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ServerInput = {
+  name: string;
+  creditsRemaining: number;
+  creditRates: CreditRates;
+};
 
 export type Customer = {
   id: string;
@@ -27,6 +73,7 @@ export type Customer = {
   updatedAt: string;
   archivedAt?: string;
   tagIds?: string[];
+  serverId?: string;
 };
 
 export type Subscription = {
@@ -101,6 +148,7 @@ export type CrmData = {
   tags: CustomerTag[];
   notes: CustomerNote[];
   prospects: Prospect[];
+  servers: Server[];
 };
 
 export type CustomerView = Customer & {
@@ -112,6 +160,7 @@ export type CustomerView = Customer & {
   tags: CustomerTag[];
   notes: CustomerNote[];
   subscriptions: Subscription[];
+  serverName: string | null;
 };
 
 export type DashboardStats = {
@@ -153,6 +202,7 @@ export type CustomerInput = {
   activatedAt: string;
   expiresAt: string;
   setupGuideUrl: string;
+  serverId: string;
 };
 
 export type SubscriptionView = {

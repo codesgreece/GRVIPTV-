@@ -75,21 +75,31 @@ export function AdminMessagesModal({ customer, origin, onClose, onCopied }: Mess
 type RenewModalProps = {
   customer: CustomerView;
   pricing: PackagePricing[];
+  servers: import("@/lib/customers/types").Server[];
   saving: boolean;
   onClose: () => void;
-  onConfirm: (packageId: PackageId) => void;
+  onConfirm: (packageId: PackageId, serverId: string) => void;
 };
 
-export function AdminRenewModal({ customer, pricing, saving, onClose, onConfirm }: RenewModalProps) {
+export function AdminRenewModal({
+  customer,
+  pricing,
+  servers,
+  saving,
+  onClose,
+  onConfirm,
+}: RenewModalProps) {
   const [packageId, setPackageId] = useState<PackageId>(customer.packageId);
+  const [serverId, setServerId] = useState(customer.serverId ?? servers[0]?.id ?? "");
   const pkg = getPricingById(pricing, packageId);
   const pay = activePrice(pkg);
+  const server = servers.find((item) => item.id === serverId);
+  const creditCost = server ? Number(server.creditRates[packageId] ?? 0) : 0;
 
   return (
-    <Modal title={`🔄 Ανανέωση — ${customer.name}`} onClose={onClose}>
+    <Modal title={`Ανανέωση — ${customer.name}`} onClose={onClose}>
       <p className="text-sm text-text-muted">
-        Το Magic Link μένει το ίδιο. Η νέα συνδρομή καταγράφεται στο ιστορικό με την τιμή που πληρώνει τώρα ο
-        πελάτης.
+        Το Magic Link μένει το ίδιο. Τα credits αφαιρούνται από τον επιλεγμένο server.
       </p>
 
       <label className="mt-5 block text-xs font-semibold tracking-[0.12em] text-text-dim uppercase">
@@ -107,17 +117,34 @@ export function AdminRenewModal({ customer, pricing, saving, onClose, onConfirm 
         ))}
       </select>
 
+      <label className="mt-4 block text-xs font-semibold tracking-[0.12em] text-text-dim uppercase">
+        Server
+      </label>
+      <select
+        value={serverId}
+        onChange={(event) => setServerId(event.target.value)}
+        className="admin-input mt-2"
+      >
+        <option value="">Επίλεξε server…</option>
+        {servers.map((item) => (
+          <option key={item.id} value={item.id}>
+            {item.name} · {item.creditsRemaining} cr
+          </option>
+        ))}
+      </select>
+      {server ? (
+        <p className="mt-2 text-xs text-text-muted">
+          Κόστος credits: {creditCost} · Υπόλοιπο μετά:{" "}
+          {(server.creditsRemaining - creditCost).toFixed(2)}
+        </p>
+      ) : null}
+
       <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2">
         <PriceBox label="Αρχική τιμή" value={formatEuro(pkg.normalPrice)} />
         <PriceBox
           label="Ενεργή τιμή"
           value={formatEuro(pay)}
           hint={pkg.offerEnabled ? "Ισχύει προσφορά" : "Κανονική τιμή"}
-        />
-        <PriceBox label="Τιμή προσφοράς" value={formatEuro(pkg.offerPrice)} muted={!pkg.offerEnabled} />
-        <PriceBox
-          label="Τύπος"
-          value={pkg.offerEnabled ? "🔥 Προσφορά" : "Κανονική"}
         />
       </div>
 
@@ -127,7 +154,11 @@ export function AdminRenewModal({ customer, pricing, saving, onClose, onConfirm 
       </div>
 
       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-        <Button className="font-extrabold sm:flex-1" disabled={saving} onClick={() => onConfirm(packageId)}>
+        <Button
+          className="font-extrabold sm:flex-1"
+          disabled={saving || !serverId}
+          onClick={() => onConfirm(packageId, serverId)}
+        >
           <RefreshCw className="h-4 w-4" />
           {saving ? "Ανανέωση…" : "Ολοκλήρωση ανανέωσης"}
         </Button>
@@ -142,23 +173,28 @@ export function AdminRenewModal({ customer, pricing, saving, onClose, onConfirm 
 type SpecialOfferModalProps = {
   customer: CustomerView;
   pricing: PackagePricing[];
+  servers: import("@/lib/customers/types").Server[];
   saving: boolean;
   onClose: () => void;
-  onConfirm: (packageId: PackageId, amountPaid: number) => void;
+  onConfirm: (packageId: PackageId, amountPaid: number, serverId: string) => void;
 };
 
 export function AdminSpecialOfferModal({
   customer,
   pricing,
+  servers,
   saving,
   onClose,
   onConfirm,
 }: SpecialOfferModalProps) {
   const [packageId, setPackageId] = useState<PackageId>(customer.packageId);
+  const [serverId, setServerId] = useState(customer.serverId ?? servers[0]?.id ?? "");
   const pkg = getPricingById(pricing, packageId);
   const [specialPrice, setSpecialPrice] = useState(String(Math.max(pkg.purchaseCost + 1, pkg.offerPrice)));
   const amount = Number(specialPrice);
   const check = validateSpecialOfferPrice(pkg, amount);
+  const server = servers.find((item) => item.id === serverId);
+  const creditCost = server ? Number(server.creditRates[packageId] ?? 0) : 0;
 
   return (
     <Modal title={`🎁 Ειδική Προσφορά — ${customer.name}`} onClose={onClose}>
@@ -185,6 +221,28 @@ export function AdminSpecialOfferModal({
           </option>
         ))}
       </select>
+
+      <label className="mt-4 block text-xs font-semibold tracking-[0.12em] text-text-dim uppercase">
+        Server
+      </label>
+      <select
+        value={serverId}
+        onChange={(event) => setServerId(event.target.value)}
+        className="admin-input mt-2"
+      >
+        <option value="">Επίλεξε server…</option>
+        {servers.map((item) => (
+          <option key={item.id} value={item.id}>
+            {item.name} · {item.creditsRemaining} cr
+          </option>
+        ))}
+      </select>
+      {server ? (
+        <p className="mt-2 text-xs text-text-muted">
+          Κόστος credits: {creditCost} · Υπόλοιπο μετά:{" "}
+          {(server.creditsRemaining - creditCost).toFixed(2)}
+        </p>
+      ) : null}
 
       <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2">
         <PriceBox label="Κανονική τιμή" value={formatEuro(pkg.normalPrice)} />
@@ -220,8 +278,8 @@ export function AdminSpecialOfferModal({
       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
         <Button
           className="font-extrabold sm:flex-1"
-          disabled={saving || !check.ok}
-          onClick={() => onConfirm(packageId, amount)}
+          disabled={saving || !check.ok || !serverId}
+          onClick={() => onConfirm(packageId, amount, serverId)}
         >
           <Gift className="h-4 w-4" />
           {saving ? "Εφαρμογή…" : "Εφαρμογή ειδικής προσφοράς"}

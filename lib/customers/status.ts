@@ -1,4 +1,4 @@
-import { PACKAGE_OPTIONS, type Customer, type SubscriptionView } from "@/lib/customers/types";
+import { PACKAGE_OPTIONS, type Customer, type PackageId, type SubscriptionView } from "@/lib/customers/types";
 
 const ATHENS_TZ = "Europe/Athens";
 
@@ -25,7 +25,7 @@ function ymdToUtcMs(year: number, month: number, day: number) {
 }
 
 function parseYmd(value: string) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.slice(0, 10));
   if (!match) return null;
 
   const year = Number(match[1]);
@@ -34,6 +34,10 @@ function parseYmd(value: string) {
   if (!year || month < 1 || month > 12 || day < 1 || day > 31) return null;
 
   return { year, month, day };
+}
+
+export function isDateTimeExpiry(value: string) {
+  return value.includes("T") || value.length > 10;
 }
 
 export function daysBetweenYmd(from: string, to: string) {
@@ -50,16 +54,41 @@ export function athensTodayYmd(now = new Date()) {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
+export function remainingMsFromExpiry(expiresAt: string, now = new Date()) {
+  if (isDateTimeExpiry(expiresAt)) {
+    const end = new Date(expiresAt).getTime();
+    if (!Number.isFinite(end)) return 0;
+    return end - now.getTime();
+  }
+
+  const days = daysBetweenYmd(athensTodayYmd(now), expiresAt.slice(0, 10));
+  return days * 86_400_000;
+}
+
 export function daysRemainingFromExpiry(expiresAt: string, now = new Date()) {
-  return daysBetweenYmd(athensTodayYmd(now), expiresAt);
+  const ms = remainingMsFromExpiry(expiresAt, now);
+  if (ms <= 0) return Math.min(0, Math.floor(ms / 86_400_000));
+  return Math.max(1, Math.ceil(ms / 86_400_000));
+}
+
+export function getPackageOption(packageId: PackageId) {
+  return PACKAGE_OPTIONS.find((item) => item.id === packageId);
 }
 
 export function getPackageLabel(packageId: Customer["packageId"]) {
-  return PACKAGE_OPTIONS.find((item) => item.id === packageId)?.label ?? packageId;
+  return getPackageOption(packageId)?.label ?? packageId;
 }
 
 export function getPackageMonths(packageId: Customer["packageId"]) {
-  return PACKAGE_OPTIONS.find((item) => item.id === packageId)?.months ?? 1;
+  return getPackageOption(packageId)?.months ?? 0;
+}
+
+export function getPackageMinutes(packageId: Customer["packageId"]) {
+  return getPackageOption(packageId)?.minutes ?? 0;
+}
+
+export function isTrialPackage(packageId: PackageId) {
+  return getPackageMinutes(packageId) > 0;
 }
 
 export function addMonthsToYmd(ymd: string, months: number) {
@@ -69,6 +98,15 @@ export function addMonthsToYmd(ymd: string, months: number) {
   const date = new Date(Date.UTC(parsed.year, parsed.month - 1, parsed.day));
   date.setUTCMonth(date.getUTCMonth() + months);
   return date.toISOString().slice(0, 10);
+}
+
+export function computePackageExpiry(packageId: PackageId, activatedAtYmd: string, now = new Date()) {
+  const minutes = getPackageMinutes(packageId);
+  if (minutes > 0) {
+    return new Date(now.getTime() + minutes * 60_000).toISOString();
+  }
+  const months = getPackageMonths(packageId);
+  return addMonthsToYmd(activatedAtYmd.slice(0, 10), Math.max(months, 1));
 }
 
 export function formatGreekDate(ymd: string) {
@@ -82,16 +120,33 @@ export function formatGreekDate(ymd: string) {
   }).format(new Date(Date.UTC(parsed.year, parsed.month - 1, parsed.day)));
 }
 
-export function getSubscriptionView(customer: Pick<Customer, "activatedAt" | "expiresAt">, now = new Date()): SubscriptionView {
+export function getSubscriptionView(
+  customer: Pick<Customer, "activatedAt" | "expiresAt">,
+  now = new Date(),
+): SubscriptionView {
   const today = athensTodayYmd(now);
-  const daysRemaining = daysBetweenYmd(today, customer.expiresAt);
-  const totalDays = Math.max(1, daysBetweenYmd(customer.activatedAt, customer.expiresAt));
-  const elapsedDays = Math.max(0, daysBetweenYmd(customer.activatedAt, today));
-  const remainingPercent = Math.max(0, Math.min(100, Math.round((Math.max(daysRemaining, 0) / totalDays) * 100)));
+  const daysRemaining = daysRemainingFromExpiry(customer.expiresAt, now);
+  const totalDays = Math.max(
+    1,
+    isDateTimeExpiry(customer.expiresAt)
+      ? Math.max(
+          1,
+          Math.ceil(
+            Math.max(0, new Date(customer.expiresAt).getTime() - new Date(customer.activatedAt).getTime()) /
+              86_400_000,
+          ),
+        )
+      : daysBetweenYmd(customer.activatedAt.slice(0, 10), customer.expiresAt.slice(0, 10)),
+  );
+  const elapsedDays = Math.max(0, daysBetweenYmd(customer.activatedAt.slice(0, 10), today));
+  const remainingPercent = Math.max(
+    0,
+    Math.min(100, Math.round((Math.max(daysRemaining, 0) / totalDays) * 100)),
+  );
 
-  if (daysRemaining <= 0) {
+  if (remainingMsFromExpiry(customer.expiresAt, now) <= 0) {
     return {
-      daysRemaining,
+      daysRemaining: Math.min(daysRemaining, 0),
       totalDays,
       elapsedDays,
       remainingPercent: 0,

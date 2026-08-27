@@ -104,6 +104,7 @@ export function toCustomerView(customer: Customer, data: CrmData, now = new Date
     tags,
     notes,
     subscriptions: history,
+    serverName: data.servers.find((server) => server.id === customer.serverId)?.name ?? null,
   };
 }
 

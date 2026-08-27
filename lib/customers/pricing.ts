@@ -58,7 +58,28 @@ export function packageLabel(id: PackageId): string {
 }
 
 export function durationMonths(id: PackageId): number {
-  return PACKAGE_OPTIONS.find((item) => item.id === id)?.months ?? 1;
+  return PACKAGE_OPTIONS.find((item) => item.id === id)?.months ?? 0;
+}
+
+export function getPricingById(list: PackagePricing[], id: PackageId): PackagePricing {
+  const found = list.find((item) => item.packageId === id);
+  if (found) return found;
+
+  const option = PACKAGE_OPTIONS.find((item) => item.id === id);
+  if (option && option.minutes > 0) {
+    return {
+      packageId: id,
+      packageName: option.label,
+      durationMonths: 0,
+      normalPrice: 0,
+      offerPrice: 0,
+      purchaseCost: 0,
+      offerEnabled: false,
+      minimumProfit: 0,
+    };
+  }
+
+  return ensurePricing([])[0];
 }
 
 export function ensurePricing(list: PackagePricing[] | undefined): PackagePricing[] {
@@ -158,11 +179,6 @@ export function validatePricingUpdate(next: PackagePricing): { ok: boolean; mess
     if (!check.ok) return check;
   }
   return { ok: true };
-}
-
-export function getPricingById(list: PackagePricing[], id: PackageId): PackagePricing {
-  const found = list.find((item) => item.packageId === id);
-  return found ?? ensurePricing([])[0];
 }
 
 export function roundMoney(value: number): number {
