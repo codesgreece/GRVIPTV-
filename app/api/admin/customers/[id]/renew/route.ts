@@ -19,6 +19,7 @@ export async function POST(request: Request, context: RouteContext) {
       packageId?: string;
       amountPaid?: number;
       priceType?: PriceType;
+      serverId?: string;
     };
     const packageId = String(body.packageId ?? "").trim() as PackageId;
 
@@ -30,6 +31,7 @@ export async function POST(request: Request, context: RouteContext) {
       packageId,
       amountPaid: typeof body.amountPaid === "number" ? body.amountPaid : undefined,
       priceType: body.priceType,
+      serverId: body.serverId ? String(body.serverId).trim() : undefined,
     });
     if (!result) return NextResponse.json({ error: "Δεν βρέθηκε." }, { status: 404 });
     return NextResponse.json(result);

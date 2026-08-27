@@ -19,12 +19,22 @@ import {
   mutateCrm,
   tokenExists,
 } from "@/lib/customers/store";
-import { addMonthsToYmd, athensTodayYmd, getPackageMonths } from "@/lib/customers/status";
+import {
+  athensTodayYmd,
+  computePackageExpiry,
+  isDateTimeExpiry,
+  isTrialPackage,
+} from "@/lib/customers/status";
 import { makeSubscription, toCustomerView, validateSpecialOfferPrice } from "@/lib/customers/views";
 import { getPricingById } from "@/lib/customers/pricing";
+import { deductServerCredits } from "@/lib/customers/servers";
 
 function isYmd(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function isExpiryValue(value: string) {
+  return isYmd(value) || isDateTimeExpiry(value);
 }
 
 function isSafeSetupUrl(value: string) {
@@ -47,6 +57,7 @@ export function parseCustomerInput(body: unknown): CustomerInput {
   const activatedAt = String(data.activatedAt ?? "").trim();
   const expiresAtInput = String(data.expiresAt ?? "").trim();
   const setupGuideUrl = String(data.setupGuideUrl ?? DEFAULT_SETUP_GUIDE_PATH).trim() || DEFAULT_SETUP_GUIDE_PATH;
+  const serverId = String(data.serverId ?? "").trim();
 
   if (name.length < 2 || name.length > 80) {
     throw new Error("Το ονοματεπώνυμο πρέπει να έχει 2-80 χαρακτήρες.");
@@ -56,19 +67,24 @@ export function parseCustomerInput(body: unknown): CustomerInput {
     throw new Error("Μη έγκυρο πακέτο.");
   }
 
+  if (!serverId) {
+    throw new Error("Επίλεξε server για τον πελάτη.");
+  }
+
   if (!isYmd(activatedAt)) {
     throw new Error("Μη έγκυρες ημερομηνίες.");
   }
 
-  const expiresAt = isYmd(expiresAtInput)
+  const expiresAt = isExpiryValue(expiresAtInput)
     ? expiresAtInput
-    : addMonthsToYmd(activatedAt, getPackageMonths(packageId as PackageId));
+    : computePackageExpiry(packageId as PackageId, activatedAt);
 
-  if (!isYmd(expiresAt)) {
+  if (!isExpiryValue(expiresAt)) {
     throw new Error("Μη έγκυρες ημερομηνίες.");
   }
 
-  if (expiresAt < activatedAt) {
+  const expiresCompare = expiresAt.slice(0, 10);
+  if (expiresCompare < activatedAt && !isTrialPackage(packageId as PackageId)) {
     throw new Error("Η λήξη δεν μπορεί να είναι πριν την ενεργοποίηση.");
   }
 
@@ -82,6 +98,7 @@ export function parseCustomerInput(body: unknown): CustomerInput {
     activatedAt,
     expiresAt,
     setupGuideUrl,
+    serverId,
   };
 }
 
@@ -104,12 +121,14 @@ export async function createCustomer(input: CustomerInput): Promise<Customer> {
     activatedAt: input.activatedAt,
     expiresAt: input.expiresAt,
     setupGuideUrl: input.setupGuideUrl,
+    serverId: input.serverId,
     createdAt: now,
     updatedAt: now,
     tagIds: [],
   };
 
   return mutateCrm((data) => {
+    deductServerCredits(data.servers, input.serverId, input.packageId);
     data.customers.push(customer);
     data.subscriptions.push(
       makeSubscription({
@@ -130,9 +149,14 @@ export async function updateCustomer(id: string, input: CustomerInput) {
     const index = data.customers.findIndex((item) => item.id === id);
     if (index < 0) return null;
 
+    if (!data.servers.some((server) => server.id === input.serverId)) {
+      throw new Error("Επίλεξε έγκυρο server.");
+    }
+
     const customer: Customer = {
       ...data.customers[index],
       ...input,
+      serverId: input.serverId,
       tagIds: data.customers[index].tagIds ?? [],
       updatedAt: new Date().toISOString(),
     };
@@ -167,12 +191,14 @@ export type RenewOptions = {
   packageId: PackageId;
   amountPaid?: number;
   priceType?: PriceType;
+  serverId?: string;
 };
 
 export async function renewCustomer(id: string, options: PackageId | RenewOptions) {
   const packageId = typeof options === "string" ? options : options.packageId;
   const specialAmount = typeof options === "string" ? undefined : options.amountPaid;
   const specialType = typeof options === "string" ? undefined : options.priceType;
+  const renewServerId = typeof options === "string" ? undefined : options.serverId;
 
   if (!CUSTOMER_PACKAGES.some((item) => item.id === packageId)) {
     throw new Error("Μη έγκυρο πακέτο.");
@@ -184,9 +210,13 @@ export async function renewCustomer(id: string, options: PackageId | RenewOption
 
     const existing = data.customers[index];
     const today = athensTodayYmd();
-    const expiresAt = addMonthsToYmd(today, getPackageMonths(packageId));
+    const expiresAt = computePackageExpiry(packageId, today);
     const now = new Date().toISOString();
     const pkg = getPricingById(data.pricing, packageId);
+    const serverId = renewServerId || existing.serverId;
+    if (!serverId) throw new Error("Ο πελάτης δεν έχει server. Επίλεξε server στην ανανέωση.");
+
+    deductServerCredits(data.servers, serverId, packageId);
 
     if (specialType === "CUSTOMER_SPECIAL_OFFER") {
       const check = validateSpecialOfferPrice(pkg, Number(specialAmount));
@@ -212,6 +242,7 @@ export async function renewCustomer(id: string, options: PackageId | RenewOption
       packageId,
       activatedAt: today,
       expiresAt,
+      serverId,
       updatedAt: now,
       tagIds: existing.tagIds ?? [],
     };

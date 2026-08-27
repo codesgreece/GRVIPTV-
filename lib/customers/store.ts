@@ -8,9 +8,11 @@ import type {
   CustomerTag,
   PackagePricing,
   Prospect,
+  Server,
   Subscription,
 } from "@/lib/customers/types";
 import { ensureTags, makeSubscription, normalizeSubscription } from "@/lib/customers/views";
+import { normalizeServers } from "@/lib/customers/servers";
 
 const CRM_REDIS_KEY = "grvip:crm";
 const LEGACY_REDIS_KEY = "grvip:customers";
@@ -100,6 +102,7 @@ function emptyCrm(): CrmData {
     tags: ensureTags([]),
     notes: [],
     prospects: [],
+    servers: [],
   };
 }
 
@@ -132,6 +135,7 @@ function normalizeCrm(value: unknown): { data: CrmData; migrated: boolean } {
     const tags = ensureTags(value.tags);
     const notes = Array.isArray(value.notes) ? (value.notes as CustomerNote[]) : [];
     const prospects = Array.isArray(value.prospects) ? (value.prospects as Prospect[]) : [];
+    const servers = normalizeServers((value as CrmData).servers);
     const customersResult = normalizeCustomers(value.customers ?? []);
     const subscriptionsResult = normalizeSubscriptions(
       Array.isArray(value.subscriptions) ? value.subscriptions : [],
@@ -141,6 +145,7 @@ function normalizeCrm(value: unknown): { data: CrmData; migrated: boolean } {
     const tagsChanged = JSON.stringify(value.tags ?? []) !== JSON.stringify(tags);
     const notesMissing = !Array.isArray(value.notes);
     const prospectsMissing = !Array.isArray(value.prospects);
+    const serversMissing = !Array.isArray((value as { servers?: unknown }).servers);
 
     return {
       data: {
@@ -150,12 +155,14 @@ function normalizeCrm(value: unknown): { data: CrmData; migrated: boolean } {
         tags,
         notes,
         prospects,
+        servers,
       },
       migrated:
         pricingChanged ||
         tagsChanged ||
         notesMissing ||
         prospectsMissing ||
+        serversMissing ||
         customersResult.changed ||
         subscriptionsResult.changed ||
         !Array.isArray(value.subscriptions) ||
@@ -172,6 +179,7 @@ function normalizeCrm(value: unknown): { data: CrmData; migrated: boolean } {
         tags: ensureTags([]),
         notes: [],
         prospects: [],
+        servers: [],
       },
       migrated: true,
     };

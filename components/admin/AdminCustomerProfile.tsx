@@ -40,6 +40,18 @@ type AdminCustomerProfileProps = {
 };
 
 function formatDate(iso: string) {
+  if (iso.includes("T")) {
+    const date = new Date(iso);
+    if (Number.isFinite(date.getTime())) {
+      return new Intl.DateTimeFormat("el-GR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(date);
+    }
+  }
   const [year, month, day] = iso.slice(0, 10).split("-");
   if (!year || !month || !day) return iso;
   return `${day}/${month}/${year}`;
@@ -128,6 +140,7 @@ export function AdminCustomerProfile({
           <div className="grid gap-2 sm:grid-cols-2">
             <Info label="Ενεργοποίηση" value={formatDate(customer.activatedAt)} />
             <Info label="Λήξη" value={formatDate(customer.expiresAt)} />
+            <Info label="Server" value={customer.serverName ?? "—"} />
             <Info
               label="Απομένουν"
               value={customer.daysRemaining > 0 ? `${customer.daysRemaining} ημέρες` : "0 ημέρες"}

@@ -29,6 +29,7 @@ export async function GET() {
       if (byDate !== 0) return byDate;
       return a.name.localeCompare(b.name, "el");
     }),
+    servers: [...data.servers].sort((a, b) => a.name.localeCompare(b.name, "el")),
     store: customerStoreMode(),
   });
 }
