@@ -840,27 +840,15 @@ export function AdminPanel() {
                     <option value="">Επίλεξε server…</option>
                     {servers.map((server) => (
                       <option key={server.id} value={server.id}>
-                        {server.name} · {server.creditsRemaining} cr
+                        {server.name}
                       </option>
                     ))}
                   </select>
-                  {(() => {
-                    const selected = servers.find((server) => server.id === form.serverId);
-                    if (!selected) {
-                      return servers.length === 0 ? (
-                        <p className="mt-1 text-[11px] text-rose-300">
-                          Πρώτα πρόσθεσε server στο tab Servers.
-                        </p>
-                      ) : null;
-                    }
-                    const cost = Number(selected.creditRates[form.packageId] ?? 0);
-                    return (
-                      <p className="mt-1 text-[11px] text-text-muted">
-                        Θα αφαιρεθούν {cost} credits · Υπόλοιπο μετά:{" "}
-                        {(selected.creditsRemaining - cost).toFixed(2)}
-                      </p>
-                    );
-                  })()}
+                  {servers.length === 0 ? (
+                    <p className="mt-1 text-[11px] text-rose-300">
+                      Πρώτα πρόσθεσε server στο tab Servers.
+                    </p>
+                  ) : null}
                 </Field>
                 <Field label="Ενεργοποίηση">
                   <input

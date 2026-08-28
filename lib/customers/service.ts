@@ -27,7 +27,6 @@ import {
 } from "@/lib/customers/status";
 import { makeSubscription, toCustomerView, validateSpecialOfferPrice } from "@/lib/customers/views";
 import { getPricingById } from "@/lib/customers/pricing";
-import { deductServerCredits } from "@/lib/customers/servers";
 
 function isYmd(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
@@ -128,7 +127,6 @@ export async function createCustomer(input: CustomerInput): Promise<Customer> {
   };
 
   return mutateCrm((data) => {
-    deductServerCredits(data.servers, input.serverId, input.packageId);
     data.customers.push(customer);
     data.subscriptions.push(
       makeSubscription({
@@ -215,8 +213,6 @@ export async function renewCustomer(id: string, options: PackageId | RenewOption
     const pkg = getPricingById(data.pricing, packageId);
     const serverId = renewServerId || existing.serverId;
     if (!serverId) throw new Error("Ο πελάτης δεν έχει server. Επίλεξε server στην ανανέωση.");
-
-    deductServerCredits(data.servers, serverId, packageId);
 
     if (specialType === "CUSTOMER_SPECIAL_OFFER") {
       const check = validateSpecialOfferPrice(pkg, Number(specialAmount));
