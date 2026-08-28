@@ -1,4 +1,4 @@
-import { roundMoney } from "@/lib/customers/pricing";
+import { getPricingById, roundMoney } from "@/lib/customers/pricing";
 import type { CrmData } from "@/lib/customers/types";
 
 function normalizeGreekName(name: string) {
@@ -8,14 +8,13 @@ function normalizeGreekName(name: string) {
     .replace(/\p{M}/gu, "");
 }
 
-function isApostolosDontoros(name: string) {
-  const normalized = normalizeGreekName(name);
-  return normalized.includes("αποστολος") && normalized.includes("ντοντορο");
+function isDontorosCustomer(name: string) {
+  return normalizeGreekName(name).includes("ντοντορο");
 }
 
-/** One-off: customer paid 55€ for 12 months, not the catalog 89€. */
+/** One-off: Αποστολής Ντοντορος paid 55€, not the stored 89€. */
 function fixApostolosDontorosPayment(data: CrmData): { data: CrmData; changed: boolean } {
-  const customer = data.customers.find((item) => isApostolosDontoros(item.name));
+  const customer = data.customers.find((item) => isDontorosCustomer(item.name));
   if (!customer) return { data, changed: false };
 
   const correctedAmount = 55;
@@ -23,9 +22,10 @@ function fixApostolosDontorosPayment(data: CrmData): { data: CrmData; changed: b
 
   const subscriptions = data.subscriptions.map((subscription) => {
     if (subscription.customerId !== customer.id) return subscription;
-    if (subscription.amountPaid !== 89) return subscription;
+    if (roundMoney(Number(subscription.amountPaid)) !== 89) return subscription;
 
-    const purchaseCostAtTime = roundMoney(Number(subscription.purchaseCostAtTime) || 15);
+    const pkg = getPricingById(data.pricing, subscription.packageId);
+    const purchaseCostAtTime = roundMoney(pkg.purchaseCost);
     changed = true;
 
     return {
