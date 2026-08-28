@@ -37,10 +37,10 @@ export function verifyCrmMigrations() {
       {
         id: customerId,
         token: "tok",
-        name: "Απόστολος Ντοντορός",
-        packageId: "12-months" as const,
-        activatedAt: "2026-01-01",
-        expiresAt: "2027-01-01",
+        name: "Αποστολής Ντοντορος",
+        packageId: "1-month" as const,
+        activatedAt: "2026-08-23",
+        expiresAt: "2026-09-23",
         setupGuideUrl: "/odigos-egkatastasis",
         createdAt: "2026-01-01T00:00:00.000Z",
         updatedAt: "2026-01-01T00:00:00.000Z",
@@ -50,10 +50,10 @@ export function verifyCrmMigrations() {
       {
         id: subscriptionId,
         customerId,
-        packageId: "12-months" as const,
-        packageName: "12 Μήνες",
-        startDate: "2026-01-01",
-        endDate: "2027-01-01",
+        packageId: "1-month" as const,
+        packageName: "1 Μήνας",
+        startDate: "2026-08-23",
+        endDate: "2026-09-23",
         amountPaid: 89,
         purchaseCostAtTime: 15,
         profitAtTime: 74,
@@ -72,7 +72,8 @@ export function verifyCrmMigrations() {
   assert(first.changed, "migration should update apostolos dontoros");
   const sub = first.data.subscriptions[0];
   assert(sub?.amountPaid === 55, "amountPaid should be 55");
-  assert(sub?.profitAtTime === 40, "profit should be 40");
+  assert(sub?.purchaseCostAtTime === 1, "purchase cost should match 1-month package");
+  assert(sub?.profitAtTime === 54, "profit should be 54");
   assert(sub?.priceType === "CUSTOMER_SPECIAL_OFFER", "price type should be special offer");
 
   const second = applyCrmMigrations(first.data);
