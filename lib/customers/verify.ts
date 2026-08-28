@@ -5,6 +5,7 @@ import { getSubscriptionView } from "@/lib/customers/status";
 import { isValidMagicToken } from "@/lib/customers/token";
 import { canEnableOffer, DEFAULT_PACKAGE_PRICING, validatePricingUpdate } from "@/lib/customers/pricing";
 import { crmStatusFromDays, toCustomerView, validateSpecialOfferPrice } from "@/lib/customers/views";
+import { applyCrmMigrations } from "@/lib/customers/migrations";
 
 function assert(condition: unknown, message: string) {
   if (!condition) throw new Error(message);
@@ -28,8 +29,59 @@ export function verifyCrmPricingLogic() {
   assert(crmStatusFromDays(0) === "expired", "today should be expired");
 }
 
+export function verifyCrmMigrations() {
+  const customerId = "cust-dontoros";
+  const subscriptionId = "sub-dontoros";
+  const data = {
+    customers: [
+      {
+        id: customerId,
+        token: "tok",
+        name: "Απόστολος Ντοντορός",
+        packageId: "12-months" as const,
+        activatedAt: "2026-01-01",
+        expiresAt: "2027-01-01",
+        setupGuideUrl: "/odigos-egkatastasis",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ],
+    subscriptions: [
+      {
+        id: subscriptionId,
+        customerId,
+        packageId: "12-months" as const,
+        packageName: "12 Μήνες",
+        startDate: "2026-01-01",
+        endDate: "2027-01-01",
+        amountPaid: 89,
+        purchaseCostAtTime: 15,
+        profitAtTime: 74,
+        priceType: "NORMAL" as const,
+        createdAt: "2026-01-01T00:00:00.000Z",
+      },
+    ],
+    pricing: DEFAULT_PACKAGE_PRICING,
+    tags: [],
+    notes: [],
+    prospects: [],
+    servers: [],
+  };
+
+  const first = applyCrmMigrations(data);
+  assert(first.changed, "migration should update apostolos dontoros");
+  const sub = first.data.subscriptions[0];
+  assert(sub?.amountPaid === 55, "amountPaid should be 55");
+  assert(sub?.profitAtTime === 40, "profit should be 40");
+  assert(sub?.priceType === "CUSTOMER_SPECIAL_OFFER", "price type should be special offer");
+
+  const second = applyCrmMigrations(first.data);
+  assert(!second.changed, "migration should be idempotent");
+}
+
 export async function verifyCustomerSystem() {
   verifyCrmPricingLogic();
+  verifyCrmMigrations();
 
   const server = await createServer({ name: "Verify Server" });
 
