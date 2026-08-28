@@ -13,6 +13,7 @@ import type {
 } from "@/lib/customers/types";
 import { ensureTags, makeSubscription, normalizeSubscription } from "@/lib/customers/views";
 import { normalizeServers } from "@/lib/customers/servers";
+import { applyCrmMigrations } from "@/lib/customers/migrations";
 
 const CRM_REDIS_KEY = "grvip:crm";
 const LEGACY_REDIS_KEY = "grvip:customers";
@@ -284,13 +285,14 @@ export async function loadCrm(): Promise<CrmData> {
   const raw = await readRaw();
   const normalized = normalizeCrm(raw.value);
   const filled = backfillSubscriptions(normalized.data);
-  const dirty = raw.fromLegacy || normalized.migrated || filled.changed;
+  const migrated = applyCrmMigrations(filled.data);
+  const dirty = raw.fromLegacy || normalized.migrated || filled.changed || migrated.changed;
 
   if (dirty && customerStoreMode().persistent) {
-    await persistCrm(filled.data);
+    await persistCrm(migrated.data);
   }
 
-  return filled.data;
+  return migrated.data;
 }
 
 export async function mutateCrm<T>(mutator: (data: CrmData) => T | Promise<T>): Promise<T> {
