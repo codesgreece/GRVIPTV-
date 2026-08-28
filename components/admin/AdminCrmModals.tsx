@@ -93,14 +93,10 @@ export function AdminRenewModal({
   const [serverId, setServerId] = useState(customer.serverId ?? servers[0]?.id ?? "");
   const pkg = getPricingById(pricing, packageId);
   const pay = activePrice(pkg);
-  const server = servers.find((item) => item.id === serverId);
-  const creditCost = server ? Number(server.creditRates[packageId] ?? 0) : 0;
 
   return (
     <Modal title={`Ανανέωση — ${customer.name}`} onClose={onClose}>
-      <p className="text-sm text-text-muted">
-        Το Magic Link μένει το ίδιο. Τα credits αφαιρούνται από τον επιλεγμένο server.
-      </p>
+      <p className="text-sm text-text-muted">Το Magic Link μένει το ίδιο.</p>
 
       <label className="mt-5 block text-xs font-semibold tracking-[0.12em] text-text-dim uppercase">
         Πακέτο
@@ -128,16 +124,10 @@ export function AdminRenewModal({
         <option value="">Επίλεξε server…</option>
         {servers.map((item) => (
           <option key={item.id} value={item.id}>
-            {item.name} · {item.creditsRemaining} cr
+            {item.name}
           </option>
         ))}
       </select>
-      {server ? (
-        <p className="mt-2 text-xs text-text-muted">
-          Κόστος credits: {creditCost} · Υπόλοιπο μετά:{" "}
-          {(server.creditsRemaining - creditCost).toFixed(2)}
-        </p>
-      ) : null}
 
       <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2">
         <PriceBox label="Αρχική τιμή" value={formatEuro(pkg.normalPrice)} />
@@ -193,8 +183,6 @@ export function AdminSpecialOfferModal({
   const [specialPrice, setSpecialPrice] = useState(String(Math.max(pkg.purchaseCost + 1, pkg.offerPrice)));
   const amount = Number(specialPrice);
   const check = validateSpecialOfferPrice(pkg, amount);
-  const server = servers.find((item) => item.id === serverId);
-  const creditCost = server ? Number(server.creditRates[packageId] ?? 0) : 0;
 
   return (
     <Modal title={`🎁 Ειδική Προσφορά — ${customer.name}`} onClose={onClose}>
@@ -233,16 +221,10 @@ export function AdminSpecialOfferModal({
         <option value="">Επίλεξε server…</option>
         {servers.map((item) => (
           <option key={item.id} value={item.id}>
-            {item.name} · {item.creditsRemaining} cr
+            {item.name}
           </option>
         ))}
       </select>
-      {server ? (
-        <p className="mt-2 text-xs text-text-muted">
-          Κόστος credits: {creditCost} · Υπόλοιπο μετά:{" "}
-          {(server.creditsRemaining - creditCost).toFixed(2)}
-        </p>
-      ) : null}
 
       <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2">
         <PriceBox label="Κανονική τιμή" value={formatEuro(pkg.normalPrice)} />

@@ -5,7 +5,6 @@ import { getSubscriptionView } from "@/lib/customers/status";
 import { isValidMagicToken } from "@/lib/customers/token";
 import { canEnableOffer, DEFAULT_PACKAGE_PRICING, validatePricingUpdate } from "@/lib/customers/pricing";
 import { crmStatusFromDays, toCustomerView, validateSpecialOfferPrice } from "@/lib/customers/views";
-import { DEFAULT_CREDIT_RATES_WHOLE } from "@/lib/customers/types";
 
 function assert(condition: unknown, message: string) {
   if (!condition) throw new Error(message);
@@ -32,11 +31,7 @@ export function verifyCrmPricingLogic() {
 export async function verifyCustomerSystem() {
   verifyCrmPricingLogic();
 
-  const server = await createServer({
-    name: "Verify Server",
-    creditsRemaining: 100,
-    creditRates: DEFAULT_CREDIT_RATES_WHOLE,
-  });
+  const server = await createServer({ name: "Verify Server" });
 
   const today = new Date();
   const start = today.toISOString().slice(0, 10);
@@ -53,16 +48,9 @@ export async function verifyCustomerSystem() {
     serverId: server.id,
   });
 
-  const beforeCredits = (await loadCrm()).servers.find((item) => item.id === server.id)?.creditsRemaining;
   const created = await createCustomer(input);
   assert(isValidMagicToken(created.token), "token is not cryptographically valid");
-  const afterCreateCredits = (await loadCrm()).servers.find((item) => item.id === server.id)?.creditsRemaining;
-  assert(
-    beforeCredits != null &&
-      afterCreateCredits != null &&
-      afterCreateCredits === beforeCredits - DEFAULT_CREDIT_RATES_WHOLE["12-months"],
-    "create must deduct server credits",
-  );
+  assert(created.serverId === server.id, "create must store server");
 
   const loaded = await getCustomerByToken(created.token);
   assert(loaded?.id === created.id, "token did not load the same customer");
@@ -81,7 +69,6 @@ export async function verifyCustomerSystem() {
   const firstPaid = first?.amountPaid ?? 0;
   const firstCost = first?.purchaseCostAtTime ?? 0;
 
-  const beforeRenewCredits = (await loadCrm()).servers.find((item) => item.id === server.id)?.creditsRemaining;
   const renewed = await renewCustomer(created.id, { packageId: "3-months", serverId: server.id });
   assert(renewed, "renewal failed");
   if (!renewed) throw new Error("renewal failed");
@@ -89,13 +76,6 @@ export async function verifyCustomerSystem() {
   assert(renewed.customer.subscriptions.length === 2, "renewal must append history");
   assert(renewed.customer.subscriptions[0]?.amountPaid === firstPaid, "old payment must stay frozen");
   assert(renewed.customer.subscriptions[0]?.purchaseCostAtTime === firstCost, "old cost must stay frozen");
-  const afterRenewCredits = (await loadCrm()).servers.find((item) => item.id === server.id)?.creditsRemaining;
-  assert(
-    beforeRenewCredits != null &&
-      afterRenewCredits != null &&
-      afterRenewCredits === beforeRenewCredits - DEFAULT_CREDIT_RATES_WHOLE["3-months"],
-    "renew must deduct server credits",
-  );
 
   const special = await renewCustomer(created.id, {
     packageId: "3-months",

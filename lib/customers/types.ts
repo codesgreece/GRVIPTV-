@@ -24,41 +24,15 @@ export const RENEW_PATH = "https://grviptv.xyz/paketa";
 export type CustomerStatus = "active" | "expiring" | "expired";
 export type PriceType = "NORMAL" | "OFFER" | "CUSTOMER_SPECIAL_OFFER";
 
-export type CreditRates = Record<PackageId, number>;
-
-export const DEFAULT_CREDIT_RATES_WHOLE: CreditRates = {
-  "1-month": 1,
-  "3-months": 3,
-  "6-months": 6,
-  "12-months": 12,
-  "trial-30min": 0,
-  "trial-1hour": 0,
-  "trial-1day": 0,
-};
-
-export const DEFAULT_CREDIT_RATES_FRACTIONAL: CreditRates = {
-  "1-month": 0.1,
-  "3-months": 0.3,
-  "6-months": 0.6,
-  "12-months": 1,
-  "trial-30min": 0,
-  "trial-1hour": 0,
-  "trial-1day": 0,
-};
-
 export type Server = {
   id: string;
   name: string;
-  creditsRemaining: number;
-  creditRates: CreditRates;
   createdAt: string;
   updatedAt: string;
 };
 
 export type ServerInput = {
   name: string;
-  creditsRemaining: number;
-  creditRates: CreditRates;
 };
 
 export type Customer = {
