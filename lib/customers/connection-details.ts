@@ -1,22 +1,10 @@
+import { formatExpiryDisplay } from "@/lib/customers/athens-datetime";
 import type { CustomerView } from "./types";
+
 import { magicLink } from "./messages";
 
 function formatDate(iso: string): string {
-  if (iso.includes("T")) {
-    const date = new Date(iso);
-    if (Number.isFinite(date.getTime())) {
-      return new Intl.DateTimeFormat("el-GR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(date);
-    }
-  }
-  const [year, month, day] = iso.slice(0, 10).split("-");
-  if (!year || !month || !day) return iso;
-  return `${day}/${month}/${year}`;
+  return formatExpiryDisplay(iso);
 }
 
 export function connectionDetailsText(customer: CustomerView, origin?: string): string {

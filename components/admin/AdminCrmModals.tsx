@@ -15,10 +15,38 @@ import {
   renewalMessage,
 } from "@/lib/customers/messages";
 import { PAYMENT_METHODS, type CustomerView, type PackageId, type PackagePricing, type PaymentMethodId } from "@/lib/customers/types";
-import { providerSellablePackages } from "@/lib/customers/provider-packages";
+import { providerPaidPackages, providerSellablePackages, providerTrialPackages } from "@/lib/customers/provider-packages";
 import { isTrialPackage } from "@/lib/customers/status";
 import { validateSpecialOfferPrice } from "@/lib/customers/views";
 import { cn } from "@/lib/cn";
+
+function SellablePackageOptions({ pricing }: { pricing: PackagePricing[] }) {
+  const trials = providerTrialPackages(pricing);
+  const paid = providerPaidPackages(pricing);
+
+  return (
+    <>
+      {trials.length > 0 ? (
+        <optgroup label="Trial">
+          {trials.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.label}
+            </option>
+          ))}
+        </optgroup>
+      ) : null}
+      {paid.length > 0 ? (
+        <optgroup label="Συνδρομές">
+          {paid.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.label}
+            </option>
+          ))}
+        </optgroup>
+      ) : null}
+    </>
+  );
+}
 
 type MessagesModalProps = {
   customer: CustomerView;
@@ -110,11 +138,7 @@ export function AdminRenewModal({
         onChange={(event) => setPackageId(event.target.value as PackageId)}
         className="admin-input mt-2"
       >
-        {sellable.map((item) => (
-          <option key={item.id} value={item.id}>
-            {item.label}
-          </option>
-        ))}
+        <SellablePackageOptions pricing={pricing} />
       </select>
 
       <label className="mt-4 block text-xs font-semibold tracking-[0.12em] text-text-dim uppercase">
@@ -208,11 +232,7 @@ export function AdminSpecialOfferModal({
         }}
         className="admin-input mt-2"
       >
-        {sellable.map((item) => (
-          <option key={item.id} value={item.id}>
-            {item.label}
-          </option>
-        ))}
+        <SellablePackageOptions pricing={pricing} />
       </select>
 
       <label className="mt-4 block text-xs font-semibold tracking-[0.12em] text-text-dim uppercase">

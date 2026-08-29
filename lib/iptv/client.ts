@@ -1,3 +1,4 @@
+import { ymdFromUnixAthens } from "@/lib/customers/athens-datetime";
 import { getProviderConfig } from "@/lib/iptv/config";
 import { ProviderApiError, providerErrorMessage } from "@/lib/iptv/errors";
 import type {
@@ -108,5 +109,5 @@ export function providerExpiryIso(expDate: number) {
 }
 
 export function providerExpiryYmd(expDate: number) {
-  return providerExpiryIso(expDate).slice(0, 10);
+  return ymdFromUnixAthens(expDate);
 }
