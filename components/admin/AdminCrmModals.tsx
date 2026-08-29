@@ -14,7 +14,8 @@ import {
   expiringSoonMessage,
   renewalMessage,
 } from "@/lib/customers/messages";
-import { CUSTOMER_PACKAGES, PAYMENT_METHODS, type CustomerView, type PackageId, type PackagePricing, type PaymentMethodId } from "@/lib/customers/types";
+import { PAYMENT_METHODS, type CustomerView, type PackageId, type PackagePricing, type PaymentMethodId } from "@/lib/customers/types";
+import { providerSellablePackages } from "@/lib/customers/provider-packages";
 import { isTrialPackage } from "@/lib/customers/status";
 import { validateSpecialOfferPrice } from "@/lib/customers/views";
 import { cn } from "@/lib/cn";
@@ -95,6 +96,7 @@ export function AdminRenewModal({
   const pkg = getPricingById(pricing, packageId);
   const pay = activePrice(pkg);
   const paymentRequired = !isTrialPackage(packageId);
+  const sellable = providerSellablePackages(pricing);
 
   return (
     <Modal title={`Ανανέωση — ${customer.name}`} onClose={onClose}>
@@ -108,7 +110,7 @@ export function AdminRenewModal({
         onChange={(event) => setPackageId(event.target.value as PackageId)}
         className="admin-input mt-2"
       >
-        {CUSTOMER_PACKAGES.map((item) => (
+        {sellable.map((item) => (
           <option key={item.id} value={item.id}>
             {item.label}
           </option>
@@ -148,7 +150,7 @@ export function AdminRenewModal({
       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
         <Button
           className="font-extrabold sm:flex-1"
-          disabled={saving || (paymentRequired && !paymentMethod)}
+          disabled={saving || sellable.length === 0 || (paymentRequired && !paymentMethod)}
           onClick={() => onConfirm(packageId, paymentMethod)}
         >
           <RefreshCw className="h-4 w-4" />
@@ -185,6 +187,7 @@ export function AdminSpecialOfferModal({
   const [specialPrice, setSpecialPrice] = useState(String(Math.max(pkg.purchaseCost + 1, pkg.offerPrice)));
   const amount = Number(specialPrice);
   const check = validateSpecialOfferPrice(pkg, amount);
+  const sellable = providerSellablePackages(pricing);
 
   return (
     <Modal title={`🎁 Ειδική Προσφορά — ${customer.name}`} onClose={onClose}>
@@ -205,7 +208,7 @@ export function AdminSpecialOfferModal({
         }}
         className="admin-input mt-2"
       >
-        {CUSTOMER_PACKAGES.map((item) => (
+        {sellable.map((item) => (
           <option key={item.id} value={item.id}>
             {item.label}
           </option>
@@ -265,7 +268,7 @@ export function AdminSpecialOfferModal({
       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
         <Button
           className="font-extrabold sm:flex-1"
-          disabled={saving || !check.ok || !paymentMethod}
+          disabled={saving || sellable.length === 0 || !check.ok || !paymentMethod}
           onClick={() => onConfirm(packageId, amount, paymentMethod)}
         >
           <Gift className="h-4 w-4" />

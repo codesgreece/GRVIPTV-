@@ -196,6 +196,11 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
             >
               <div className="mb-2 flex items-center justify-between gap-2">
                 <h3 className="text-sm font-bold text-white">{pkg.packageName}</h3>
+                {!pkg.providerPackageId ? (
+                  <span className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-200">
+                    Χωρίς provider
+                  </span>
+                ) : null}
                 <label className="inline-flex items-center gap-1.5 text-xs text-text-muted">
                   <input
                     type="checkbox"

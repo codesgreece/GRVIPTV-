@@ -37,6 +37,7 @@ import {
   providerExpiryYmd,
   renewProviderLine,
 } from "@/lib/iptv/client";
+import { DEFAULT_PROVIDER_PACKAGE_IDS } from "@/lib/iptv/pricing-map";
 import { ProviderApiError } from "@/lib/iptv/errors";
 import type { ProviderLine } from "@/lib/iptv/types";
 
@@ -63,12 +64,14 @@ function isSafeSetupUrl(value: string) {
 
 function requireProviderPackageId(packageId: PackageId, pricing: PackagePricing[]) {
   const pkg = getPricingById(pricing, packageId);
-  if (!pkg.providerPackageId) {
+  const providerPackageId =
+    pkg.providerPackageId ?? DEFAULT_PROVIDER_PACKAGE_IDS[packageId] ?? null;
+  if (!providerPackageId) {
     throw new Error(
       `Το πακέτο «${pkg.packageName}» δεν έχει συνδεδεμένο provider package. Ρύθμισέ το στο Τιμές.`,
     );
   }
-  return pkg;
+  return { pkg, providerPackageId };
 }
 
 function providerPurchaseCost(pkg: ReturnType<typeof getPricingById>) {
@@ -186,12 +189,12 @@ async function uniqueToken(ignoreId?: string) {
 
 export async function createCustomer(input: CustomerInput): Promise<Customer> {
   const crm = await loadCrm();
-  const pkg = requireProviderPackageId(input.packageId, crm.pricing);
+  const { pkg, providerPackageId } = requireProviderPackageId(input.packageId, crm.pricing);
   const sale = resolveSale(pkg, input);
 
   let line: ProviderLine;
   try {
-    line = await createProviderLine({ package_id: pkg.providerPackageId! });
+    line = await createProviderLine({ package_id: providerPackageId });
   } catch (error) {
     if (error instanceof ProviderApiError) throw error;
     throw new Error("Αποτυχία δημιουργίας γραμμής στον provider.");
@@ -325,7 +328,7 @@ export async function renewCustomer(id: string, options: PackageId | RenewOption
     throw new Error("Ο πελάτης δεν έχει provider line. Δεν μπορεί να ανανεωθεί μέσω API.");
   }
 
-  const pkg = requireProviderPackageId(packageId, crm.pricing);
+  const { pkg, providerPackageId } = requireProviderPackageId(packageId, crm.pricing);
   const sale = resolveSale(pkg, {
     priceType: specialType,
     amountPaid: specialAmount,
@@ -333,7 +336,7 @@ export async function renewCustomer(id: string, options: PackageId | RenewOption
 
   let line: ProviderLine;
   try {
-    line = await renewProviderLine(existing.providerLineId, pkg.providerPackageId!);
+    line = await renewProviderLine(existing.providerLineId, providerPackageId);
   } catch (error) {
     if (error instanceof ProviderApiError) throw error;
     throw new Error("Αποτυχία ανανέωσης γραμμής στον provider.");

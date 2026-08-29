@@ -5,7 +5,6 @@ import {
   Copy,
   ExternalLink,
   History,
-  LogOut,
   Pencil,
   Plus,
   RefreshCw,
@@ -21,12 +20,19 @@ import {
 } from "@/components/admin/AdminCrmModals";
 import { AdminCustomerProfile } from "@/components/admin/AdminCustomerProfile";
 import { AdminNotificationCenter } from "@/components/admin/AdminNotificationCenter";
-import { AdminProspectsManager } from "@/components/admin/AdminProspectsManager";
-import { AdminProviderCredits } from "@/components/admin/AdminProviderCredits";
+import { AdminConnectionDetails } from "@/components/admin/AdminConnectionDetails";
+import { AdminSidebar, type AdminSidebarTab } from "@/components/admin/AdminSidebar";
 import { AdminSubscriptionHistory } from "@/components/admin/AdminSubscriptionHistory";
 import { Button } from "@/components/ui/Button";
 import { formatEuro, activePrice, getPricingById } from "@/lib/customers/pricing";
+import { AdminProspectsManager } from "@/components/admin/AdminProspectsManager";
+import { AdminProviderCredits } from "@/components/admin/AdminProviderCredits";
 import { expiringSoonMessage } from "@/lib/customers/messages";
+import {
+  defaultProviderPackageId,
+  providerPackageSummary,
+  providerSellablePackages,
+} from "@/lib/customers/provider-packages";
 import {
   adminStatusFromDays,
   computePackageExpiry,
@@ -59,14 +65,6 @@ type StoreInfo = {
 
 type FormState = CustomerInput;
 type ListFilter = "all" | CustomerStatus;
-type AdminTab = "overview" | "customers" | "pricing" | "prospects";
-
-const ADMIN_TABS: { id: AdminTab; label: string }[] = [
-  { id: "overview", label: "Επισκόπηση" },
-  { id: "customers", label: "Πελάτες" },
-  { id: "pricing", label: "Τιμές" },
-  { id: "prospects", label: "Πιθανοί" },
-];
 
 const emptyDashboard: DashboardStats = {
   totalCustomers: 0,
@@ -86,13 +84,14 @@ const emptyDashboard: DashboardStats = {
   providerStatusLabel: "Offline",
 };
 
-const emptyForm = (): FormState => {
+const emptyForm = (pricing: PackagePricing[]): FormState => {
+  const packageId = defaultProviderPackageId(pricing);
   const activatedAt = new Date().toISOString().slice(0, 10);
   return {
     name: "",
-    packageId: "1-month",
+    packageId,
     activatedAt,
-    expiresAt: computePackageExpiry("1-month", activatedAt),
+    expiresAt: computePackageExpiry(packageId, activatedAt),
     setupGuideUrl: DEFAULT_SETUP_GUIDE_PATH,
     paymentMethod: undefined,
     priceType: undefined,
@@ -127,7 +126,7 @@ export function AdminPanel() {
   const [pricing, setPricing] = useState<PackagePricing[]>([]);
   const [dashboard, setDashboard] = useState<DashboardStats>(emptyDashboard);
   const [store, setStore] = useState<StoreInfo | null>(null);
-  const [form, setForm] = useState<FormState>(emptyForm);
+  const [form, setForm] = useState<FormState>(() => emptyForm([]));
   const [editingId, setEditingId] = useState<string | null>(null);
   const [autoExpiry, setAutoExpiry] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -135,6 +134,7 @@ export function AdminPanel() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [createdLink, setCreatedLink] = useState("");
+  const [createdCustomer, setCreatedCustomer] = useState<CustomerView | null>(null);
   const [loginError, setLoginError] = useState("");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<ListFilter>("all");
@@ -148,7 +148,7 @@ export function AdminPanel() {
   const [tags, setTags] = useState<CustomerTag[]>([]);
   const [tagFilter, setTagFilter] = useState<string>("all");
   const [prospects, setProspects] = useState<Prospect[]>([]);
-  const [tab, setTab] = useState<AdminTab>("overview");
+  const [tab, setTab] = useState<AdminSidebarTab>("overview");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [createPriceType, setCreatePriceType] = useState<PriceType>("NORMAL");
   const [createSpecialPrice, setCreateSpecialPrice] = useState("");
@@ -206,6 +206,22 @@ export function AdminPanel() {
       expiresAt: computePackageExpiry(current.packageId, current.activatedAt),
     }));
   }, [autoExpiry, form.activatedAt, form.packageId]);
+
+  const sellablePackages = useMemo(() => providerSellablePackages(pricing), [pricing]);
+  const createPkg = getPricingById(pricing, form.packageId);
+  const createProviderInfo = providerPackageSummary(pricing, form.packageId);
+
+  useEffect(() => {
+    if (sellablePackages.length === 0) return;
+    if (!sellablePackages.some((item) => item.id === form.packageId)) {
+      const nextId = defaultProviderPackageId(pricing);
+      setForm((current) => ({
+        ...current,
+        packageId: nextId,
+        expiresAt: computePackageExpiry(nextId, current.activatedAt),
+      }));
+    }
+  }, [sellablePackages, form.packageId, pricing]);
 
   const expiringSoon = useMemo(
     () => customers.filter((customer) => customer.status === "expiring"),
@@ -285,10 +301,11 @@ export function AdminPanel() {
     const origin = window.location.origin;
     const link = `${origin}${accountPath(payload.customer.token)}`;
     setCreatedLink(link);
+    setCreatedCustomer(editingId ? null : payload.customer);
     setNotice(editingId ? "Ο πελάτης ενημερώθηκε." : "Ο πελάτης δημιουργήθηκε.");
     setEditingId(null);
     setAutoExpiry(true);
-    setForm(emptyForm());
+    setForm(emptyForm(pricing));
     setCreatePriceType("NORMAL");
     setCreateSpecialPrice("");
     await loadCustomers();
@@ -323,7 +340,7 @@ export function AdminPanel() {
 
     if (editingId === customer.id) {
       setEditingId(null);
-      setForm(emptyForm());
+      setForm(emptyForm(pricing));
     setCreatePriceType("NORMAL");
     setCreateSpecialPrice("");
     }
@@ -555,7 +572,6 @@ export function AdminPanel() {
     }
   };
 
-  const createPkg = getPricingById(pricing, form.packageId);
   const createSaleAmount =
     createPriceType === "CUSTOMER_SPECIAL_OFFER"
       ? Number(createSpecialPrice)
@@ -620,75 +636,55 @@ export function AdminPanel() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl min-w-0 overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h1 className="font-display text-xl font-black text-white sm:text-2xl">GRVIP Admin</h1>
-        <div className="flex items-center gap-2">
-          <AdminProviderCredits
-            compact
-            connected={dashboard.providerConnected}
-            credits={dashboard.providerCredits}
-            statusLabel={dashboard.providerStatusLabel}
-            refreshing={refreshingCredits}
-            onRefresh={() => void refreshProviderCredits()}
-          />
-          <AdminNotificationCenter
-            notifications={notifications}
-            open={notificationsOpen}
-            onToggle={() => setNotificationsOpen((current) => !current)}
-            onSelect={openNotification}
-          />
-          <Button
-            variant="outline"
-            className="h-9 px-2.5 py-2 text-xs sm:px-3 sm:py-2 sm:text-xs"
-            onClick={() => void logout()}
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Έξοδος</span>
-          </Button>
-        </div>
-      </div>
+    <div className="flex min-h-screen w-full">
+      <AdminSidebar
+        tab={tab}
+        onTabChange={setTab}
+        badges={{
+          customers: dashboard.totalCustomers,
+          overview: dashboard.expiringSoon,
+          prospects: prospectsDue,
+        }}
+        providerConnected={dashboard.providerConnected}
+        providerCredits={dashboard.providerCredits}
+        providerStatusLabel={dashboard.providerStatusLabel}
+        refreshingCredits={refreshingCredits}
+        onRefreshCredits={() => void refreshProviderCredits()}
+        onLogout={() => void logout()}
+      />
 
-      <nav className="mb-4 flex gap-1 overflow-x-auto border-b border-white/10 pb-px [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {ADMIN_TABS.map((item) => {
-          const badge =
-            item.id === "customers"
-              ? dashboard.totalCustomers
-              : item.id === "overview"
-                ? dashboard.expiringSoon
-                : item.id === "prospects"
-                  ? prospectsDue
-                  : null;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setTab(item.id)}
-              className={cn(
-                "shrink-0 border-b-2 px-3 py-2 text-sm font-semibold transition-colors",
-                tab === item.id
-                  ? "border-gold text-gold"
-                  : "border-transparent text-text-muted hover:text-white",
-              )}
-            >
-              {item.label}
-              {badge != null && badge > 0 ? (
-                <span
-                  className={cn(
-                    "ml-1.5 rounded px-1.5 py-0.5 text-[10px] font-bold",
-                    item.id === "overview" || item.id === "prospects"
-                      ? "bg-amber-500/20 text-amber-200"
-                      : "bg-white/10 text-text-dim",
-                  )}
-                >
-                  {badge}
-                </span>
-              ) : null}
-            </button>
-          );
-        })}
-      </nav>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6">
+          <h1 className="font-display text-lg font-black text-white sm:text-xl">
+            {tab === "overview"
+              ? "Επισκόπηση"
+              : tab === "customers"
+                ? "Πελάτες"
+                : tab === "pricing"
+                  ? "Τιμές"
+                  : "Πιθανοί"}
+          </h1>
+          <div className="flex items-center gap-2">
+            <div className="md:hidden">
+              <AdminProviderCredits
+                compact
+                connected={dashboard.providerConnected}
+                credits={dashboard.providerCredits}
+                statusLabel={dashboard.providerStatusLabel}
+                refreshing={refreshingCredits}
+                onRefresh={() => void refreshProviderCredits()}
+              />
+            </div>
+            <AdminNotificationCenter
+              notifications={notifications}
+              open={notificationsOpen}
+              onToggle={() => setNotificationsOpen((current) => !current)}
+              onSelect={openNotification}
+            />
+          </div>
+        </header>
 
+        <main className="min-w-0 flex-1 overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6">
       {tab === "overview" ? (
         <div className="space-y-4">
           <AdminProviderCredits
@@ -828,13 +824,14 @@ export function AdminPanel() {
                   if (editingId) {
                     setEditingId(null);
                     setAutoExpiry(true);
-                    setForm(emptyForm());
+                    setForm(emptyForm(pricing));
                     setCreatePriceType("NORMAL");
                     setCreateSpecialPrice("");
                     setCreatedLink("");
+                    setCreatedCustomer(null);
                   } else if (!showCreateForm) {
                     setAutoExpiry(true);
-                    setForm(emptyForm());
+                    setForm(emptyForm(pricing));
                     setCreatePriceType("NORMAL");
                     setCreateSpecialPrice("");
                   }
@@ -882,13 +879,31 @@ export function AdminPanel() {
                     }}
                     className="admin-input"
                   >
-                    {CUSTOMER_PACKAGES.map((item) => (
+                    {(editingId ? CUSTOMER_PACKAGES : sellablePackages).map((item) => (
                       <option key={item.id} value={item.id}>
                         {item.label}
                       </option>
                     ))}
                   </select>
+                  {!editingId && sellablePackages.length === 0 ? (
+                    <p className="mt-1 text-[11px] text-rose-300">
+                      Δεν υπάρχουν συνδεδεμένα provider packages. Ρύθμισέ τα στο Τιμές.
+                    </p>
+                  ) : null}
                 </Field>
+                {!editingId && createProviderInfo.linked ? (
+                  <div className="sm:col-span-2 rounded-lg border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-xs text-text-muted">
+                    <p className="font-semibold text-sky-200">Provider package</p>
+                    <p className="mt-1">
+                      {createProviderInfo.providerName ?? `#${createProviderInfo.providerPackageId}`}
+                      {createProviderInfo.duration ? ` · ${createProviderInfo.duration}` : ""}
+                      {createProviderInfo.credits != null ? ` · ${createProviderInfo.credits} credits` : ""}
+                      {createProviderInfo.maxConnections != null
+                        ? ` · ${createProviderInfo.maxConnections} conn`
+                        : ""}
+                    </p>
+                  </div>
+                ) : null}
                 {!editingId ? (
                   <>
                     <Field label="Τιμή">
@@ -968,36 +983,45 @@ export function AdminPanel() {
                     ))}
                   </select>
                 </Field>
-                <Field label="Ενεργοποίηση">
-                  <input
-                    type="date"
-                    value={form.activatedAt}
-                    onChange={(event) =>
-                      setForm((current) => ({ ...current, activatedAt: event.target.value }))
-                    }
-                    className="admin-input"
-                  />
-                </Field>
-                <Field label="Λήξη">
-                  {isTrialPackage(form.packageId) ? (
-                    <input
-                      readOnly
-                      value={form.expiresAt}
-                      className="admin-input opacity-80"
-                      title="Υπολογίζεται αυτόματα για Trial"
-                    />
-                  ) : (
-                    <input
-                      type="date"
-                      value={form.expiresAt.slice(0, 10)}
-                      onChange={(event) => {
-                        setAutoExpiry(false);
-                        setForm((current) => ({ ...current, expiresAt: event.target.value }));
-                      }}
-                      className="admin-input"
-                    />
-                  )}
-                </Field>
+                {editingId ? (
+                  <>
+                    <Field label="Ενεργοποίηση">
+                      <input
+                        type="date"
+                        value={form.activatedAt}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, activatedAt: event.target.value }))
+                        }
+                        className="admin-input"
+                      />
+                    </Field>
+                    <Field label="Λήξη">
+                      {isTrialPackage(form.packageId) ? (
+                        <input
+                          readOnly
+                          value={form.expiresAt}
+                          className="admin-input opacity-80"
+                          title="Υπολογίζεται αυτόματα για Trial"
+                        />
+                      ) : (
+                        <input
+                          type="date"
+                          value={form.expiresAt.slice(0, 10)}
+                          onChange={(event) => {
+                            setAutoExpiry(false);
+                            setForm((current) => ({ ...current, expiresAt: event.target.value }));
+                          }}
+                          className="admin-input"
+                        />
+                      )}
+                    </Field>
+                  </>
+                ) : (
+                  <div className="sm:col-span-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs text-text-muted">
+                    Η ημερομηνία λήξης ορίζεται αυτόματα από τον provider μετά τη δημιουργία της
+                    γραμμής.
+                  </div>
+                )}
                 <Field label="Οδηγός εγκατάστασης" className="sm:col-span-2">
                   <input
                     value={form.setupGuideUrl}
@@ -1014,25 +1038,34 @@ export function AdminPanel() {
               {notice ? <p className="mt-2 text-sm text-emerald-400">{notice}</p> : null}
 
               {createdLink ? (
-                <div className="mt-3 rounded-lg border border-gold/25 bg-gold/8 p-3">
-                  <p className="text-[10px] font-bold tracking-[0.14em] text-gold uppercase">Magic Link</p>
-                  <p className="mt-1 break-all text-xs text-white">{createdLink}</p>
-                  <div className="mt-2 grid grid-cols-2 gap-1.5">
-                    <Button
-                      variant="outline"
-                      className={actionBtnClass}
-                      onClick={() => void copyText(createdLink, "Το Magic Link αντιγράφηκε.")}
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                      Αντιγραφή
-                    </Button>
-                    <Button
-                      href={createdLink.replace(window.location.origin, "")}
-                      className={actionBtnClass}
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                      Άνοιγμα
-                    </Button>
+                <div className="mt-3 space-y-3">
+                  {createdCustomer ? (
+                    <AdminConnectionDetails
+                      customer={createdCustomer}
+                      origin={window.location.origin}
+                      onCopyAll={(text) => void copyText(text, "Τα στοιχεία σύνδεσης αντιγράφηκαν.")}
+                    />
+                  ) : null}
+                  <div className="rounded-lg border border-gold/25 bg-gold/8 p-3">
+                    <p className="text-[10px] font-bold tracking-[0.14em] text-gold uppercase">Magic Link</p>
+                    <p className="mt-1 break-all text-xs text-white">{createdLink}</p>
+                    <div className="mt-2 grid grid-cols-2 gap-1.5">
+                      <Button
+                        variant="outline"
+                        className={actionBtnClass}
+                        onClick={() => void copyText(createdLink, "Το Magic Link αντιγράφηκε.")}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        Αντιγραφή
+                      </Button>
+                      <Button
+                        href={createdLink.replace(window.location.origin, "")}
+                        className={actionBtnClass}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        Άνοιγμα
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ) : null}
@@ -1042,6 +1075,7 @@ export function AdminPanel() {
                   onClick={() => void submit()}
                   disabled={
                     saving ||
+                    sellablePackages.length === 0 ||
                     (!editingId &&
                       createPriceType === "CUSTOMER_SPECIAL_OFFER" &&
                       !createProfitCheck.ok)
@@ -1058,10 +1092,11 @@ export function AdminPanel() {
                     setEditingId(null);
                     setShowCreateForm(false);
                     setAutoExpiry(true);
-                    setForm(emptyForm());
+                    setForm(emptyForm(pricing));
     setCreatePriceType("NORMAL");
     setCreateSpecialPrice("");
                     setCreatedLink("");
+                    setCreatedCustomer(null);
                   }}
                 >
                   Ακύρωση
@@ -1311,6 +1346,8 @@ export function AdminPanel() {
           onDeleteNote={deleteNote}
         />
       ) : null}
+        </main>
+      </div>
     </div>
   );
 }

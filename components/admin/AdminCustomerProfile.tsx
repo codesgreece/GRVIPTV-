@@ -11,6 +11,7 @@ import {
   RefreshCw,
   Trash2,
 } from "lucide-react";
+import { AdminConnectionDetails } from "@/components/admin/AdminConnectionDetails";
 import { AdminModal } from "@/components/admin/AdminCrmModals";
 import { AdminSubscriptionHistory } from "@/components/admin/AdminSubscriptionHistory";
 import { Button } from "@/components/ui/Button";
@@ -152,37 +153,7 @@ export function AdminCustomerProfile({
             <Info label="Συνολικό κέρδος" value={formatEuro(customer.totalProfit)} />
           </div>
 
-          <div className="mt-3 rounded-xl border border-sky-500/20 bg-sky-500/5 p-3">
-            <p className="text-[10px] font-semibold tracking-[0.12em] text-sky-200/80 uppercase">
-              Provider · {customer.providerServerLabel}
-            </p>
-            <div className="mt-2 grid gap-2 sm:grid-cols-2">
-              <Info label="Username" value={customer.providerUsername ?? "—"} mono />
-              <Info label="Password" value={customer.providerPassword ?? "—"} mono />
-              <Info
-                label="Line ID"
-                value={customer.providerLineId ? String(customer.providerLineId) : "—"}
-              />
-              <Info
-                label="Max connections"
-                value={
-                  customer.providerMaxConnections != null
-                    ? String(customer.providerMaxConnections)
-                    : "—"
-                }
-              />
-              <Info
-                label="Enabled"
-                value={
-                  customer.providerEnabled == null
-                    ? "—"
-                    : customer.providerEnabled
-                      ? "Ναι"
-                      : "Όχι"
-                }
-              />
-            </div>
-          </div>
+          <AdminConnectionDetails customer={customer} />
 
           <div className="mt-3 grid w-full min-w-0 grid-cols-2 gap-1.5 sm:flex sm:flex-wrap">
             <Button className={actionBtnClass} onClick={onRenew}>

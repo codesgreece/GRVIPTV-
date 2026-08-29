@@ -15,20 +15,34 @@ export function magicLink(token: string, origin = SITE): string {
 }
 
 export function activationMessage(customer: CustomerView, origin?: string): string {
-  return [
+  const lines = [
     `Γεια σου ${customer.name}! 👋`,
     "",
     `Η συνδρομή σου στο GRVIP OTT ενεργοποιήθηκε.`,
     `Πακέτο: ${customer.packageLabel}`,
     `Ημερομηνία ενεργοποίησης: ${formatDate(customer.activatedAt)}`,
     `Ημερομηνία λήξης: ${formatDate(customer.expiresAt)}`,
+  ];
+
+  if (customer.providerUsername || customer.providerPassword) {
+    lines.push(
+      "",
+      "🔐 Στοιχεία σύνδεσης IPTV",
+      `Username: ${customer.providerUsername ?? "—"}`,
+      `Password: ${customer.providerPassword ?? "—"}`,
+    );
+  }
+
+  lines.push(
     "",
     `Προσωπικός σου σύνδεσμος:`,
     magicLink(customer.token, origin),
     "",
     `Από εκεί βλέπεις τις ημέρες που απομένουν και τον οδηγό εγκατάστασης.`,
     `Υποστήριξη: https://t.me/+306955940150`,
-  ].join("\n");
+  );
+
+  return lines.join("\n");
 }
 
 export function expiringSoonMessage(customer: CustomerView): string {
