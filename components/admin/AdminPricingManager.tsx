@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, Check, Save } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
@@ -9,6 +9,7 @@ import {
   profitForSale,
 } from "@/lib/customers/pricing";
 import type { PackagePricing } from "@/lib/customers/types";
+import type { ProviderPackage } from "@/lib/iptv/types";
 import { cn } from "@/lib/cn";
 
 type AdminPricingManagerProps = {
@@ -30,11 +31,54 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [providerPackages, setProviderPackages] = useState<ProviderPackage[]>([]);
+  const [providerError, setProviderError] = useState("");
+
+  useEffect(() => {
+    void (async () => {
+      const response = await fetch("/api/admin/provider/packages", { cache: "no-store" });
+      const payload = (await response.json()) as { packages?: ProviderPackage[]; error?: string };
+      if (!response.ok) {
+        setProviderError(payload.error ?? "Αποτυχία φόρτωσης provider packages.");
+        return;
+      }
+      setProviderPackages(payload.packages ?? []);
+    })();
+  }, []);
 
   const anyOffer = pricing.some((pkg) => pkg.offerEnabled);
 
   const update = (packageId: string, patch: Partial<PackagePricing>) => {
     onChange(pricing.map((pkg) => (pkg.packageId === packageId ? { ...pkg, ...patch } : pkg)));
+  };
+
+  const linkProviderPackage = (packageId: string, providerPackageId: number | null) => {
+    const provider = providerPackages.find((item) => item.id === providerPackageId) ?? null;
+    onChange(
+      pricing.map((pkg) => {
+        if (pkg.packageId !== packageId) return pkg;
+        if (!provider) {
+          return {
+            ...pkg,
+            providerPackageId: null,
+            providerName: null,
+            providerDuration: null,
+            providerDurationUnit: null,
+            providerCredits: null,
+            providerMaxConnections: null,
+          };
+        }
+        return {
+          ...pkg,
+          providerPackageId: provider.id,
+          providerName: provider.name,
+          providerDuration: provider.duration,
+          providerDurationUnit: provider.duration_unit,
+          providerCredits: provider.credits,
+          providerMaxConnections: provider.max_connections,
+        };
+      }),
+    );
   };
 
   const readFormPricing = (): PackagePricing[] => {
@@ -127,6 +171,10 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
         </div>
       </div>
 
+      {providerError ? (
+        <p className="text-xs font-semibold text-amber-300">{providerError}</p>
+      ) : null}
+
       <form
         key={formEpoch}
         ref={formRef}
@@ -157,6 +205,35 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
                   />
                   Προσφορά
                 </label>
+              </div>
+
+              <div className="mb-3 rounded-lg border border-sky-500/20 bg-sky-500/5 p-2.5">
+                <p className="text-[10px] font-semibold tracking-wide text-sky-200/80 uppercase">
+                  Provider package
+                </p>
+                <select
+                  value={pkg.providerPackageId ?? ""}
+                  onChange={(event) =>
+                    linkProviderPackage(
+                      pkg.packageId,
+                      event.target.value ? Number(event.target.value) : null,
+                    )
+                  }
+                  className="admin-input mt-1.5"
+                >
+                  <option value="">— Χωρίς σύνδεση —</option>
+                  {providerPackages.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name} · {item.duration} {item.duration_unit} · {item.credits} cr
+                    </option>
+                  ))}
+                </select>
+                {pkg.providerName ? (
+                  <p className="mt-1.5 text-[11px] text-text-muted">
+                    {pkg.providerName} · max {pkg.providerMaxConnections ?? "—"} conn ·{" "}
+                    {pkg.providerCredits ?? "—"} credits
+                  </p>
+                ) : null}
               </div>
 
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-5">

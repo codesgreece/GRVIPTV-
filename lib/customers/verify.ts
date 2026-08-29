@@ -1,11 +1,11 @@
 import { createCustomer, parseCustomerInput, removeCustomer, renewCustomer } from "@/lib/customers/service";
-import { createServer } from "@/lib/customers/servers";
 import { getCustomerByToken, loadCrm } from "@/lib/customers/store";
 import { getSubscriptionView } from "@/lib/customers/status";
 import { isValidMagicToken } from "@/lib/customers/token";
 import { canEnableOffer, DEFAULT_PACKAGE_PRICING, validatePricingUpdate } from "@/lib/customers/pricing";
 import { crmStatusFromDays, toCustomerView, validateSpecialOfferPrice } from "@/lib/customers/views";
 import { applyCrmMigrations } from "@/lib/customers/migrations";
+import { getProviderConfig } from "@/lib/iptv/config";
 
 function assert(condition: unknown, message: string) {
   if (!condition) throw new Error(message);
@@ -65,7 +65,6 @@ export function verifyCrmMigrations() {
     tags: [],
     notes: [],
     prospects: [],
-    servers: [],
   };
 
   const first = applyCrmMigrations(data);
@@ -84,7 +83,9 @@ export async function verifyCustomerSystem() {
   verifyCrmPricingLogic();
   verifyCrmMigrations();
 
-  const server = await createServer({ name: "Verify Server" });
+  if (!getProviderConfig().configured) {
+    return { skipped: true, reason: "GRVIP_PROVIDER_API_KEY not configured" };
+  }
 
   const today = new Date();
   const start = today.toISOString().slice(0, 10);
@@ -98,13 +99,13 @@ export async function verifyCustomerSystem() {
     activatedAt: start,
     expiresAt,
     setupGuideUrl: "/odigos-egkatastasis",
-    serverId: server.id,
     paymentMethod: "iris",
+    priceType: "NORMAL",
   });
 
   const created = await createCustomer(input);
   assert(isValidMagicToken(created.token), "token is not cryptographically valid");
-  assert(created.serverId === server.id, "create must store server");
+  assert(created.providerLineId, "create must store provider line id");
   assert(created.paymentMethod === "iris", "create must store payment method");
 
   const loaded = await getCustomerByToken(created.token);
@@ -126,7 +127,6 @@ export async function verifyCustomerSystem() {
 
   const renewed = await renewCustomer(created.id, {
     packageId: "3-months",
-    serverId: server.id,
     paymentMethod: "paypal",
   });
   assert(renewed, "renewal failed");
@@ -140,7 +140,6 @@ export async function verifyCustomerSystem() {
     packageId: "3-months",
     amountPaid: 32,
     priceType: "CUSTOMER_SPECIAL_OFFER",
-    serverId: server.id,
     paymentMethod: "paysafe",
   });
   assert(special?.subscription.priceType === "CUSTOMER_SPECIAL_OFFER", "special offer type");

@@ -1,5 +1,6 @@
 import type { PackageId, PackagePricing } from "./types";
 import { PACKAGE_OPTIONS } from "./types";
+import { DEFAULT_PROVIDER_PACKAGE_IDS } from "@/lib/iptv/pricing-map";
 
 export const DEFAULT_PACKAGE_PRICING: PackagePricing[] = [
   {
@@ -11,6 +12,7 @@ export const DEFAULT_PACKAGE_PRICING: PackagePricing[] = [
     purchaseCost: 1,
     offerEnabled: false,
     minimumProfit: 0,
+    providerPackageId: null,
   },
   {
     packageId: "3-months",
@@ -21,6 +23,7 @@ export const DEFAULT_PACKAGE_PRICING: PackagePricing[] = [
     purchaseCost: 3,
     offerEnabled: false,
     minimumProfit: 0,
+    providerPackageId: DEFAULT_PROVIDER_PACKAGE_IDS["3-months"] ?? null,
   },
   {
     packageId: "6-months",
@@ -31,6 +34,7 @@ export const DEFAULT_PACKAGE_PRICING: PackagePricing[] = [
     purchaseCost: 6,
     offerEnabled: false,
     minimumProfit: 0,
+    providerPackageId: DEFAULT_PROVIDER_PACKAGE_IDS["6-months"] ?? null,
   },
   {
     packageId: "12-months",
@@ -41,6 +45,7 @@ export const DEFAULT_PACKAGE_PRICING: PackagePricing[] = [
     purchaseCost: 15,
     offerEnabled: false,
     minimumProfit: 0,
+    providerPackageId: DEFAULT_PROVIDER_PACKAGE_IDS["12-months"] ?? null,
   },
 ];
 
@@ -101,6 +106,13 @@ export function ensurePricing(list: PackagePricing[] | undefined): PackagePricin
       purchaseCost: num(existing.purchaseCost, seed.purchaseCost),
       offerEnabled: Boolean(existing.offerEnabled),
       minimumProfit: num(existing.minimumProfit, seed.minimumProfit),
+      providerPackageId:
+        existing.providerPackageId ?? seed.providerPackageId ?? null,
+      providerName: existing.providerName ?? null,
+      providerDuration: existing.providerDuration ?? null,
+      providerDurationUnit: existing.providerDurationUnit ?? null,
+      providerCredits: existing.providerCredits ?? null,
+      providerMaxConnections: existing.providerMaxConnections ?? null,
     };
   });
 }

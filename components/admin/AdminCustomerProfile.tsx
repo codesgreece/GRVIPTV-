@@ -32,6 +32,7 @@ type AdminCustomerProfileProps = {
   onDelete: () => void;
   onCopyLink: () => void;
   onRegenerateLink: () => void;
+  onSync: () => Promise<void>;
   onTagsChange: (tagIds: string[]) => Promise<void>;
   onCreateTag: (name: string, emoji: string) => Promise<void>;
   onAddNote: (content: string) => Promise<void>;
@@ -78,6 +79,7 @@ export function AdminCustomerProfile({
   onDelete,
   onCopyLink,
   onRegenerateLink,
+  onSync,
   onTagsChange,
   onCreateTag,
   onAddNote,
@@ -140,7 +142,6 @@ export function AdminCustomerProfile({
           <div className="grid gap-2 sm:grid-cols-2">
             <Info label="Ενεργοποίηση" value={formatDate(customer.activatedAt)} />
             <Info label="Λήξη" value={formatDate(customer.expiresAt)} />
-            <Info label="Server" value={customer.serverName ?? "—"} />
             <Info label="Πληρωμή με" value={customer.paymentMethodLabel ?? "—"} />
             <Info
               label="Απομένουν"
@@ -149,6 +150,38 @@ export function AdminCustomerProfile({
             <Info label="Magic Link" value={`/account/${customer.token}`} mono />
             <Info label="Σύνολο πληρωμών" value={formatEuro(customer.totalPaid)} />
             <Info label="Συνολικό κέρδος" value={formatEuro(customer.totalProfit)} />
+          </div>
+
+          <div className="mt-3 rounded-xl border border-sky-500/20 bg-sky-500/5 p-3">
+            <p className="text-[10px] font-semibold tracking-[0.12em] text-sky-200/80 uppercase">
+              Provider · {customer.providerServerLabel}
+            </p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <Info label="Username" value={customer.providerUsername ?? "—"} mono />
+              <Info label="Password" value={customer.providerPassword ?? "—"} mono />
+              <Info
+                label="Line ID"
+                value={customer.providerLineId ? String(customer.providerLineId) : "—"}
+              />
+              <Info
+                label="Max connections"
+                value={
+                  customer.providerMaxConnections != null
+                    ? String(customer.providerMaxConnections)
+                    : "—"
+                }
+              />
+              <Info
+                label="Enabled"
+                value={
+                  customer.providerEnabled == null
+                    ? "—"
+                    : customer.providerEnabled
+                      ? "Ναι"
+                      : "Όχι"
+                }
+              />
+            </div>
           </div>
 
           <div className="mt-3 grid w-full min-w-0 grid-cols-2 gap-1.5 sm:flex sm:flex-wrap">
@@ -171,6 +204,10 @@ export function AdminCustomerProfile({
             <Button href={`/account/${customer.token}`} variant="outline" className={actionBtnClass}>
               <ExternalLink className="h-3.5 w-3.5 shrink-0" />
               Άνοιγμα
+            </Button>
+            <Button variant="outline" className={actionBtnClass} onClick={() => void onSync()}>
+              <RefreshCw className="h-3.5 w-3.5 shrink-0" />
+              Sync
             </Button>
             <Button variant="outline" className={actionBtnClass} onClick={onEdit}>
               <Pencil className="h-3.5 w-3.5 shrink-0" />

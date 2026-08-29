@@ -32,17 +32,6 @@ export const PAYMENT_METHODS = [
 
 export type PaymentMethodId = (typeof PAYMENT_METHODS)[number]["id"];
 
-export type Server = {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type ServerInput = {
-  name: string;
-};
-
 export type Customer = {
   id: string;
   token: string;
@@ -55,8 +44,13 @@ export type Customer = {
   updatedAt: string;
   archivedAt?: string;
   tagIds?: string[];
-  serverId?: string;
   paymentMethod?: PaymentMethodId;
+  providerLineId?: number;
+  providerUsername?: string;
+  providerPassword?: string;
+  providerMaxConnections?: number;
+  providerEnabled?: boolean;
+  providerNotes?: string;
 };
 
 export type Subscription = {
@@ -83,6 +77,12 @@ export type PackagePricing = {
   purchaseCost: number;
   offerEnabled: boolean;
   minimumProfit: number;
+  providerPackageId?: number | null;
+  providerName?: string | null;
+  providerDuration?: number | null;
+  providerDurationUnit?: string | null;
+  providerCredits?: number | null;
+  providerMaxConnections?: number | null;
 };
 
 export type CustomerTag = {
@@ -132,7 +132,6 @@ export type CrmData = {
   tags: CustomerTag[];
   notes: CustomerNote[];
   prospects: Prospect[];
-  servers: Server[];
 };
 
 export type CustomerView = Customer & {
@@ -144,8 +143,8 @@ export type CustomerView = Customer & {
   tags: CustomerTag[];
   notes: CustomerNote[];
   subscriptions: Subscription[];
-  serverName: string | null;
   paymentMethodLabel: string | null;
+  providerServerLabel: string;
 };
 
 export type DashboardStats = {
@@ -161,6 +160,9 @@ export type DashboardStats = {
   topProfitPackageId: PackageId | null;
   topProfitPackageName: string | null;
   topProfitPackageAmount: number;
+  providerConnected: boolean;
+  providerCredits: number | null;
+  providerStatusLabel: string;
 };
 
 export type AdminNotificationKind =
@@ -187,8 +189,9 @@ export type CustomerInput = {
   activatedAt: string;
   expiresAt: string;
   setupGuideUrl: string;
-  serverId: string;
   paymentMethod?: PaymentMethodId;
+  priceType?: PriceType;
+  amountPaid?: number;
 };
 
 export type SubscriptionView = {

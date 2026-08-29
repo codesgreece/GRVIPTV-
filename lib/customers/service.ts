@@ -7,6 +7,7 @@ import {
   type CustomerNote,
   type CustomerTag,
   type PackageId,
+  type PackagePricing,
   type PriceType,
   type PaymentMethodId,
   type Prospect,
@@ -17,18 +18,27 @@ import { createCustomerId, createMagicToken } from "@/lib/customers/token";
 import {
   deleteCustomer,
   getCustomerById,
+  loadCrm,
   mutateCrm,
   tokenExists,
 } from "@/lib/customers/store";
 import {
   athensTodayYmd,
-  computePackageExpiry,
   isDateTimeExpiry,
   isTrialPackage,
 } from "@/lib/customers/status";
 import { makeSubscription, toCustomerView, validateSpecialOfferPrice } from "@/lib/customers/views";
-import { getPricingById } from "@/lib/customers/pricing";
+import { activePrice, getPricingById, priceType as catalogPriceType, roundMoney } from "@/lib/customers/pricing";
 import { parsePaymentMethod } from "@/lib/customers/payment";
+import {
+  createProviderLine,
+  getProviderLine,
+  providerExpiryIso,
+  providerExpiryYmd,
+  renewProviderLine,
+} from "@/lib/iptv/client";
+import { ProviderApiError } from "@/lib/iptv/errors";
+import type { ProviderLine } from "@/lib/iptv/types";
 
 function isYmd(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
@@ -51,43 +61,101 @@ function isSafeSetupUrl(value: string) {
   }
 }
 
+function requireProviderPackageId(packageId: PackageId, pricing: PackagePricing[]) {
+  const pkg = getPricingById(pricing, packageId);
+  if (!pkg.providerPackageId) {
+    throw new Error(
+      `Το πακέτο «${pkg.packageName}» δεν έχει συνδεδεμένο provider package. Ρύθμισέ το στο Τιμές.`,
+    );
+  }
+  return pkg;
+}
+
+function providerPurchaseCost(pkg: ReturnType<typeof getPricingById>) {
+  if (typeof pkg.providerCredits === "number" && Number.isFinite(pkg.providerCredits)) {
+    return roundMoney(pkg.providerCredits);
+  }
+  return roundMoney(pkg.purchaseCost);
+}
+
+function resolveSale(
+  pkg: ReturnType<typeof getPricingById>,
+  input: { priceType?: PriceType; amountPaid?: number },
+) {
+  if (input.priceType === "CUSTOMER_SPECIAL_OFFER") {
+    const check = validateSpecialOfferPrice(pkg, Number(input.amountPaid));
+    if (!check.ok) throw new Error(check.message ?? "Μη έγκυρη ειδική προσφορά.");
+    return {
+      amountPaid: roundMoney(Number(input.amountPaid)),
+      priceType: "CUSTOMER_SPECIAL_OFFER" as const,
+      purchaseCostAtTime: providerPurchaseCost(pkg),
+    };
+  }
+
+  if (input.priceType === "OFFER" || (input.priceType !== "NORMAL" && pkg.offerEnabled)) {
+    return {
+      amountPaid: roundMoney(pkg.offerPrice),
+      priceType: "OFFER" as const,
+      purchaseCostAtTime: providerPurchaseCost(pkg),
+    };
+  }
+
+  return {
+    amountPaid: roundMoney(input.amountPaid ?? activePrice(pkg)),
+    priceType: (input.priceType ?? catalogPriceType(pkg)) as PriceType,
+    purchaseCostAtTime: providerPurchaseCost(pkg),
+  };
+}
+
+function customerFromProviderLine(line: ProviderLine, base: Partial<Customer>): Customer {
+  return {
+    id: base.id ?? createCustomerId(),
+    token: base.token ?? "",
+    name: base.name ?? "",
+    packageId: base.packageId ?? "1-month",
+    activatedAt: base.activatedAt ?? athensTodayYmd(),
+    expiresAt: providerExpiryIso(line.exp_date),
+    setupGuideUrl: base.setupGuideUrl ?? DEFAULT_SETUP_GUIDE_PATH,
+    createdAt: base.createdAt ?? new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    tagIds: base.tagIds ?? [],
+    paymentMethod: base.paymentMethod,
+    providerLineId: line.id,
+    providerUsername: line.username,
+    providerPassword: line.password,
+    providerMaxConnections: line.max_connections,
+    providerEnabled: line.enabled,
+    providerNotes: line.notes ?? "",
+  };
+}
+
 export function parseCustomerInput(body: unknown): CustomerInput {
   const data = (body ?? {}) as Record<string, unknown>;
   const name = String(data.name ?? "").trim();
   const packageId = String(data.packageId ?? "").trim();
-  const activatedAt = String(data.activatedAt ?? "").trim();
+  const activatedAt = String(data.activatedAt ?? "").trim() || athensTodayYmd();
   const expiresAtInput = String(data.expiresAt ?? "").trim();
   const setupGuideUrl = String(data.setupGuideUrl ?? DEFAULT_SETUP_GUIDE_PATH).trim() || DEFAULT_SETUP_GUIDE_PATH;
-  const serverId = String(data.serverId ?? "").trim();
+  const priceTypeRaw = String(data.priceType ?? "").trim();
+  const priceType =
+    priceTypeRaw === "OFFER" || priceTypeRaw === "CUSTOMER_SPECIAL_OFFER" || priceTypeRaw === "NORMAL"
+      ? (priceTypeRaw as PriceType)
+      : undefined;
+  const amountPaid = typeof data.amountPaid === "number" ? data.amountPaid : undefined;
 
   if (name.length < 2 || name.length > 80) {
-    throw new Error("Το ονοματεπώνυμο πρέπει να έχει 2-80 χαρακτήρες.");
+    throw new Error("Το ονοματεπώνωμο πρέπει να έχει 2-80 χαρακτήρες.");
   }
 
   if (!CUSTOMER_PACKAGES.some((item) => item.id === packageId)) {
     throw new Error("Μη έγκυρο πακέτο.");
   }
 
-  if (!serverId) {
-    throw new Error("Επίλεξε server για τον πελάτη.");
-  }
-
   if (!isYmd(activatedAt)) {
     throw new Error("Μη έγκυρες ημερομηνίες.");
   }
 
-  const expiresAt = isExpiryValue(expiresAtInput)
-    ? expiresAtInput
-    : computePackageExpiry(packageId as PackageId, activatedAt);
-
-  if (!isExpiryValue(expiresAt)) {
-    throw new Error("Μη έγκυρες ημερομηνίες.");
-  }
-
-  const expiresCompare = expiresAt.slice(0, 10);
-  if (expiresCompare < activatedAt && !isTrialPackage(packageId as PackageId)) {
-    throw new Error("Η λήξη δεν μπορεί να είναι πριν την ενεργοποίηση.");
-  }
+  const expiresAt = expiresAtInput && isExpiryValue(expiresAtInput) ? expiresAtInput : activatedAt;
 
   if (!isSafeSetupUrl(setupGuideUrl) || setupGuideUrl.length > 300) {
     throw new Error("Μη έγκυρο link οδηγού εγκατάστασης.");
@@ -101,8 +169,9 @@ export function parseCustomerInput(body: unknown): CustomerInput {
     activatedAt,
     expiresAt,
     setupGuideUrl,
-    serverId,
     paymentMethod,
+    priceType,
+    amountPaid,
   };
 }
 
@@ -116,21 +185,29 @@ async function uniqueToken(ignoreId?: string) {
 }
 
 export async function createCustomer(input: CustomerInput): Promise<Customer> {
+  const crm = await loadCrm();
+  const pkg = requireProviderPackageId(input.packageId, crm.pricing);
+  const sale = resolveSale(pkg, input);
+
+  let line: ProviderLine;
+  try {
+    line = await createProviderLine({ package_id: pkg.providerPackageId! });
+  } catch (error) {
+    if (error instanceof ProviderApiError) throw error;
+    throw new Error("Αποτυχία δημιουργίας γραμμής στον provider.");
+  }
+
   const now = new Date().toISOString();
-  const customer: Customer = {
-    id: createCustomerId(),
-    token: await uniqueToken(),
+  const activatedAt = providerExpiryYmd(line.exp_date) >= athensTodayYmd() ? athensTodayYmd() : input.activatedAt;
+  const customer = customerFromProviderLine(line, {
     name: input.name,
     packageId: input.packageId,
-    activatedAt: input.activatedAt,
-    expiresAt: input.expiresAt,
+    activatedAt,
     setupGuideUrl: input.setupGuideUrl,
-    serverId: input.serverId,
     paymentMethod: input.paymentMethod,
+    token: await uniqueToken(),
     createdAt: now,
-    updatedAt: now,
-    tagIds: [],
-  };
+  });
 
   return mutateCrm((data) => {
     data.customers.push(customer);
@@ -142,6 +219,9 @@ export async function createCustomer(input: CustomerInput): Promise<Customer> {
         endDate: customer.expiresAt,
         pricing: data.pricing,
         createdAt: now,
+        amountPaid: sale.amountPaid,
+        priceType: sale.priceType,
+        purchaseCostAtTime: sale.purchaseCostAtTime,
         paymentMethod: input.paymentMethod,
       }),
     );
@@ -154,20 +234,47 @@ export async function updateCustomer(id: string, input: CustomerInput) {
     const index = data.customers.findIndex((item) => item.id === id);
     if (index < 0) return null;
 
-    if (!data.servers.some((server) => server.id === input.serverId)) {
-      throw new Error("Επίλεξε έγκυρο server.");
-    }
-
     const customer: Customer = {
       ...data.customers[index],
-      ...input,
-      serverId: input.serverId,
-      paymentMethod: input.paymentMethod,
+      name: input.name,
+      packageId: input.packageId,
+      activatedAt: input.activatedAt,
+      expiresAt: input.expiresAt,
+      setupGuideUrl: input.setupGuideUrl,
+      paymentMethod: input.paymentMethod ?? data.customers[index].paymentMethod,
       tagIds: data.customers[index].tagIds ?? [],
       updatedAt: new Date().toISOString(),
     };
     data.customers[index] = customer;
     return customer;
+  });
+}
+
+export async function syncCustomerProvider(id: string) {
+  const existing = await getCustomerById(id);
+  if (!existing) return null;
+  if (!existing.providerLineId) {
+    throw new Error("Ο πελάτης δεν έχει provider line ID.");
+  }
+
+  const line = await getProviderLine(existing.providerLineId);
+
+  return mutateCrm((data) => {
+    const index = data.customers.findIndex((item) => item.id === id);
+    if (index < 0) return null;
+
+    const customer: Customer = {
+      ...data.customers[index],
+      expiresAt: providerExpiryIso(line.exp_date),
+      providerUsername: line.username,
+      providerPassword: line.password,
+      providerMaxConnections: line.max_connections,
+      providerEnabled: line.enabled,
+      providerNotes: line.notes ?? data.customers[index].providerNotes ?? "",
+      updatedAt: new Date().toISOString(),
+    };
+    data.customers[index] = customer;
+    return toCustomerView(customer, data);
   });
 }
 
@@ -197,7 +304,6 @@ export type RenewOptions = {
   packageId: PackageId;
   amountPaid?: number;
   priceType?: PriceType;
-  serverId?: string;
   paymentMethod?: PaymentMethodId;
 };
 
@@ -205,7 +311,6 @@ export async function renewCustomer(id: string, options: PackageId | RenewOption
   const packageId = typeof options === "string" ? options : options.packageId;
   const specialAmount = typeof options === "string" ? undefined : options.amountPaid;
   const specialType = typeof options === "string" ? undefined : options.priceType;
-  const renewServerId = typeof options === "string" ? undefined : options.serverId;
   const renewPaymentMethod =
     typeof options === "string" ? undefined : parsePaymentMethod(options.paymentMethod, !isTrialPackage(packageId));
 
@@ -213,47 +318,61 @@ export async function renewCustomer(id: string, options: PackageId | RenewOption
     throw new Error("Μη έγκυρο πακέτο.");
   }
 
+  const crm = await loadCrm();
+  const existing = crm.customers.find((item) => item.id === id && !item.archivedAt);
+  if (!existing) return null;
+  if (!existing.providerLineId) {
+    throw new Error("Ο πελάτης δεν έχει provider line. Δεν μπορεί να ανανεωθεί μέσω API.");
+  }
+
+  const pkg = requireProviderPackageId(packageId, crm.pricing);
+  const sale = resolveSale(pkg, {
+    priceType: specialType,
+    amountPaid: specialAmount,
+  });
+
+  let line: ProviderLine;
+  try {
+    line = await renewProviderLine(existing.providerLineId, pkg.providerPackageId!);
+  } catch (error) {
+    if (error instanceof ProviderApiError) throw error;
+    throw new Error("Αποτυχία ανανέωσης γραμμής στον provider.");
+  }
+
+  const today = athensTodayYmd();
+  const expiresAt = providerExpiryIso(line.exp_date);
+  const now = new Date().toISOString();
+
   return mutateCrm((data) => {
     const index = data.customers.findIndex((item) => item.id === id && !item.archivedAt);
     if (index < 0) return null;
 
-    const existing = data.customers[index];
-    const today = athensTodayYmd();
-    const expiresAt = computePackageExpiry(packageId, today);
-    const now = new Date().toISOString();
-    const pkg = getPricingById(data.pricing, packageId);
-    const serverId = renewServerId || existing.serverId;
-    if (!serverId) throw new Error("Ο πελάτης δεν έχει server. Επίλεξε server στην ανανέωση.");
-
-    if (specialType === "CUSTOMER_SPECIAL_OFFER") {
-      const check = validateSpecialOfferPrice(pkg, Number(specialAmount));
-      if (!check.ok) throw new Error(check.message ?? "Μη έγκυρη ειδική προσφορά.");
-    }
-
+    const current = data.customers[index];
     const subscription = makeSubscription({
-      customerId: existing.id,
+      customerId: current.id,
       packageId,
       startDate: today,
       endDate: expiresAt,
       pricing: data.pricing,
       createdAt: now,
-      amountPaid: specialAmount,
-      priceType: specialType,
-      purchaseCostAtTime: pkg.purchaseCost,
+      amountPaid: sale.amountPaid,
+      priceType: sale.priceType,
+      purchaseCostAtTime: sale.purchaseCostAtTime,
       paymentMethod: renewPaymentMethod,
     });
 
     data.subscriptions.push(subscription);
 
     const customer: Customer = {
-      ...existing,
+      ...current,
       packageId,
       activatedAt: today,
       expiresAt,
-      serverId,
-      paymentMethod: renewPaymentMethod ?? existing.paymentMethod,
+      paymentMethod: renewPaymentMethod ?? current.paymentMethod,
+      providerEnabled: line.enabled,
+      providerMaxConnections: line.max_connections ?? current.providerMaxConnections,
       updatedAt: now,
-      tagIds: existing.tagIds ?? [],
+      tagIds: current.tagIds ?? [],
     };
     data.customers[index] = customer;
 

@@ -6,6 +6,7 @@ import {
   priceType as catalogPriceType,
   roundMoney,
 } from "@/lib/customers/pricing";
+import { PROVIDER_DISPLAY_NAME } from "@/lib/iptv/config";
 import { athensTodayYmd, daysRemainingFromExpiry } from "@/lib/customers/status";
 import { paymentMethodLabel } from "@/lib/customers/payment";
 import { createCustomerId } from "@/lib/customers/token";
@@ -106,7 +107,7 @@ export function toCustomerView(customer: Customer, data: CrmData, now = new Date
     tags,
     notes,
     subscriptions: history,
-    serverName: data.servers.find((server) => server.id === customer.serverId)?.name ?? null,
+    providerServerLabel: PROVIDER_DISPLAY_NAME,
     paymentMethodLabel:
       paymentMethodLabel(customer.paymentMethod) ??
       paymentMethodLabel(history.at(-1)?.paymentMethod) ??
@@ -174,6 +175,9 @@ export function buildDashboard(data: CrmData, views = buildCustomerViews(data)):
     topProfitPackageId,
     topProfitPackageName,
     topProfitPackageAmount,
+    providerConnected: false,
+    providerCredits: null,
+    providerStatusLabel: "Offline",
   };
 }
 
@@ -278,15 +282,23 @@ export function makeSubscription(input: {
   };
 }
 
+function effectivePurchaseCost(pkg: PackagePricing) {
+  if (typeof pkg.providerCredits === "number" && Number.isFinite(pkg.providerCredits)) {
+    return roundMoney(pkg.providerCredits);
+  }
+  return roundMoney(pkg.purchaseCost);
+}
+
 export function validateSpecialOfferPrice(
   pkg: PackagePricing,
   specialPrice: number,
 ): { ok: boolean; profit: number; message?: string } {
-  const profit = roundMoney(specialPrice - pkg.purchaseCost);
+  const cost = effectivePurchaseCost(pkg);
+  const profit = roundMoney(specialPrice - cost);
   if (!Number.isFinite(specialPrice) || specialPrice <= 0) {
     return { ok: false, profit, message: "Η ειδική τιμή δεν είναι έγκυρη." };
   }
-  if (specialPrice <= pkg.purchaseCost || profit <= 0) {
+  if (specialPrice <= cost || profit <= 0) {
     return { ok: false, profit, message: "Η ειδική τιμή δεν αφήνει κέρδος" };
   }
   if (profit < (pkg.minimumProfit ?? 0)) {

@@ -22,10 +22,9 @@ import {
 import { AdminCustomerProfile } from "@/components/admin/AdminCustomerProfile";
 import { AdminNotificationCenter } from "@/components/admin/AdminNotificationCenter";
 import { AdminProspectsManager } from "@/components/admin/AdminProspectsManager";
-import { AdminServersManager } from "@/components/admin/AdminServersManager";
 import { AdminSubscriptionHistory } from "@/components/admin/AdminSubscriptionHistory";
 import { Button } from "@/components/ui/Button";
-import { formatEuro } from "@/lib/customers/pricing";
+import { formatEuro, activePrice, getPricingById } from "@/lib/customers/pricing";
 import { expiringSoonMessage } from "@/lib/customers/messages";
 import {
   adminStatusFromDays,
@@ -46,9 +45,9 @@ import {
   type PackagePricing,
   type Prospect,
   type ProspectInput,
-  type Server,
-  type ServerInput,
+  type PriceType,
 } from "@/lib/customers/types";
+import { validateSpecialOfferPrice } from "@/lib/customers/views";
 import { cn } from "@/lib/cn";
 
 type StoreInfo = {
@@ -59,12 +58,11 @@ type StoreInfo = {
 
 type FormState = CustomerInput;
 type ListFilter = "all" | CustomerStatus;
-type AdminTab = "overview" | "customers" | "pricing" | "prospects" | "servers";
+type AdminTab = "overview" | "customers" | "pricing" | "prospects";
 
 const ADMIN_TABS: { id: AdminTab; label: string }[] = [
   { id: "overview", label: "Επισκόπηση" },
   { id: "customers", label: "Πελάτες" },
-  { id: "servers", label: "Servers" },
   { id: "pricing", label: "Τιμές" },
   { id: "prospects", label: "Πιθανοί" },
 ];
@@ -82,9 +80,12 @@ const emptyDashboard: DashboardStats = {
   topProfitPackageId: null,
   topProfitPackageName: null,
   topProfitPackageAmount: 0,
+  providerConnected: false,
+  providerCredits: null,
+  providerStatusLabel: "Offline",
 };
 
-const emptyForm = (serverId = ""): FormState => {
+const emptyForm = (): FormState => {
   const activatedAt = new Date().toISOString().slice(0, 10);
   return {
     name: "",
@@ -92,8 +93,9 @@ const emptyForm = (serverId = ""): FormState => {
     activatedAt,
     expiresAt: computePackageExpiry("1-month", activatedAt),
     setupGuideUrl: DEFAULT_SETUP_GUIDE_PATH,
-    serverId,
     paymentMethod: undefined,
+    priceType: undefined,
+    amountPaid: undefined,
   };
 };
 
@@ -145,9 +147,10 @@ export function AdminPanel() {
   const [tags, setTags] = useState<CustomerTag[]>([]);
   const [tagFilter, setTagFilter] = useState<string>("all");
   const [prospects, setProspects] = useState<Prospect[]>([]);
-  const [servers, setServers] = useState<Server[]>([]);
   const [tab, setTab] = useState<AdminTab>("overview");
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createPriceType, setCreatePriceType] = useState<PriceType>("NORMAL");
+  const [createSpecialPrice, setCreateSpecialPrice] = useState("");
 
   const refreshProfile = (list: CustomerView[], id?: string | null) => {
     if (!id) return;
@@ -176,7 +179,6 @@ export function AdminPanel() {
       notifications?: AdminNotification[];
       tags?: CustomerTag[];
       prospects?: Prospect[];
-      servers?: Server[];
       store: StoreInfo;
     };
     setCustomers(payload.customers);
@@ -185,7 +187,6 @@ export function AdminPanel() {
     setNotifications(payload.notifications ?? []);
     setTags(payload.tags ?? []);
     setProspects(payload.prospects ?? []);
-    setServers(payload.servers ?? []);
     setStore(payload.store);
     setAuthed(true);
     setChecking(false);
@@ -253,12 +254,21 @@ export function AdminPanel() {
     setError("");
     setNotice("");
 
+    const body: CustomerInput = editingId
+      ? form
+      : {
+          ...form,
+          priceType: createPriceType,
+          amountPaid:
+            createPriceType === "CUSTOMER_SPECIAL_OFFER" ? Number(createSpecialPrice) : undefined,
+        };
+
     const response = await fetch(
       editingId ? `/api/admin/customers/${editingId}` : "/api/admin/customers",
       {
         method: editingId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(body),
       },
     );
 
@@ -277,6 +287,8 @@ export function AdminPanel() {
     setEditingId(null);
     setAutoExpiry(true);
     setForm(emptyForm());
+    setCreatePriceType("NORMAL");
+    setCreateSpecialPrice("");
     await loadCustomers();
   };
 
@@ -291,7 +303,6 @@ export function AdminPanel() {
       activatedAt: customer.activatedAt.slice(0, 10),
       expiresAt: customer.expiresAt,
       setupGuideUrl: customer.setupGuideUrl,
-      serverId: customer.serverId ?? "",
       paymentMethod: customer.paymentMethod ?? customer.subscriptions.at(-1)?.paymentMethod,
     });
     setCreatedLink(`${window.location.origin}${accountPath(customer.token)}`);
@@ -310,6 +321,8 @@ export function AdminPanel() {
     if (editingId === customer.id) {
       setEditingId(null);
       setForm(emptyForm());
+    setCreatePriceType("NORMAL");
+    setCreateSpecialPrice("");
     }
     await loadCustomers();
   };
@@ -344,14 +357,14 @@ export function AdminPanel() {
     return null;
   };
 
-  const confirmRenew = async (packageId: PackageId, serverId?: string, paymentMethod?: string) => {
+  const confirmRenew = async (packageId: PackageId, paymentMethod?: string) => {
     if (!renewFor) return;
     setRenewing(true);
     setError("");
     const response = await fetch(`/api/admin/customers/${renewFor.id}/renew`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ packageId, serverId, paymentMethod }),
+      body: JSON.stringify({ packageId, paymentMethod }),
     });
     const payload = (await response.json()) as { customer?: CustomerView; error?: string };
     setRenewing(false);
@@ -367,7 +380,6 @@ export function AdminPanel() {
   const confirmSpecial = async (
     packageId: PackageId,
     amountPaid: number,
-    serverId?: string,
     paymentMethod?: string,
   ) => {
     if (!specialFor) return;
@@ -380,7 +392,6 @@ export function AdminPanel() {
         packageId,
         amountPaid,
         priceType: "CUSTOMER_SPECIAL_OFFER",
-        serverId,
         paymentMethod,
       }),
     });
@@ -494,35 +505,6 @@ export function AdminPanel() {
     await loadCustomers();
   };
 
-  const createServerRecord = async (input: ServerInput) => {
-    const response = await fetch("/api/admin/servers", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-    });
-    const payload = (await response.json()) as { error?: string };
-    if (!response.ok) throw new Error(payload.error || "Αποτυχία δημιουργίας server.");
-    await loadCustomers();
-  };
-
-  const updateServerRecord = async (id: string, input: ServerInput) => {
-    const response = await fetch(`/api/admin/servers/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-    });
-    const payload = (await response.json()) as { error?: string };
-    if (!response.ok) throw new Error(payload.error || "Αποτυχία ενημέρωσης server.");
-    await loadCustomers();
-  };
-
-  const deleteServerRecord = async (id: string) => {
-    const response = await fetch(`/api/admin/servers/${id}`, { method: "DELETE" });
-    const payload = (await response.json()) as { error?: string };
-    if (!response.ok) throw new Error(payload.error || "Αποτυχία διαγραφής server.");
-    await loadCustomers();
-  };
-
   const openNotification = (notification: AdminNotification) => {
     setNotificationsOpen(false);
     if (notification.kind === "expiring_soon") {
@@ -546,6 +528,29 @@ export function AdminPanel() {
     const todayYmd = local.toISOString().slice(0, 10);
     return prospects.filter((item) => item.contactAt <= todayYmd).length;
   }, [prospects]);
+
+  const createPkg = getPricingById(pricing, form.packageId);
+  const createSaleAmount =
+    createPriceType === "CUSTOMER_SPECIAL_OFFER"
+      ? Number(createSpecialPrice)
+      : createPriceType === "OFFER"
+        ? createPkg.offerPrice
+        : createPkg.normalPrice;
+  const createProfitCheck =
+    createPriceType === "CUSTOMER_SPECIAL_OFFER"
+      ? validateSpecialOfferPrice(createPkg, createSaleAmount)
+      : { ok: true, profit: createSaleAmount - (createPkg.providerCredits ?? createPkg.purchaseCost) };
+
+  const syncProvider = async (customerId: string) => {
+    const response = await fetch(`/api/admin/customers/${customerId}/sync`, { method: "POST" });
+    const payload = (await response.json()) as { customer?: CustomerView; error?: string };
+    if (!response.ok || !payload.customer) {
+      setError(payload.error ?? "Αποτυχία συγχρονισμού.");
+      return;
+    }
+    setNotice("Συγχρονίστηκαν τα στοιχεία από τον provider.");
+    await loadCustomers();
+  };
 
   if (checking) {
     return (
@@ -654,6 +659,15 @@ export function AdminPanel() {
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-3 md:grid-cols-3">
             {[
+              {
+                label: dashboard.providerConnected ? "🟢 API Connected" : "🔴 API Offline",
+                value: dashboard.providerStatusLabel,
+              },
+              {
+                label: "💳 Credits",
+                value:
+                  dashboard.providerCredits != null ? String(dashboard.providerCredits) : "—",
+              },
               { label: "Πελάτες", value: String(dashboard.totalCustomers) },
               { label: "Ενεργοί", value: String(dashboard.activeSubscriptions) },
               { label: "Λήγουν", value: String(dashboard.expiringSoon) },
@@ -749,15 +763,6 @@ export function AdminPanel() {
         <AdminPricingManager pricing={pricing} onChange={setPricing} onSave={savePricing} />
       ) : null}
 
-      {tab === "servers" ? (
-        <AdminServersManager
-          servers={servers}
-          onCreate={createServerRecord}
-          onUpdate={updateServerRecord}
-          onDelete={deleteServerRecord}
-        />
-      ) : null}
-
       {tab === "prospects" ? (
         <AdminProspectsManager
           prospects={prospects}
@@ -781,11 +786,15 @@ export function AdminPanel() {
                   if (editingId) {
                     setEditingId(null);
                     setAutoExpiry(true);
-                    setForm(emptyForm(servers[0]?.id ?? ""));
+                    setForm(emptyForm());
+                    setCreatePriceType("NORMAL");
+                    setCreateSpecialPrice("");
                     setCreatedLink("");
                   } else if (!showCreateForm) {
                     setAutoExpiry(true);
-                    setForm(emptyForm(servers[0]?.id ?? ""));
+                    setForm(emptyForm());
+                    setCreatePriceType("NORMAL");
+                    setCreateSpecialPrice("");
                   }
                 }}
               >
@@ -838,27 +847,62 @@ export function AdminPanel() {
                     ))}
                   </select>
                 </Field>
-                <Field label="Server">
-                  <select
-                    value={form.serverId}
-                    onChange={(event) =>
-                      setForm((current) => ({ ...current, serverId: event.target.value }))
-                    }
-                    className="admin-input"
-                  >
-                    <option value="">Επίλεξε server…</option>
-                    {servers.map((server) => (
-                      <option key={server.id} value={server.id}>
-                        {server.name}
-                      </option>
-                    ))}
-                  </select>
-                  {servers.length === 0 ? (
-                    <p className="mt-1 text-[11px] text-rose-300">
-                      Πρώτα πρόσθεσε server στο tab Servers.
-                    </p>
-                  ) : null}
-                </Field>
+                {!editingId ? (
+                  <>
+                    <Field label="Τιμή">
+                      <select
+                        value={createPriceType}
+                        onChange={(event) => setCreatePriceType(event.target.value as PriceType)}
+                        className="admin-input"
+                      >
+                        <option value="NORMAL">Κανονική</option>
+                        <option value="OFFER">Προσφορά</option>
+                        <option value="CUSTOMER_SPECIAL_OFFER">Ειδική</option>
+                      </select>
+                    </Field>
+                    {createPriceType === "CUSTOMER_SPECIAL_OFFER" ? (
+                      <Field label="Ειδική τιμή (€)">
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          min={0}
+                          step="0.01"
+                          value={createSpecialPrice}
+                          onChange={(event) => setCreateSpecialPrice(event.target.value)}
+                          className="admin-input"
+                        />
+                      </Field>
+                    ) : (
+                      <Field label="Ποσό">
+                        <input
+                          readOnly
+                          value={formatEuro(
+                            createPriceType === "OFFER"
+                              ? createPkg.offerPrice
+                              : activePrice(createPkg),
+                          )}
+                          className="admin-input opacity-80"
+                        />
+                      </Field>
+                    )}
+                    <div className="sm:col-span-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2">
+                      <p className="text-[10px] font-semibold tracking-wide text-text-dim uppercase">
+                        Εκτιμώμενο κέρδος
+                      </p>
+                      <p
+                        className={cn(
+                          "mt-1 text-lg font-black",
+                          createProfitCheck.profit > 0 ? "text-emerald-400" : "text-rose-400",
+                        )}
+                      >
+                        {formatEuro(createProfitCheck.profit)}
+                      </p>
+                      {createPriceType === "CUSTOMER_SPECIAL_OFFER" && !createProfitCheck.ok ? (
+                        <p className="mt-1 text-[11px] text-rose-300">{createProfitCheck.message}</p>
+                      ) : null}
+                    </div>
+                  </>
+                ) : null}
                 <Field label="Τρόπος πληρωμής">
                   <select
                     value={form.paymentMethod ?? ""}
@@ -954,7 +998,12 @@ export function AdminPanel() {
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button
                   onClick={() => void submit()}
-                  disabled={saving}
+                  disabled={
+                    saving ||
+                    (!editingId &&
+                      createPriceType === "CUSTOMER_SPECIAL_OFFER" &&
+                      !createProfitCheck.ok)
+                  }
                   className={cn(actionBtnClass, "font-extrabold")}
                 >
                   <Plus className="h-3.5 w-3.5" />
@@ -968,6 +1017,8 @@ export function AdminPanel() {
                     setShowCreateForm(false);
                     setAutoExpiry(true);
                     setForm(emptyForm());
+    setCreatePriceType("NORMAL");
+    setCreateSpecialPrice("");
                     setCreatedLink("");
                   }}
                 >
@@ -1070,8 +1121,10 @@ export function AdminPanel() {
                       </div>
                     ) : null}
                     <p className="mt-1 text-xs text-gold">{customer.packageLabel}</p>
-                    {customer.serverName ? (
-                      <p className="mt-0.5 text-[11px] text-sky-300/90">Server: {customer.serverName}</p>
+                    {customer.providerLineId ? (
+                      <p className="mt-0.5 text-[11px] text-sky-300/90">
+                        Line #{customer.providerLineId}
+                      </p>
                     ) : null}
                     {customer.paymentMethodLabel ? (
                       <p className="mt-0.5 text-[11px] text-violet-300/90">
@@ -1161,12 +1214,9 @@ export function AdminPanel() {
         <AdminRenewModal
           customer={renewFor}
           pricing={pricing}
-          servers={servers}
           saving={renewing}
           onClose={() => setRenewFor(null)}
-          onConfirm={(packageId, serverId, paymentMethod) =>
-            void confirmRenew(packageId, serverId, paymentMethod)
-          }
+          onConfirm={(packageId, paymentMethod) => void confirmRenew(packageId, paymentMethod)}
         />
       ) : null}
 
@@ -1174,11 +1224,10 @@ export function AdminPanel() {
         <AdminSpecialOfferModal
           customer={specialFor}
           pricing={pricing}
-          servers={servers}
           saving={renewing}
           onClose={() => setSpecialFor(null)}
-          onConfirm={(packageId, amountPaid, serverId, paymentMethod) =>
-            void confirmSpecial(packageId, amountPaid, serverId, paymentMethod)
+          onConfirm={(packageId, amountPaid, paymentMethod) =>
+            void confirmSpecial(packageId, amountPaid, paymentMethod)
           }
         />
       ) : null}
@@ -1212,6 +1261,7 @@ export function AdminPanel() {
             )
           }
           onRegenerateLink={() => void regenerate(profileFor)}
+          onSync={() => syncProvider(profileFor.id)}
           onTagsChange={(tagIds) => syncCustomerTags(profileFor.id, tagIds)}
           onCreateTag={createTag}
           onAddNote={(content) => addNote(profileFor.id, content)}
