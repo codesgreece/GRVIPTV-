@@ -1,14 +1,13 @@
 "use client";
 
+import { formatExpiryDisplay } from "@/lib/customers/athens-datetime";
 import { formatEuro } from "@/lib/customers/pricing";
 import { paymentMethodLabel } from "@/lib/customers/payment";
 import { priceTypeLabel } from "@/lib/customers/views";
 import type { Subscription } from "@/lib/customers/types";
 
 function formatDate(iso: string) {
-  const [year, month, day] = iso.slice(0, 10).split("-");
-  if (!year || !month || !day) return iso;
-  return `${day}/${month}/${year}`;
+  return formatExpiryDisplay(iso);
 }
 
 function Stat({

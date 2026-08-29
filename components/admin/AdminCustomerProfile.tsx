@@ -15,6 +15,7 @@ import { AdminConnectionDetails } from "@/components/admin/AdminConnectionDetail
 import { AdminModal } from "@/components/admin/AdminCrmModals";
 import { AdminSubscriptionHistory } from "@/components/admin/AdminSubscriptionHistory";
 import { Button } from "@/components/ui/Button";
+import { formatAthensDateTime, formatExpiryDisplay } from "@/lib/customers/athens-datetime";
 import { formatEuro } from "@/lib/customers/pricing";
 import { adminStatusFromDays } from "@/lib/customers/status";
 import type { CustomerTag, CustomerView } from "@/lib/customers/types";
@@ -42,21 +43,11 @@ type AdminCustomerProfileProps = {
 };
 
 function formatDate(iso: string) {
-  if (iso.includes("T")) {
-    const date = new Date(iso);
-    if (Number.isFinite(date.getTime())) {
-      return new Intl.DateTimeFormat("el-GR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(date);
-    }
-  }
-  const [year, month, day] = iso.slice(0, 10).split("-");
-  if (!year || !month || !day) return iso;
-  return `${day}/${month}/${year}`;
+  return formatExpiryDisplay(iso);
+}
+
+function formatTimestamp(iso: string) {
+  return formatAthensDateTime(iso);
 }
 
 const actionBtnClass =
@@ -318,7 +309,7 @@ export function AdminCustomerProfile({
                     <>
                       <p className="whitespace-pre-wrap text-sm text-white">{note.content}</p>
                       <p className="mt-1.5 text-[10px] text-text-dim">
-                        Δημιουργία {formatDate(note.createdAt)} · Ενημέρωση {formatDate(note.updatedAt)}
+                        Δημιουργία {formatTimestamp(note.createdAt)} · Ενημέρωση {formatTimestamp(note.updatedAt)}
                       </p>
                       <div className="mt-2 flex gap-2">
                         <Button

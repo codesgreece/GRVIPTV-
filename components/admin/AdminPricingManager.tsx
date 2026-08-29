@@ -9,6 +9,7 @@ import {
   profitForSale,
 } from "@/lib/customers/pricing";
 import type { PackagePricing } from "@/lib/customers/types";
+import { isTrialPackage } from "@/lib/customers/status";
 import type { ProviderPackage } from "@/lib/iptv/types";
 import { cn } from "@/lib/cn";
 
@@ -188,6 +189,7 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
           const salePrice = pkg.offerEnabled ? pkg.offerPrice : pkg.normalPrice;
           const profit = profitForSale(pkg, salePrice);
           const offerCheck = canEnableOffer({ ...pkg, offerEnabled: true });
+          const trial = isTrialPackage(pkg.packageId);
 
           return (
             <article
@@ -196,20 +198,26 @@ export function AdminPricingManager({ pricing, onChange, onSave }: AdminPricingM
             >
               <div className="mb-2 flex items-center justify-between gap-2">
                 <h3 className="text-sm font-bold text-white">{pkg.packageName}</h3>
-                {!pkg.providerPackageId ? (
+                {trial ? (
+                  <span className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-200">
+                    Trial
+                  </span>
+                ) : !pkg.providerPackageId ? (
                   <span className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-200">
                     Χωρίς provider
                   </span>
                 ) : null}
-                <label className="inline-flex items-center gap-1.5 text-xs text-text-muted">
-                  <input
-                    type="checkbox"
-                    name={`${pkg.packageId}:offerEnabled`}
-                    checked={pkg.offerEnabled}
-                    onChange={(event) => toggleOffer(pkg, event.target.checked)}
-                  />
-                  Προσφορά
-                </label>
+                {!trial ? (
+                  <label className="inline-flex items-center gap-1.5 text-xs text-text-muted">
+                    <input
+                      type="checkbox"
+                      name={`${pkg.packageId}:offerEnabled`}
+                      checked={pkg.offerEnabled}
+                      onChange={(event) => toggleOffer(pkg, event.target.checked)}
+                    />
+                    Προσφορά
+                  </label>
+                ) : null}
               </div>
 
               <div className="mb-3 rounded-lg border border-sky-500/20 bg-sky-500/5 p-2.5">

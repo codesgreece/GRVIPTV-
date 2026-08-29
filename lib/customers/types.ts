@@ -6,9 +6,9 @@ export const PAID_PACKAGE_OPTIONS = [
 ] as const;
 
 export const TRIAL_PACKAGE_OPTIONS = [
-  { id: "trial-30min", label: "Trial 30 λεπτών", months: 0, minutes: 30 },
-  { id: "trial-1hour", label: "Trial 1 ώρας", months: 0, minutes: 60 },
-  { id: "trial-1day", label: "Trial 1 ημέρας", months: 0, minutes: 1_440 },
+  { id: "trial-1day", label: "Trial 24 ώρες", months: 0, minutes: 1_440 },
+  { id: "trial-30min", label: "Trial 30 λεπτών (provider: 24ω)", months: 0, minutes: 30 },
+  { id: "trial-1hour", label: "Trial 1 ώρας (provider: 24ω)", months: 0, minutes: 60 },
 ] as const;
 
 export const PACKAGE_OPTIONS = [...PAID_PACKAGE_OPTIONS, ...TRIAL_PACKAGE_OPTIONS] as const;
