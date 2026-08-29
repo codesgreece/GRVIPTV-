@@ -99,11 +99,13 @@ export async function verifyCustomerSystem() {
     expiresAt,
     setupGuideUrl: "/odigos-egkatastasis",
     serverId: server.id,
+    paymentMethod: "iris",
   });
 
   const created = await createCustomer(input);
   assert(isValidMagicToken(created.token), "token is not cryptographically valid");
   assert(created.serverId === server.id, "create must store server");
+  assert(created.paymentMethod === "iris", "create must store payment method");
 
   const loaded = await getCustomerByToken(created.token);
   assert(loaded?.id === created.id, "token did not load the same customer");
@@ -122,7 +124,11 @@ export async function verifyCustomerSystem() {
   const firstPaid = first?.amountPaid ?? 0;
   const firstCost = first?.purchaseCostAtTime ?? 0;
 
-  const renewed = await renewCustomer(created.id, { packageId: "3-months", serverId: server.id });
+  const renewed = await renewCustomer(created.id, {
+    packageId: "3-months",
+    serverId: server.id,
+    paymentMethod: "paypal",
+  });
   assert(renewed, "renewal failed");
   if (!renewed) throw new Error("renewal failed");
   assert(renewed.customer.token === created.token, "magic link must stay the same after renewal");
@@ -135,6 +141,7 @@ export async function verifyCustomerSystem() {
     amountPaid: 32,
     priceType: "CUSTOMER_SPECIAL_OFFER",
     serverId: server.id,
+    paymentMethod: "paysafe",
   });
   assert(special?.subscription.priceType === "CUSTOMER_SPECIAL_OFFER", "special offer type");
   assert(special?.subscription.amountPaid === 32, "special amount");

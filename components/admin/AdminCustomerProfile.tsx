@@ -141,6 +141,7 @@ export function AdminCustomerProfile({
             <Info label="Ενεργοποίηση" value={formatDate(customer.activatedAt)} />
             <Info label="Λήξη" value={formatDate(customer.expiresAt)} />
             <Info label="Server" value={customer.serverName ?? "—"} />
+            <Info label="Πληρωμή με" value={customer.paymentMethodLabel ?? "—"} />
             <Info
               label="Απομένουν"
               value={customer.daysRemaining > 0 ? `${customer.daysRemaining} ημέρες` : "0 ημέρες"}

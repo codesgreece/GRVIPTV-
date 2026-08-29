@@ -35,6 +35,7 @@ import {
 import {
   CUSTOMER_PACKAGES,
   DEFAULT_SETUP_GUIDE_PATH,
+  PAYMENT_METHODS,
   type AdminNotification,
   type CustomerInput,
   type CustomerStatus,
@@ -92,6 +93,7 @@ const emptyForm = (serverId = ""): FormState => {
     expiresAt: computePackageExpiry("1-month", activatedAt),
     setupGuideUrl: DEFAULT_SETUP_GUIDE_PATH,
     serverId,
+    paymentMethod: undefined,
   };
 };
 
@@ -290,6 +292,7 @@ export function AdminPanel() {
       expiresAt: customer.expiresAt,
       setupGuideUrl: customer.setupGuideUrl,
       serverId: customer.serverId ?? "",
+      paymentMethod: customer.paymentMethod ?? customer.subscriptions.at(-1)?.paymentMethod,
     });
     setCreatedLink(`${window.location.origin}${accountPath(customer.token)}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -341,14 +344,14 @@ export function AdminPanel() {
     return null;
   };
 
-  const confirmRenew = async (packageId: PackageId, serverId?: string) => {
+  const confirmRenew = async (packageId: PackageId, serverId?: string, paymentMethod?: string) => {
     if (!renewFor) return;
     setRenewing(true);
     setError("");
     const response = await fetch(`/api/admin/customers/${renewFor.id}/renew`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ packageId, serverId }),
+      body: JSON.stringify({ packageId, serverId, paymentMethod }),
     });
     const payload = (await response.json()) as { customer?: CustomerView; error?: string };
     setRenewing(false);
@@ -361,7 +364,12 @@ export function AdminPanel() {
     await loadCustomers();
   };
 
-  const confirmSpecial = async (packageId: PackageId, amountPaid: number, serverId?: string) => {
+  const confirmSpecial = async (
+    packageId: PackageId,
+    amountPaid: number,
+    serverId?: string,
+    paymentMethod?: string,
+  ) => {
     if (!specialFor) return;
     setRenewing(true);
     setError("");
@@ -373,6 +381,7 @@ export function AdminPanel() {
         amountPaid,
         priceType: "CUSTOMER_SPECIAL_OFFER",
         serverId,
+        paymentMethod,
       }),
     });
     const payload = (await response.json()) as { customer?: CustomerView; error?: string };
@@ -850,6 +859,29 @@ export function AdminPanel() {
                     </p>
                   ) : null}
                 </Field>
+                <Field label="Τρόπος πληρωμής">
+                  <select
+                    value={form.paymentMethod ?? ""}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        paymentMethod: event.target.value
+                          ? (event.target.value as FormState["paymentMethod"])
+                          : undefined,
+                      }))
+                    }
+                    className="admin-input"
+                  >
+                    <option value="">
+                      {isTrialPackage(form.packageId) ? "— (προαιρετικό για trial)" : "Επίλεξε…"}
+                    </option>
+                    {PAYMENT_METHODS.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
                 <Field label="Ενεργοποίηση">
                   <input
                     type="date"
@@ -1041,6 +1073,11 @@ export function AdminPanel() {
                     {customer.serverName ? (
                       <p className="mt-0.5 text-[11px] text-sky-300/90">Server: {customer.serverName}</p>
                     ) : null}
+                    {customer.paymentMethodLabel ? (
+                      <p className="mt-0.5 text-[11px] text-violet-300/90">
+                        Πληρωμή: {customer.paymentMethodLabel}
+                      </p>
+                    ) : null}
                     <p className="mt-1 text-xs text-text-muted">
                       {formatDate(customer.activatedAt)} → {formatDate(customer.expiresAt)} ·{" "}
                       {customer.daysRemaining > 0 ? `${customer.daysRemaining}η` : "0η"} ·{" "}
@@ -1127,7 +1164,9 @@ export function AdminPanel() {
           servers={servers}
           saving={renewing}
           onClose={() => setRenewFor(null)}
-          onConfirm={(packageId, serverId) => void confirmRenew(packageId, serverId)}
+          onConfirm={(packageId, serverId, paymentMethod) =>
+            void confirmRenew(packageId, serverId, paymentMethod)
+          }
         />
       ) : null}
 
@@ -1138,8 +1177,8 @@ export function AdminPanel() {
           servers={servers}
           saving={renewing}
           onClose={() => setSpecialFor(null)}
-          onConfirm={(packageId, amountPaid, serverId) =>
-            void confirmSpecial(packageId, amountPaid, serverId)
+          onConfirm={(packageId, amountPaid, serverId, paymentMethod) =>
+            void confirmSpecial(packageId, amountPaid, serverId, paymentMethod)
           }
         />
       ) : null}

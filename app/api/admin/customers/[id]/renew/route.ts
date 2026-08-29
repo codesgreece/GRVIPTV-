@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated, unauthorized } from "@/lib/customers/auth";
 import { renewCustomer } from "@/lib/customers/service";
+import { parsePaymentMethod } from "@/lib/customers/payment";
 import { CUSTOMER_PACKAGES, type PackageId, type PriceType } from "@/lib/customers/types";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +21,7 @@ export async function POST(request: Request, context: RouteContext) {
       amountPaid?: number;
       priceType?: PriceType;
       serverId?: string;
+      paymentMethod?: string;
     };
     const packageId = String(body.packageId ?? "").trim() as PackageId;
 
@@ -32,6 +34,7 @@ export async function POST(request: Request, context: RouteContext) {
       amountPaid: typeof body.amountPaid === "number" ? body.amountPaid : undefined,
       priceType: body.priceType,
       serverId: body.serverId ? String(body.serverId).trim() : undefined,
+      paymentMethod: body.paymentMethod ? parsePaymentMethod(body.paymentMethod) : undefined,
     });
     if (!result) return NextResponse.json({ error: "Δεν βρέθηκε." }, { status: 404 });
     return NextResponse.json(result);

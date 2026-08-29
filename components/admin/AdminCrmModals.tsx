@@ -14,7 +14,8 @@ import {
   expiringSoonMessage,
   renewalMessage,
 } from "@/lib/customers/messages";
-import { CUSTOMER_PACKAGES, type CustomerView, type PackageId, type PackagePricing } from "@/lib/customers/types";
+import { CUSTOMER_PACKAGES, PAYMENT_METHODS, type CustomerView, type PackageId, type PackagePricing, type PaymentMethodId } from "@/lib/customers/types";
+import { isTrialPackage } from "@/lib/customers/status";
 import { validateSpecialOfferPrice } from "@/lib/customers/views";
 import { cn } from "@/lib/cn";
 
@@ -78,7 +79,7 @@ type RenewModalProps = {
   servers: import("@/lib/customers/types").Server[];
   saving: boolean;
   onClose: () => void;
-  onConfirm: (packageId: PackageId, serverId: string) => void;
+  onConfirm: (packageId: PackageId, serverId: string, paymentMethod: string) => void;
 };
 
 export function AdminRenewModal({
@@ -91,8 +92,12 @@ export function AdminRenewModal({
 }: RenewModalProps) {
   const [packageId, setPackageId] = useState<PackageId>(customer.packageId);
   const [serverId, setServerId] = useState(customer.serverId ?? servers[0]?.id ?? "");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | "">(
+    customer.paymentMethod ?? customer.subscriptions.at(-1)?.paymentMethod ?? "",
+  );
   const pkg = getPricingById(pricing, packageId);
   const pay = activePrice(pkg);
+  const paymentRequired = !isTrialPackage(packageId);
 
   return (
     <Modal title={`Ανανέωση — ${customer.name}`} onClose={onClose}>
@@ -129,6 +134,22 @@ export function AdminRenewModal({
         ))}
       </select>
 
+      <label className="mt-4 block text-xs font-semibold tracking-[0.12em] text-text-dim uppercase">
+        Τρόπος πληρωμής
+      </label>
+      <select
+        value={paymentMethod}
+        onChange={(event) => setPaymentMethod(event.target.value as PaymentMethodId | "")}
+        className="admin-input mt-2"
+      >
+        <option value="">{paymentRequired ? "Επίλεξε…" : "— (προαιρετικό)"}</option>
+        {PAYMENT_METHODS.map((item) => (
+          <option key={item.id} value={item.id}>
+            {item.label}
+          </option>
+        ))}
+      </select>
+
       <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2">
         <PriceBox label="Αρχική τιμή" value={formatEuro(pkg.normalPrice)} />
         <PriceBox
@@ -146,8 +167,8 @@ export function AdminRenewModal({
       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
         <Button
           className="font-extrabold sm:flex-1"
-          disabled={saving || !serverId}
-          onClick={() => onConfirm(packageId, serverId)}
+          disabled={saving || !serverId || (paymentRequired && !paymentMethod)}
+          onClick={() => onConfirm(packageId, serverId, paymentMethod)}
         >
           <RefreshCw className="h-4 w-4" />
           {saving ? "Ανανέωση…" : "Ολοκλήρωση ανανέωσης"}
@@ -166,7 +187,7 @@ type SpecialOfferModalProps = {
   servers: import("@/lib/customers/types").Server[];
   saving: boolean;
   onClose: () => void;
-  onConfirm: (packageId: PackageId, amountPaid: number, serverId: string) => void;
+  onConfirm: (packageId: PackageId, amountPaid: number, serverId: string, paymentMethod: string) => void;
 };
 
 export function AdminSpecialOfferModal({
@@ -179,6 +200,9 @@ export function AdminSpecialOfferModal({
 }: SpecialOfferModalProps) {
   const [packageId, setPackageId] = useState<PackageId>(customer.packageId);
   const [serverId, setServerId] = useState(customer.serverId ?? servers[0]?.id ?? "");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | "">(
+    customer.paymentMethod ?? customer.subscriptions.at(-1)?.paymentMethod ?? "",
+  );
   const pkg = getPricingById(pricing, packageId);
   const [specialPrice, setSpecialPrice] = useState(String(Math.max(pkg.purchaseCost + 1, pkg.offerPrice)));
   const amount = Number(specialPrice);
@@ -226,6 +250,22 @@ export function AdminSpecialOfferModal({
         ))}
       </select>
 
+      <label className="mt-4 block text-xs font-semibold tracking-[0.12em] text-text-dim uppercase">
+        Τρόπος πληρωμής
+      </label>
+      <select
+        value={paymentMethod}
+        onChange={(event) => setPaymentMethod(event.target.value as PaymentMethodId | "")}
+        className="admin-input mt-2"
+      >
+        <option value="">Επίλεξε…</option>
+        {PAYMENT_METHODS.map((item) => (
+          <option key={item.id} value={item.id}>
+            {item.label}
+          </option>
+        ))}
+      </select>
+
       <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2">
         <PriceBox label="Κανονική τιμή" value={formatEuro(pkg.normalPrice)} />
         <PriceBox label="Κόστος αγοράς" value={formatEuro(pkg.purchaseCost)} />
@@ -260,8 +300,8 @@ export function AdminSpecialOfferModal({
       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
         <Button
           className="font-extrabold sm:flex-1"
-          disabled={saving || !check.ok || !serverId}
-          onClick={() => onConfirm(packageId, amount, serverId)}
+          disabled={saving || !check.ok || !serverId || !paymentMethod}
+          onClick={() => onConfirm(packageId, amount, serverId, paymentMethod)}
         >
           <Gift className="h-4 w-4" />
           {saving ? "Εφαρμογή…" : "Εφαρμογή ειδικής προσφοράς"}

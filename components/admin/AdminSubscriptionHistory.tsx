@@ -1,6 +1,7 @@
 "use client";
 
 import { formatEuro } from "@/lib/customers/pricing";
+import { paymentMethodLabel } from "@/lib/customers/payment";
 import { priceTypeLabel } from "@/lib/customers/views";
 import type { Subscription } from "@/lib/customers/types";
 
@@ -73,17 +74,21 @@ export function AdminSubscriptionHistory({
                     <Stat label="Ενεργοποίηση" value={formatDate(item.startDate)} emphasize />
                     <Stat label="Λήξη" value={formatDate(item.endDate)} emphasize />
                   </div>
-                  <div className="mt-3 grid grid-cols-3 gap-2 border-t border-white/8 pt-3">
+                  <div className="mt-3 grid grid-cols-2 gap-3 border-t border-white/8 pt-3 sm:grid-cols-4">
                     <Stat label="Πληρωμή" value={formatEuro(item.amountPaid)} emphasize />
                     <Stat label="Κόστος" value={formatEuro(item.purchaseCostAtTime)} />
                     <Stat label="Κέρδος" value={formatEuro(item.profitAtTime)} profit />
+                    <Stat
+                      label="Τρόπος πληρωμής"
+                      value={paymentMethodLabel(item.paymentMethod) ?? "—"}
+                    />
                   </div>
                 </article>
               ))}
             </div>
 
             <div className="hidden overflow-x-auto md:block">
-              <table className="w-full min-w-[720px] text-left text-sm">
+              <table className="w-full min-w-[820px] text-left text-sm">
                 <thead className="bg-white/4 text-[11px] tracking-[0.12em] text-text-dim uppercase">
                   <tr>
                     <th className="px-3 py-2 font-semibold">Πακέτο</th>
@@ -92,6 +97,7 @@ export function AdminSubscriptionHistory({
                     <th className="px-3 py-2 font-semibold">Πληρωμή</th>
                     <th className="px-3 py-2 font-semibold">Κόστος</th>
                     <th className="px-3 py-2 font-semibold">Κέρδος</th>
+                    <th className="px-3 py-2 font-semibold">Πληρωμή με</th>
                     <th className="px-3 py-2 font-semibold">Τύπος</th>
                   </tr>
                 </thead>
@@ -109,6 +115,9 @@ export function AdminSubscriptionHistory({
                       </td>
                       <td className="px-3 py-2 font-semibold text-emerald-400">
                         {formatEuro(item.profitAtTime)}
+                      </td>
+                      <td className="px-3 py-2 text-text-muted">
+                        {paymentMethodLabel(item.paymentMethod) ?? "—"}
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap text-text-muted">
                         {priceTypeLabel(item.priceType)}
