@@ -7,6 +7,7 @@ import {
   roundMoney,
 } from "@/lib/customers/pricing";
 import { athensTodayYmd, daysRemainingFromExpiry } from "@/lib/customers/status";
+import { paymentMethodLabel } from "@/lib/customers/payment";
 import { createCustomerId } from "@/lib/customers/token";
 import type {
   AdminNotification,
@@ -19,6 +20,7 @@ import type {
   DashboardStats,
   PackageId,
   PackagePricing,
+  PaymentMethodId,
   PriceType,
   Subscription,
 } from "@/lib/customers/types";
@@ -105,6 +107,10 @@ export function toCustomerView(customer: Customer, data: CrmData, now = new Date
     notes,
     subscriptions: history,
     serverName: data.servers.find((server) => server.id === customer.serverId)?.name ?? null,
+    paymentMethodLabel:
+      paymentMethodLabel(customer.paymentMethod) ??
+      paymentMethodLabel(history.at(-1)?.paymentMethod) ??
+      null,
   };
 }
 
@@ -250,6 +256,7 @@ export function makeSubscription(input: {
   amountPaid?: number;
   priceType?: PriceType;
   purchaseCostAtTime?: number;
+  paymentMethod?: PaymentMethodId;
 }): Subscription {
   const pkg = getPricingById(input.pricing, input.packageId);
   const amountPaid = roundMoney(input.amountPaid ?? activePrice(pkg));
@@ -266,6 +273,7 @@ export function makeSubscription(input: {
     purchaseCostAtTime,
     profitAtTime,
     priceType: input.priceType ?? catalogPriceType(pkg),
+    paymentMethod: input.paymentMethod,
     createdAt: input.createdAt ?? new Date().toISOString(),
   };
 }

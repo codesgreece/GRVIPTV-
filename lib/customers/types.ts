@@ -24,6 +24,14 @@ export const RENEW_PATH = "https://grviptv.xyz/paketa";
 export type CustomerStatus = "active" | "expiring" | "expired";
 export type PriceType = "NORMAL" | "OFFER" | "CUSTOMER_SPECIAL_OFFER";
 
+export const PAYMENT_METHODS = [
+  { id: "paysafe", label: "Paysafe" },
+  { id: "iris", label: "IRIS" },
+  { id: "paypal", label: "PayPal" },
+] as const;
+
+export type PaymentMethodId = (typeof PAYMENT_METHODS)[number]["id"];
+
 export type Server = {
   id: string;
   name: string;
@@ -48,6 +56,7 @@ export type Customer = {
   archivedAt?: string;
   tagIds?: string[];
   serverId?: string;
+  paymentMethod?: PaymentMethodId;
 };
 
 export type Subscription = {
@@ -61,6 +70,7 @@ export type Subscription = {
   purchaseCostAtTime: number;
   profitAtTime: number;
   priceType: PriceType;
+  paymentMethod?: PaymentMethodId;
   createdAt: string;
 };
 
@@ -135,6 +145,7 @@ export type CustomerView = Customer & {
   notes: CustomerNote[];
   subscriptions: Subscription[];
   serverName: string | null;
+  paymentMethodLabel: string | null;
 };
 
 export type DashboardStats = {
@@ -177,6 +188,7 @@ export type CustomerInput = {
   expiresAt: string;
   setupGuideUrl: string;
   serverId: string;
+  paymentMethod?: PaymentMethodId;
 };
 
 export type SubscriptionView = {

@@ -8,6 +8,7 @@ import {
   type CustomerTag,
   type PackageId,
   type PriceType,
+  type PaymentMethodId,
   type Prospect,
   type ProspectInput,
   type SalespersonId,
@@ -27,6 +28,7 @@ import {
 } from "@/lib/customers/status";
 import { makeSubscription, toCustomerView, validateSpecialOfferPrice } from "@/lib/customers/views";
 import { getPricingById } from "@/lib/customers/pricing";
+import { parsePaymentMethod } from "@/lib/customers/payment";
 
 function isYmd(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
@@ -91,6 +93,8 @@ export function parseCustomerInput(body: unknown): CustomerInput {
     throw new Error("Μη έγκυρο link οδηγού εγκατάστασης.");
   }
 
+  const paymentMethod = parsePaymentMethod(data.paymentMethod, !isTrialPackage(packageId as PackageId));
+
   return {
     name,
     packageId: packageId as CustomerInput["packageId"],
@@ -98,6 +102,7 @@ export function parseCustomerInput(body: unknown): CustomerInput {
     expiresAt,
     setupGuideUrl,
     serverId,
+    paymentMethod,
   };
 }
 
@@ -121,6 +126,7 @@ export async function createCustomer(input: CustomerInput): Promise<Customer> {
     expiresAt: input.expiresAt,
     setupGuideUrl: input.setupGuideUrl,
     serverId: input.serverId,
+    paymentMethod: input.paymentMethod,
     createdAt: now,
     updatedAt: now,
     tagIds: [],
@@ -136,6 +142,7 @@ export async function createCustomer(input: CustomerInput): Promise<Customer> {
         endDate: customer.expiresAt,
         pricing: data.pricing,
         createdAt: now,
+        paymentMethod: input.paymentMethod,
       }),
     );
     return customer;
@@ -155,6 +162,7 @@ export async function updateCustomer(id: string, input: CustomerInput) {
       ...data.customers[index],
       ...input,
       serverId: input.serverId,
+      paymentMethod: input.paymentMethod,
       tagIds: data.customers[index].tagIds ?? [],
       updatedAt: new Date().toISOString(),
     };
@@ -190,6 +198,7 @@ export type RenewOptions = {
   amountPaid?: number;
   priceType?: PriceType;
   serverId?: string;
+  paymentMethod?: PaymentMethodId;
 };
 
 export async function renewCustomer(id: string, options: PackageId | RenewOptions) {
@@ -197,6 +206,8 @@ export async function renewCustomer(id: string, options: PackageId | RenewOption
   const specialAmount = typeof options === "string" ? undefined : options.amountPaid;
   const specialType = typeof options === "string" ? undefined : options.priceType;
   const renewServerId = typeof options === "string" ? undefined : options.serverId;
+  const renewPaymentMethod =
+    typeof options === "string" ? undefined : parsePaymentMethod(options.paymentMethod, !isTrialPackage(packageId));
 
   if (!CUSTOMER_PACKAGES.some((item) => item.id === packageId)) {
     throw new Error("Μη έγκυρο πακέτο.");
@@ -229,6 +240,7 @@ export async function renewCustomer(id: string, options: PackageId | RenewOption
       amountPaid: specialAmount,
       priceType: specialType,
       purchaseCostAtTime: pkg.purchaseCost,
+      paymentMethod: renewPaymentMethod,
     });
 
     data.subscriptions.push(subscription);
@@ -239,6 +251,7 @@ export async function renewCustomer(id: string, options: PackageId | RenewOption
       activatedAt: today,
       expiresAt,
       serverId,
+      paymentMethod: renewPaymentMethod ?? existing.paymentMethod,
       updatedAt: now,
       tagIds: existing.tagIds ?? [],
     };
