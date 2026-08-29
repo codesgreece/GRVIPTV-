@@ -22,6 +22,7 @@ import {
 import { AdminCustomerProfile } from "@/components/admin/AdminCustomerProfile";
 import { AdminNotificationCenter } from "@/components/admin/AdminNotificationCenter";
 import { AdminProspectsManager } from "@/components/admin/AdminProspectsManager";
+import { AdminProviderCredits } from "@/components/admin/AdminProviderCredits";
 import { AdminSubscriptionHistory } from "@/components/admin/AdminSubscriptionHistory";
 import { Button } from "@/components/ui/Button";
 import { formatEuro, activePrice, getPricingById } from "@/lib/customers/pricing";
@@ -151,6 +152,7 @@ export function AdminPanel() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [createPriceType, setCreatePriceType] = useState<PriceType>("NORMAL");
   const [createSpecialPrice, setCreateSpecialPrice] = useState("");
+  const [refreshingCredits, setRefreshingCredits] = useState(false);
 
   const refreshProfile = (list: CustomerView[], id?: string | null) => {
     if (!id) return;
@@ -290,6 +292,7 @@ export function AdminPanel() {
     setCreatePriceType("NORMAL");
     setCreateSpecialPrice("");
     await loadCustomers();
+    await refreshProviderCredits();
   };
 
   const startEdit = (customer: CustomerView) => {
@@ -375,6 +378,7 @@ export function AdminPanel() {
     setRenewFor(null);
     setNotice(`Η ανανέωση του «${payload.customer.name}» καταγράφηκε. Το Magic Link έμεινε το ίδιο.`);
     await loadCustomers();
+    await refreshProviderCredits();
   };
 
   const confirmSpecial = async (
@@ -404,6 +408,7 @@ export function AdminPanel() {
     setSpecialFor(null);
     setNotice(`Ειδική προσφορά εφαρμόστηκε στον «${payload.customer.name}».`);
     await loadCustomers();
+    await refreshProviderCredits();
   };
 
   const syncCustomerTags = async (customerId: string, tagIds: string[]) => {
@@ -529,6 +534,27 @@ export function AdminPanel() {
     return prospects.filter((item) => item.contactAt <= todayYmd).length;
   }, [prospects]);
 
+  const refreshProviderCredits = async () => {
+    setRefreshingCredits(true);
+    try {
+      const response = await fetch("/api/admin/provider/status", { cache: "no-store" });
+      if (!response.ok) return;
+      const payload = (await response.json()) as {
+        connected: boolean;
+        credits: number | null;
+        label: string;
+      };
+      setDashboard((current) => ({
+        ...current,
+        providerConnected: payload.connected,
+        providerCredits: payload.credits,
+        providerStatusLabel: payload.connected ? "Connected" : payload.label,
+      }));
+    } finally {
+      setRefreshingCredits(false);
+    }
+  };
+
   const createPkg = getPricingById(pricing, form.packageId);
   const createSaleAmount =
     createPriceType === "CUSTOMER_SPECIAL_OFFER"
@@ -598,6 +624,14 @@ export function AdminPanel() {
       <div className="mb-3 flex items-center justify-between gap-3">
         <h1 className="font-display text-xl font-black text-white sm:text-2xl">GRVIP Admin</h1>
         <div className="flex items-center gap-2">
+          <AdminProviderCredits
+            compact
+            connected={dashboard.providerConnected}
+            credits={dashboard.providerCredits}
+            statusLabel={dashboard.providerStatusLabel}
+            refreshing={refreshingCredits}
+            onRefresh={() => void refreshProviderCredits()}
+          />
           <AdminNotificationCenter
             notifications={notifications}
             open={notificationsOpen}
@@ -657,17 +691,16 @@ export function AdminPanel() {
 
       {tab === "overview" ? (
         <div className="space-y-4">
+          <AdminProviderCredits
+            connected={dashboard.providerConnected}
+            credits={dashboard.providerCredits}
+            statusLabel={dashboard.providerStatusLabel}
+            refreshing={refreshingCredits}
+            onRefresh={() => void refreshProviderCredits()}
+          />
+
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-3 md:grid-cols-3">
             {[
-              {
-                label: dashboard.providerConnected ? "🟢 API Connected" : "🔴 API Offline",
-                value: dashboard.providerStatusLabel,
-              },
-              {
-                label: "💳 Credits",
-                value:
-                  dashboard.providerCredits != null ? String(dashboard.providerCredits) : "—",
-              },
               { label: "Πελάτες", value: String(dashboard.totalCustomers) },
               { label: "Ενεργοί", value: String(dashboard.activeSubscriptions) },
               { label: "Λήγουν", value: String(dashboard.expiringSoon) },
@@ -760,7 +793,16 @@ export function AdminPanel() {
       ) : null}
 
       {tab === "pricing" ? (
-        <AdminPricingManager pricing={pricing} onChange={setPricing} onSave={savePricing} />
+        <div className="space-y-3">
+          <AdminProviderCredits
+            connected={dashboard.providerConnected}
+            credits={dashboard.providerCredits}
+            statusLabel={dashboard.providerStatusLabel}
+            refreshing={refreshingCredits}
+            onRefresh={() => void refreshProviderCredits()}
+          />
+          <AdminPricingManager pricing={pricing} onChange={setPricing} onSave={savePricing} />
+        </div>
       ) : null}
 
       {tab === "prospects" ? (
