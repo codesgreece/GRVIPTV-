@@ -93,8 +93,7 @@ export function rewriteHlsPlaylist(
         return line;
       }
 
-      const proxied = `/api/stream/${encodeURIComponent(channelId)}?seg=${encodeURIComponent(absolute)}`;
-      return proxied;
+      return `/api/stream/${encodeURIComponent(channelId)}?seg=${encodeURIComponent(absolute)}`;
     })
     .join("\n");
 }

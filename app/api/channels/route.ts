@@ -30,9 +30,10 @@ export async function GET(request: Request) {
     return NextResponse.json(
       { error: true, message },
       {
-        status: error instanceof LiveChannelsError && message.includes("not configured")
-          ? 503
-          : 502,
+        status:
+          error instanceof LiveChannelsError && message.includes("not configured")
+            ? 503
+            : 502,
         headers: { "Cache-Control": "no-store" },
       },
     );

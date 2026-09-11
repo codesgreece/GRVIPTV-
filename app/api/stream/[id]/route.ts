@@ -19,6 +19,8 @@ const UPSTREAM_HEADERS = {
   Connection: "close",
 } as const;
 
+const UPSTREAM_TIMEOUT_MS = 12_000;
+
 async function fetchUpstream(
   url: string,
   init?: { range?: string | null },
@@ -30,6 +32,7 @@ async function fetchUpstream(
     headers,
     cache: "no-store",
     redirect: "follow",
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
   });
 }
 
@@ -47,7 +50,6 @@ function isAllowedSegmentUrl(segmentUrl: string, sourceUrl: string): boolean {
     const seg = new URL(segmentUrl);
     const source = new URL(sourceUrl);
     if (seg.protocol !== "http:" && seg.protocol !== "https:") return false;
-    // Segments must stay on the same IPTV host (never open proxy)
     return seg.hostname === source.hostname;
   } catch {
     return false;
@@ -74,7 +76,6 @@ export async function GET(request: Request, context: RouteContext) {
     const { searchParams } = new URL(request.url);
     const seg = searchParams.get("seg");
 
-    // Proxy individual HLS segments (short-lived — serverless friendly)
     if (seg) {
       let segmentUrl: string;
       try {
@@ -125,7 +126,6 @@ export async function GET(request: Request, context: RouteContext) {
       range: request.headers.get("range"),
     });
 
-    // If HLS fails, fall back to progressive MPEG-TS
     if (!upstream.ok && upstream.status !== 206 && isHlsUrl(sourceUrl)) {
       sourceUrl = toMpegTsSourceUrl(channel.sourceUrl);
       upstream = await fetchUpstream(sourceUrl, {
@@ -140,7 +140,6 @@ export async function GET(request: Request, context: RouteContext) {
       });
     }
 
-    // Rewrite HLS playlists so segments stay on our HTTPS origin
     if (
       isHlsUrl(sourceUrl) ||
       (upstream.headers.get("content-type") || "").includes("mpegurl")
@@ -164,7 +163,6 @@ export async function GET(request: Request, context: RouteContext) {
       });
     }
 
-    // Progressive MPEG-TS / binary stream
     const headers = corsHeaders({
       "Content-Type": upstream.headers.get("content-type") || "video/mp2t",
     });

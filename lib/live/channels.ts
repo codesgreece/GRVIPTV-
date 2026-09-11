@@ -1,11 +1,23 @@
-import { getCached, setCache, clearCache } from "@/lib/live/cache";
+import {
+  clearCache,
+  clearCacheAsync,
+  getCachedAsync,
+  setCacheAsync,
+} from "@/lib/live/cache";
 import { parseM3uPlaylist } from "@/lib/live/parse-m3u";
 import { buildUniqueChannelId } from "@/lib/live/slug";
 import { toHlsSourceUrl } from "@/lib/live/stream-url";
-import type { ChannelsPayload, LiveChannel, LiveChannelInternal } from "@/lib/live/types";
-import { buildM3uPlusFromXtreamApi, parseXtreamFromM3uUrl } from "@/lib/live/xtream";
+import type {
+  ChannelsPayload,
+  LiveChannel,
+  LiveChannelInternal,
+} from "@/lib/live/types";
+import {
+  buildM3uPlusFromXtreamApi,
+  parseXtreamFromM3uUrl,
+} from "@/lib/live/xtream";
 
-const CACHE_KEY = "live-channels-v2-hls";
+const CACHE_KEY = "live-channels-v3-hls";
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const FETCH_TIMEOUT_MS = 45_000;
 
@@ -137,7 +149,7 @@ type CachedBundle = {
 
 async function loadBundle(force = false): Promise<CachedBundle> {
   if (!force) {
-    const cached = getCached<CachedBundle>(CACHE_KEY);
+    const cached = await getCachedAsync<CachedBundle>(CACHE_KEY);
     if (cached) return cached;
   }
 
@@ -148,7 +160,7 @@ async function loadBundle(force = false): Promise<CachedBundle> {
   }
 
   const bundle = buildPayload(internal);
-  setCache(CACHE_KEY, bundle, CACHE_TTL_MS);
+  await setCacheAsync(CACHE_KEY, bundle, CACHE_TTL_MS);
   return bundle;
 }
 
@@ -177,12 +189,15 @@ export async function getRelatedChannels(
     .slice(0, limit);
 }
 
-export function invalidateChannelsCache() {
+export async function invalidateChannelsCache() {
   clearCache(CACHE_KEY);
+  await clearCacheAsync(CACHE_KEY);
 }
 
-/** Strip credential-looking query/path fragments from any accidental leak checks */
-export function assertNoCredentialsInPayload(payload: ChannelsPayload, m3uUrl?: string) {
+export function assertNoCredentialsInPayload(
+  payload: ChannelsPayload,
+  m3uUrl?: string,
+) {
   const serialized = JSON.stringify(payload);
   if (m3uUrl) {
     try {
