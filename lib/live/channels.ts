@@ -1,10 +1,11 @@
 import { getCached, setCache, clearCache } from "@/lib/live/cache";
 import { parseM3uPlaylist } from "@/lib/live/parse-m3u";
 import { buildUniqueChannelId } from "@/lib/live/slug";
+import { toHlsSourceUrl } from "@/lib/live/stream-url";
 import type { ChannelsPayload, LiveChannel, LiveChannelInternal } from "@/lib/live/types";
 import { buildM3uPlusFromXtreamApi, parseXtreamFromM3uUrl } from "@/lib/live/xtream";
 
-const CACHE_KEY = "live-channels-v1";
+const CACHE_KEY = "live-channels-v2-hls";
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const FETCH_TIMEOUT_MS = 45_000;
 
@@ -56,7 +57,7 @@ function buildInternalChannels(rawText: string): LiveChannelInternal[] {
       tvgId: item.tvgId.trim(),
       tvgName: item.tvgName.trim() || item.name.trim(),
       streamUrl: `/api/stream/${encodeURIComponent(id)}`,
-      sourceUrl: item.streamUrl,
+      sourceUrl: toHlsSourceUrl(item.streamUrl),
     });
   }
 

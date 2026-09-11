@@ -19,9 +19,11 @@ type LivePlayerProps = {
 
 type PlayerStatus = "loading" | "playing" | "paused" | "error";
 
+type Destroyable = { destroy: () => void };
+
 export function LivePlayer({ src, title, poster }: LivePlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const playerRef = useRef<{ destroy: () => void } | null>(null);
+  const playerRef = useRef<Destroyable | null>(null);
   const [status, setStatus] = useState<PlayerStatus>("loading");
   const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(1);
@@ -45,13 +47,9 @@ export function LivePlayer({ src, title, poster }: LivePlayerProps) {
     let cancelled = false;
     setStatus("loading");
 
-    async function start(video: HTMLVideoElement) {
-      destroyPlayer();
-
-      const isHls = /\.m3u8($|\?)/i.test(src);
-
-      // Native HLS (Safari) or progressive fallback attempt
-      if (isHls && video.canPlayType("application/vnd.apple.mpegurl")) {
+    async function startWithHls(video: HTMLVideoElement): Promise<boolean> {
+      // Safari / iOS native HLS
+      if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = src;
         try {
           await video.play();
@@ -59,27 +57,70 @@ export function LivePlayer({ src, title, poster }: LivePlayerProps) {
         } catch {
           if (!cancelled) setStatus("paused");
         }
-        return;
+        return true;
       }
 
-      const mpegts = (await import("mpegts.js")).default;
-      if (cancelled) return;
+      const Hls = (await import("hls.js")).default;
+      if (cancelled) return false;
 
-      if (!mpegts.getFeatureList().mseLivePlayback) {
-        // Last resort: try native video element
-        video.src = src;
-        try {
-          await video.play();
-          if (!cancelled) setStatus("playing");
-        } catch {
-          if (!cancelled) setStatus("error");
+      if (!Hls.isSupported()) return false;
+
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: true,
+        backBufferLength: 30,
+        maxBufferLength: 20,
+        liveSyncDurationCount: 3,
+        liveMaxLatencyDurationCount: 8,
+      });
+
+      playerRef.current = {
+        destroy: () => {
+          hls.destroy();
+        },
+      };
+
+      hls.loadSource(src);
+      hls.attachMedia(video);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        void video.play().then(
+          () => {
+            if (!cancelled) setStatus("playing");
+          },
+          () => {
+            if (!cancelled) setStatus("paused");
+          },
+        );
+      });
+
+      hls.on(Hls.Events.ERROR, (_event, data) => {
+        if (cancelled) return;
+        if (data.fatal) {
+          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+            hls.startLoad();
+            return;
+          }
+          if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+            hls.recoverMediaError();
+            return;
+          }
+          setStatus("error");
         }
-        return;
-      }
+      });
+
+      return true;
+    }
+
+    async function startWithMpegTs(video: HTMLVideoElement): Promise<boolean> {
+      const mpegts = (await import("mpegts.js")).default;
+      if (cancelled) return false;
+
+      if (!mpegts.getFeatureList().mseLivePlayback) return false;
 
       const player = mpegts.createPlayer(
         {
-          type: isHls ? "mse" : "mpegts",
+          type: "mpegts",
           isLive: true,
           url: src,
           cors: true,
@@ -90,13 +131,25 @@ export function LivePlayer({ src, title, poster }: LivePlayerProps) {
           enableStashBuffer: false,
           stashInitialSize: 128,
           liveBufferLatencyChasing: true,
-          liveBufferLatencyMaxLatency: 2.5,
+          liveBufferLatencyMaxLatency: 3,
           liveBufferLatencyMinRemain: 0.5,
           autoCleanupSourceBuffer: true,
         },
       );
 
-      playerRef.current = player;
+      playerRef.current = {
+        destroy: () => {
+          try {
+            player.pause();
+            player.unload();
+            player.detachMediaElement();
+            player.destroy();
+          } catch {
+            // ignore
+          }
+        },
+      };
+
       player.attachMediaElement(video);
       player.load();
 
@@ -109,6 +162,38 @@ export function LivePlayer({ src, title, poster }: LivePlayerProps) {
         if (!cancelled) setStatus("playing");
       } catch {
         if (!cancelled) setStatus("paused");
+      }
+
+      return true;
+    }
+
+    async function start(video: HTMLVideoElement) {
+      destroyPlayer();
+      video.removeAttribute("src");
+      video.load();
+
+      // Prefer HLS (playlist endpoint). Fall back to mpegts for TS.
+      const preferHls = true;
+
+      try {
+        if (preferHls) {
+          const ok = await startWithHls(video);
+          if (ok || cancelled) return;
+        }
+
+        const okTs = await startWithMpegTs(video);
+        if (okTs || cancelled) return;
+
+        // Last resort: native element
+        video.src = src;
+        try {
+          await video.play();
+          if (!cancelled) setStatus("playing");
+        } catch {
+          if (!cancelled) setStatus("error");
+        }
+      } catch {
+        if (!cancelled) setStatus("error");
       }
     }
 

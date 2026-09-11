@@ -94,7 +94,8 @@ export async function buildM3uPlusFromXtreamApi(
     const category = catMap.get(String(stream.category_id ?? "")) || "Other";
     const logo = String(stream.stream_icon || "").trim();
     const tvgId = String(stream.epg_channel_id || "").trim();
-    const streamUrl = `${creds.baseOrigin}/${creds.username}/${creds.password}/${id}`;
+    // Prefer HLS for browser playback through short-lived serverless proxies
+    const streamUrl = `${creds.baseOrigin}/live/${creds.username}/${creds.password}/${id}.m3u8`;
 
     lines.push(
       `#EXTINF:-1 tvg-id="${escapeAttr(tvgId)}" tvg-name="${escapeAttr(name)}" tvg-logo="${escapeAttr(logo)}" group-title="${escapeAttr(category)}",${name}`,
