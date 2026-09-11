@@ -4,6 +4,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const base = "https://grvipott.com";
   const routes = [
     "",
+    "/live",
     "/paketa",
     "/kanalia",
     "/odigos-egkatastasis",
