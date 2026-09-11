@@ -124,14 +124,21 @@ export async function GET(request: Request, context: RouteContext) {
     let sourceUrl = channel.sourceUrl;
     let upstream: Response;
     let upstreamStatus = 0;
+    let upstreamError = "";
 
     try {
       upstream = await fetchUpstream(sourceUrl, {
         range: request.headers.get("range"),
       });
       upstreamStatus = upstream.status;
-    } catch {
+    } catch (err) {
       upstreamStatus = 504;
+      upstreamError =
+        err instanceof Error
+          ? err.name === "TimeoutError" || err.name === "AbortError"
+            ? "timeout"
+            : err.message.slice(0, 80).replace(/https?:\/\/[^\s]+/gi, "[url]")
+          : "fetch_failed";
       // synthesize a failed response path
       if (isHlsUrl(sourceUrl)) {
         sourceUrl = toMpegTsSourceUrl(channel.sourceUrl);
@@ -140,16 +147,29 @@ export async function GET(request: Request, context: RouteContext) {
             range: request.headers.get("range"),
           });
           upstreamStatus = upstream.status;
-        } catch {
+          upstreamError = "";
+        } catch (err2) {
+          const msg =
+            err2 instanceof Error
+              ? err2.name === "TimeoutError" || err2.name === "AbortError"
+                ? "timeout"
+                : err2.message.slice(0, 80).replace(/https?:\/\/[^\s]+/gi, "[url]")
+              : "fetch_failed";
           return new Response("Stream unavailable", {
             status: 502,
-            headers: corsHeaders({ "X-Upstream-Status": "504" }),
+            headers: corsHeaders({
+              "X-Upstream-Status": "504",
+              "X-Upstream-Error": msg,
+            }),
           });
         }
       } else {
         return new Response("Stream unavailable", {
           status: 502,
-          headers: corsHeaders({ "X-Upstream-Status": "504" }),
+          headers: corsHeaders({
+            "X-Upstream-Status": "504",
+            "X-Upstream-Error": upstreamError,
+          }),
         });
       }
     }
@@ -161,8 +181,14 @@ export async function GET(request: Request, context: RouteContext) {
           range: request.headers.get("range"),
         });
         upstreamStatus = upstream.status;
-      } catch {
+      } catch (err) {
         upstreamStatus = 504;
+        upstreamError =
+          err instanceof Error
+            ? err.name === "TimeoutError" || err.name === "AbortError"
+              ? "timeout"
+              : err.message.slice(0, 80).replace(/https?:\/\/[^\s]+/gi, "[url]")
+            : "fetch_failed";
       }
     }
 
@@ -171,6 +197,7 @@ export async function GET(request: Request, context: RouteContext) {
         status: 502,
         headers: corsHeaders({
           "X-Upstream-Status": String(upstreamStatus || upstream!.status),
+          ...(upstreamError ? { "X-Upstream-Error": upstreamError } : {}),
         }),
       });
     }
