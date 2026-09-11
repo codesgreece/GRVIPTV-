@@ -122,21 +122,56 @@ export async function GET(request: Request, context: RouteContext) {
     }
 
     let sourceUrl = channel.sourceUrl;
-    let upstream = await fetchUpstream(sourceUrl, {
-      range: request.headers.get("range"),
-    });
+    let upstream: Response;
+    let upstreamStatus = 0;
 
-    if (!upstream.ok && upstream.status !== 206 && isHlsUrl(sourceUrl)) {
-      sourceUrl = toMpegTsSourceUrl(channel.sourceUrl);
+    try {
       upstream = await fetchUpstream(sourceUrl, {
         range: request.headers.get("range"),
       });
+      upstreamStatus = upstream.status;
+    } catch {
+      upstreamStatus = 504;
+      // synthesize a failed response path
+      if (isHlsUrl(sourceUrl)) {
+        sourceUrl = toMpegTsSourceUrl(channel.sourceUrl);
+        try {
+          upstream = await fetchUpstream(sourceUrl, {
+            range: request.headers.get("range"),
+          });
+          upstreamStatus = upstream.status;
+        } catch {
+          return new Response("Stream unavailable", {
+            status: 502,
+            headers: corsHeaders({ "X-Upstream-Status": "504" }),
+          });
+        }
+      } else {
+        return new Response("Stream unavailable", {
+          status: 502,
+          headers: corsHeaders({ "X-Upstream-Status": "504" }),
+        });
+      }
     }
 
-    if (!upstream.ok && upstream.status !== 206) {
+    if (!upstream.ok && upstream.status !== 206 && isHlsUrl(channel.sourceUrl)) {
+      sourceUrl = toMpegTsSourceUrl(channel.sourceUrl);
+      try {
+        upstream = await fetchUpstream(sourceUrl, {
+          range: request.headers.get("range"),
+        });
+        upstreamStatus = upstream.status;
+      } catch {
+        upstreamStatus = 504;
+      }
+    }
+
+    if (!upstream!.ok && upstream!.status !== 206) {
       return new Response("Stream unavailable", {
         status: 502,
-        headers: corsHeaders(),
+        headers: corsHeaders({
+          "X-Upstream-Status": String(upstreamStatus || upstream!.status),
+        }),
       });
     }
 
