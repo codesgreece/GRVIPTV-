@@ -72,6 +72,19 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-3">
+            {pathname.startsWith("/live") ? (
+              <Link
+                href="/live"
+                className="hidden items-center gap-2 rounded-full border border-red-500/35 bg-red-600/10 px-3 py-1.5 text-[11px] font-bold tracking-[0.14em] text-red-400 uppercase sm:inline-flex"
+                aria-label="Live TV"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-70" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+                </span>
+                LIVE
+              </Link>
+            ) : null}
             <Button
               href="/paketa"
               className="hidden min-[400px]:inline-flex px-3 py-2 text-sm sm:px-5 sm:py-2.5"

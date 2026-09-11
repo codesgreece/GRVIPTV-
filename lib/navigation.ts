@@ -1,5 +1,6 @@
 export const mainNav = [
   { href: "/", label: "Αρχική" },
+  { href: "/live", label: "Live TV" },
   { href: "/kanalia", label: "Κανάλια" },
   { href: "/paketa", label: "Πακέτα" },
   { href: "/odigos-egkatastasis", label: "Οδηγός Εγκατάστασης" },
