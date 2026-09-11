@@ -75,6 +75,22 @@ export function isHlsUrl(url: string): boolean {
   return /\.m3u8($|\?)/i.test(url);
 }
 
+/**
+ * Optional external relay for IPTV hosts that block Vercel/datacenter IPs.
+ * STREAM_RELAY_URL=https://relay.example.com/relay
+ * STREAM_RELAY_SECRET=optional-shared-secret
+ * Relay should accept: GET {STREAM_RELAY_URL}?u=<urlencoded-source>&s=<secret>
+ */
+export function viaStreamRelay(sourceUrl: string): string {
+  const relay = process.env.STREAM_RELAY_URL?.trim();
+  if (!relay) return sourceUrl;
+  const secret = process.env.STREAM_RELAY_SECRET?.trim() || "";
+  const url = new URL(relay);
+  url.searchParams.set("u", sourceUrl);
+  if (secret) url.searchParams.set("s", secret);
+  return url.toString();
+}
+
 export function rewriteHlsPlaylist(
   playlist: string,
   channelId: string,
