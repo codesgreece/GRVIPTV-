@@ -1,3 +1,6 @@
+import http from "node:http";
+import https from "node:https";
+import { Readable } from "node:stream";
 import { getChannelById, LiveChannelsError } from "@/lib/live/channels";
 import {
   isHlsUrl,
@@ -13,67 +16,7 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-const UPSTREAM_HEADERS = {
-  "User-Agent": "VLC/3.0.18 LibVLC/3.0.18",
-  Accept: "*/*",
-  Connection: "close",
-} as const;
-
-const UPSTREAM_TIMEOUT_MS = 12_000;
-
-async function fetchUpstream(
-  url: string,
-  init?: { range?: string | null },
-): Promise<Response> {
-  const headers = new Headers(UPSTREAM_HEADERS);
-  if (init?.range) headers.set("Range", init.range);
-
-  return fetch(url, {
-    headers,
-    cache: "no-store",
-    redirect: "follow",
-    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
-  });
-}
-
-/** Some panels gate streams until player_api is hit from the same egress IP. */
-async function warmXtreamSession(sourceUrl: string) {
-  try {
-    const url = new URL(sourceUrl);
-    const parts = url.pathname.split("/").filter(Boolean);
-    // /live/user/pass/id.m3u8  or /user/pass/id
-    let user = "";
-    let pass = "";
-    if (parts[0] === "live" && parts.length >= 4) {
-      user = parts[1] ?? "";
-      pass = parts[2] ?? "";
-    } else if (parts.length >= 3) {
-      user = parts[0] ?? "";
-      pass = parts[1] ?? "";
-    }
-    if (!user || !pass) return;
-
-    await fetch(
-      `${url.protocol}//${url.host}/player_api.php?username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`,
-      {
-        headers: UPSTREAM_HEADERS,
-        cache: "no-store",
-        signal: AbortSignal.timeout(8000),
-      },
-    );
-  } catch {
-    // best-effort warm-up
-  }
-}
-
-async function readErrorSnippet(res: Response): Promise<string> {
-  try {
-    const text = (await res.clone().text()).replace(/\s+/g, " ").trim();
-    return text.slice(0, 80).replace(/https?:\/\/[^\s]+/gi, "[url]");
-  } catch {
-    return "";
-  }
-}
+const UA = "VLC/3.0.18 LibVLC/3.0.18";
 
 function corsHeaders(extra?: HeadersInit): Headers {
   const headers = new Headers(extra);
@@ -92,6 +35,84 @@ function isAllowedSegmentUrl(segmentUrl: string, sourceUrl: string): boolean {
     return seg.hostname === source.hostname;
   } catch {
     return false;
+  }
+}
+
+type NodeResult = {
+  status: number;
+  headers: http.IncomingHttpHeaders;
+  body: Buffer;
+};
+
+/** Low-level HTTP(S) GET — some IPTV panels fingerprint undici/fetch and return 511. */
+function nodeRequest(
+  targetUrl: string,
+  init?: { range?: string | null; timeoutMs?: number; maxBytes?: number },
+): Promise<NodeResult> {
+  return new Promise((resolve, reject) => {
+    const url = new URL(targetUrl);
+    const lib = url.protocol === "https:" ? https : http;
+    const maxBytes = init?.maxBytes ?? 2_000_000;
+    const req = lib.request(
+      {
+        protocol: url.protocol,
+        hostname: url.hostname,
+        port: url.port || (url.protocol === "https:" ? 443 : 80),
+        path: `${url.pathname}${url.search}`,
+        method: "GET",
+        headers: {
+          "User-Agent": UA,
+          Accept: "*/*",
+          Connection: "close",
+          ...(init?.range ? { Range: init.range } : {}),
+        },
+      },
+      (res) => {
+        const chunks: Buffer[] = [];
+        let total = 0;
+        res.on("data", (chunk: Buffer) => {
+          total += chunk.length;
+          if (total <= maxBytes) chunks.push(chunk);
+          if (total > maxBytes) res.destroy();
+        });
+        res.on("end", () => {
+          resolve({
+            status: res.statusCode || 0,
+            headers: res.headers,
+            body: Buffer.concat(chunks),
+          });
+        });
+        res.on("error", reject);
+      },
+    );
+    req.setTimeout(init?.timeoutMs ?? 12_000, () => {
+      req.destroy(new Error("timeout"));
+    });
+    req.on("error", reject);
+    req.end();
+  });
+}
+
+async function warmXtreamSession(sourceUrl: string) {
+  try {
+    const url = new URL(sourceUrl);
+    const parts = url.pathname.split("/").filter(Boolean);
+    let user = "";
+    let pass = "";
+    if (parts[0] === "live" && parts.length >= 4) {
+      user = parts[1] ?? "";
+      pass = parts[2] ?? "";
+    } else if (parts.length >= 3) {
+      user = parts[0] ?? "";
+      pass = parts[1] ?? "";
+    }
+    if (!user || !pass) return;
+    await nodeRequest(
+      `${url.protocol}//${url.host}/player_api.php?username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`,
+      { timeoutMs: 8000, maxBytes: 64_000 },
+    );
+  } catch {
+    // best-effort
   }
 }
 
@@ -133,28 +154,32 @@ export async function GET(request: Request, context: RouteContext) {
         });
       }
 
-      const upstream = await fetchUpstream(segmentUrl, {
+      const upstream = await nodeRequest(segmentUrl, {
         range: request.headers.get("range"),
+        timeoutMs: 15_000,
+        maxBytes: 4_000_000,
       });
 
-      if (!upstream.ok && upstream.status !== 206) {
+      if (upstream.status !== 200 && upstream.status !== 206) {
         return new Response("Segment unavailable", {
           status: 502,
-          headers: corsHeaders(),
+          headers: corsHeaders({
+            "X-Upstream-Status": String(upstream.status),
+          }),
         });
       }
 
       const headers = corsHeaders({
-        "Content-Type": upstream.headers.get("content-type") || "video/MP2T",
+        "Content-Type": String(upstream.headers["content-type"] || "video/MP2T"),
       });
-      const contentLength = upstream.headers.get("content-length");
-      if (contentLength) headers.set("Content-Length", contentLength);
-      const contentRange = upstream.headers.get("content-range");
-      if (contentRange) headers.set("Content-Range", contentRange);
-      const acceptRanges = upstream.headers.get("accept-ranges");
-      if (acceptRanges) headers.set("Accept-Ranges", acceptRanges);
+      if (upstream.headers["content-length"]) {
+        headers.set("Content-Length", String(upstream.headers["content-length"]));
+      }
+      if (upstream.headers["content-range"]) {
+        headers.set("Content-Range", String(upstream.headers["content-range"]));
+      }
 
-      return new Response(upstream.body, {
+      return new Response(new Uint8Array(upstream.body), {
         status: upstream.status,
         headers,
       });
@@ -162,105 +187,63 @@ export async function GET(request: Request, context: RouteContext) {
 
     await warmXtreamSession(channel.sourceUrl);
 
-    let sourceUrl = channel.sourceUrl;
-    let upstream: Response;
-    let upstreamStatus = 0;
-    let upstreamError = "";
-
-    try {
-      upstream = await fetchUpstream(sourceUrl, {
-        range: request.headers.get("range"),
-      });
-      upstreamStatus = upstream.status;
-      if (!upstream.ok && upstream.status !== 206) {
-        upstreamError = await readErrorSnippet(upstream);
-      }
-    } catch (err) {
-      upstreamStatus = 504;
-      upstreamError =
-        err instanceof Error
-          ? err.name === "TimeoutError" || err.name === "AbortError"
-            ? "timeout"
-            : err.message.slice(0, 80).replace(/https?:\/\/[^\s]+/gi, "[url]")
-          : "fetch_failed";
-      // synthesize a failed response path
-      if (isHlsUrl(sourceUrl)) {
-        sourceUrl = toMpegTsSourceUrl(channel.sourceUrl);
-        try {
-          upstream = await fetchUpstream(sourceUrl, {
-            range: request.headers.get("range"),
-          });
-          upstreamStatus = upstream.status;
-          upstreamError = !upstream.ok && upstream.status !== 206
-            ? await readErrorSnippet(upstream)
-            : "";
-        } catch (err2) {
-          const msg =
-            err2 instanceof Error
-              ? err2.name === "TimeoutError" || err2.name === "AbortError"
-                ? "timeout"
-                : err2.message.slice(0, 80).replace(/https?:\/\/[^\s]+/gi, "[url]")
-              : "fetch_failed";
-          return new Response("Stream unavailable", {
-            status: 502,
-            headers: corsHeaders({
-              "X-Upstream-Status": "504",
-              "X-Upstream-Error": msg,
-            }),
-          });
-        }
-      } else {
-        return new Response("Stream unavailable", {
-          status: 502,
-          headers: corsHeaders({
-            "X-Upstream-Status": "504",
-            "X-Upstream-Error": upstreamError,
-          }),
-        });
-      }
+    const candidates = [channel.sourceUrl];
+    if (isHlsUrl(channel.sourceUrl)) {
+      candidates.push(toMpegTsSourceUrl(channel.sourceUrl));
     }
 
-    if (!upstream.ok && upstream.status !== 206 && isHlsUrl(channel.sourceUrl)) {
-      sourceUrl = toMpegTsSourceUrl(channel.sourceUrl);
+    let lastStatus = 0;
+    let lastError = "";
+    let chosen: (NodeResult & { url: string }) | null = null;
+
+    for (const candidate of candidates) {
       try {
-        upstream = await fetchUpstream(sourceUrl, {
+        const upstream = await nodeRequest(candidate, {
           range: request.headers.get("range"),
+          timeoutMs: 12_000,
+          maxBytes: isHlsUrl(candidate) ? 200_000 : 64_000,
         });
-        upstreamStatus = upstream.status;
+        lastStatus = upstream.status;
+        if (upstream.status === 200 || upstream.status === 206) {
+          chosen = { ...upstream, url: candidate };
+          break;
+        }
+        lastError = upstream.body
+          .toString("utf8")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 80)
+          .replace(/https?:\/\/[^\s]+/gi, "[url]");
       } catch (err) {
-        upstreamStatus = 504;
-        upstreamError =
+        lastStatus = 504;
+        lastError =
           err instanceof Error
-            ? err.name === "TimeoutError" || err.name === "AbortError"
-              ? "timeout"
-              : err.message.slice(0, 80).replace(/https?:\/\/[^\s]+/gi, "[url]")
+            ? err.message.slice(0, 80).replace(/https?:\/\/[^\s]+/gi, "[url]")
             : "fetch_failed";
       }
     }
 
-    if (!upstream!.ok && upstream!.status !== 206) {
+    if (!chosen) {
       return new Response("Stream unavailable", {
         status: 502,
         headers: corsHeaders({
-          "X-Upstream-Status": String(upstreamStatus || upstream!.status),
-          ...(upstreamError ? { "X-Upstream-Error": upstreamError } : {}),
+          "X-Upstream-Status": String(lastStatus),
+          ...(lastError ? { "X-Upstream-Error": lastError } : {}),
         }),
       });
     }
 
-    if (
-      isHlsUrl(sourceUrl) ||
-      (upstream.headers.get("content-type") || "").includes("mpegurl")
-    ) {
-      const text = await upstream.text();
+    const contentType = String(chosen.headers["content-type"] || "");
+    if (isHlsUrl(chosen.url) || contentType.includes("mpegurl")) {
+      const text = chosen.body.toString("utf8");
       if (!text.includes("#EXT")) {
         return new Response("Stream unavailable", {
           status: 502,
-          headers: corsHeaders(),
+          headers: corsHeaders({ "X-Upstream-Status": "bad_playlist" }),
         });
       }
 
-      const origin = new URL(sourceUrl).origin;
+      const origin = new URL(chosen.url).origin;
       const rewritten = rewriteHlsPlaylist(text, channelId, origin);
 
       return new Response(rewritten, {
@@ -271,19 +254,66 @@ export async function GET(request: Request, context: RouteContext) {
       });
     }
 
-    const headers = corsHeaders({
-      "Content-Type": upstream.headers.get("content-type") || "video/mp2t",
-    });
-    const contentLength = upstream.headers.get("content-length");
-    if (contentLength) headers.set("Content-Length", contentLength);
-    const acceptRanges = upstream.headers.get("accept-ranges");
-    if (acceptRanges) headers.set("Accept-Ranges", acceptRanges);
-    const contentRange = upstream.headers.get("content-range");
-    if (contentRange) headers.set("Content-Range", contentRange);
+    // Progressive MPEG-TS: open a fresh streamed connection for the player
+    return await new Promise<Response>((resolve) => {
+      const url = new URL(chosen!.url);
+      const lib = url.protocol === "https:" ? https : http;
+      const req = lib.request(
+        {
+          protocol: url.protocol,
+          hostname: url.hostname,
+          port: url.port || (url.protocol === "https:" ? 443 : 80),
+          path: `${url.pathname}${url.search}`,
+          method: "GET",
+          headers: {
+            "User-Agent": UA,
+            Accept: "*/*",
+            Connection: "keep-alive",
+          },
+        },
+        (res) => {
+          if ((res.statusCode || 0) >= 400) {
+            resolve(
+              new Response("Stream unavailable", {
+                status: 502,
+                headers: corsHeaders({
+                  "X-Upstream-Status": String(res.statusCode || 0),
+                }),
+              }),
+            );
+            res.resume();
+            return;
+          }
 
-    return new Response(upstream.body, {
-      status: upstream.status,
-      headers,
+          const headers = corsHeaders({
+            "Content-Type": res.headers["content-type"] || "video/mp2t",
+          });
+          resolve(
+            new Response(Readable.toWeb(res) as unknown as ReadableStream, {
+              status: res.statusCode || 200,
+              headers,
+            }),
+          );
+        },
+      );
+      req.setTimeout(15_000, () => {
+        req.destroy();
+        resolve(
+          new Response("Stream unavailable", {
+            status: 502,
+            headers: corsHeaders({ "X-Upstream-Status": "504" }),
+          }),
+        );
+      });
+      req.on("error", () => {
+        resolve(
+          new Response("Stream unavailable", {
+            status: 502,
+            headers: corsHeaders({ "X-Upstream-Status": "504" }),
+          }),
+        );
+      });
+      req.end();
     });
   } catch (error) {
     if (error instanceof LiveChannelsError) {
