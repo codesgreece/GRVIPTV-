@@ -1,0 +1,11 @@
+# Example Caddy config for HTTPS in front of the relay.
+# Replace relay.yourdomain.com with your real subdomain.
+#
+# Install Caddy on the VPS, then:
+#   sudo cp Caddyfile /etc/caddy/Caddyfile
+#   sudo systemctl reload caddy
+
+relay.yourdomain.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:8080
+}

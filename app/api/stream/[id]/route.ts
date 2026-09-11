@@ -31,8 +31,10 @@ function corsHeaders(extra?: HeadersInit): Headers {
 function isAllowedSegmentUrl(segmentUrl: string, sourceUrl: string): boolean {
   try {
     const seg = new URL(segmentUrl);
-    const source = new URL(sourceUrl);
     if (seg.protocol !== "http:" && seg.protocol !== "https:") return false;
+    // When using an external relay, IPTV CDN hosts often differ from the API host.
+    if (process.env.STREAM_RELAY_URL?.trim()) return true;
+    const source = new URL(sourceUrl);
     return seg.hostname === source.hostname;
   } catch {
     return false;
@@ -188,25 +190,28 @@ export async function GET(request: Request, context: RouteContext) {
 
     await warmXtreamSession(channel.sourceUrl);
 
-    const candidates = [viaStreamRelay(channel.sourceUrl)];
+    const candidates = [
+      { source: channel.sourceUrl, fetch: viaStreamRelay(channel.sourceUrl) },
+    ];
     if (isHlsUrl(channel.sourceUrl)) {
-      candidates.push(viaStreamRelay(toMpegTsSourceUrl(channel.sourceUrl)));
+      const ts = toMpegTsSourceUrl(channel.sourceUrl);
+      candidates.push({ source: ts, fetch: viaStreamRelay(ts) });
     }
 
     let lastStatus = 0;
     let lastError = "";
-    let chosen: (NodeResult & { url: string }) | null = null;
+    let chosen: (NodeResult & { source: string; fetch: string }) | null = null;
 
     for (const candidate of candidates) {
       try {
-        const upstream = await nodeRequest(candidate, {
+        const upstream = await nodeRequest(candidate.fetch, {
           range: request.headers.get("range"),
           timeoutMs: 12_000,
-          maxBytes: isHlsUrl(candidate) ? 200_000 : 64_000,
+          maxBytes: isHlsUrl(candidate.source) ? 200_000 : 64_000,
         });
         lastStatus = upstream.status;
         if (upstream.status === 200 || upstream.status === 206) {
-          chosen = { ...upstream, url: candidate };
+          chosen = { ...upstream, source: candidate.source, fetch: candidate.fetch };
           break;
         }
         lastError = upstream.body
@@ -235,7 +240,8 @@ export async function GET(request: Request, context: RouteContext) {
     }
 
     const contentType = String(chosen.headers["content-type"] || "");
-    if (isHlsUrl(chosen.url) || contentType.includes("mpegurl")) {
+    const finalUrlHeader = String(chosen.headers["x-final-url"] || "");
+    if (isHlsUrl(chosen.source) || contentType.includes("mpegurl")) {
       const text = chosen.body.toString("utf8");
       if (!text.includes("#EXT")) {
         return new Response("Stream unavailable", {
@@ -244,8 +250,17 @@ export async function GET(request: Request, context: RouteContext) {
         });
       }
 
-      const origin = new URL(chosen.url).origin;
-      const rewritten = rewriteHlsPlaylist(text, channelId, origin);
+      // Prefer relay-reported final URL (after IPTV CDN redirects) for relative segments.
+      // Use the full URL as base — not just origin — so path-relative segments resolve.
+      let playlistBase = chosen.source;
+      if (finalUrlHeader) {
+        try {
+          playlistBase = new URL(finalUrlHeader).toString();
+        } catch {
+          // keep source URL
+        }
+      }
+      const rewritten = rewriteHlsPlaylist(text, channelId, playlistBase);
 
       return new Response(rewritten, {
         status: 200,
@@ -257,7 +272,7 @@ export async function GET(request: Request, context: RouteContext) {
 
     // Progressive MPEG-TS: open a fresh streamed connection for the player
     return await new Promise<Response>((resolve) => {
-      const url = new URL(chosen!.url);
+      const url = new URL(chosen!.fetch);
       const lib = url.protocol === "https:" ? https : http;
       const req = lib.request(
         {

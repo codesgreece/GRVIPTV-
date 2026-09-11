@@ -1,0 +1,16 @@
+[Unit]
+Description=GRVIP IPTV stream relay
+After=network.target
+
+[Service]
+Type=simple
+User=relay
+WorkingDirectory=/opt/grvip-relay
+EnvironmentFile=/opt/grvip-relay/.env
+ExecStart=/usr/bin/node /opt/grvip-relay/server.mjs
+Restart=always
+RestartSec=2
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

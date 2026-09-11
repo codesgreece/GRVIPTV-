@@ -1,0 +1,14 @@
+{
+  "name": "grvip-stream-relay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minimal IPTV stream relay for VPS (bypasses Vercel IP blocks)",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "start:prod": "NODE_ENV=production node server.mjs"
+  }
+}

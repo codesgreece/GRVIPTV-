@@ -91,10 +91,11 @@ export function viaStreamRelay(sourceUrl: string): string {
   return url.toString();
 }
 
+/** Rewrite media URIs to go through /api/stream?seg=… using playlistBase for relatives. */
 export function rewriteHlsPlaylist(
   playlist: string,
   channelId: string,
-  upstreamOrigin: string,
+  playlistBase: string,
 ): string {
   return playlist
     .split(/\r?\n/)
@@ -104,7 +105,7 @@ export function rewriteHlsPlaylist(
 
       let absolute: string;
       try {
-        absolute = new URL(trimmed, upstreamOrigin).toString();
+        absolute = new URL(trimmed, playlistBase).toString();
       } catch {
         return line;
       }
