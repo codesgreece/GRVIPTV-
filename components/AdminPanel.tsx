@@ -28,13 +28,17 @@ import { formatEuro, activePrice, getPricingById } from "@/lib/customers/pricing
 import { AdminProspectsManager } from "@/components/admin/AdminProspectsManager";
 import { AdminProviderCredits } from "@/components/admin/AdminProviderCredits";
 import { expiringSoonMessage } from "@/lib/customers/messages";
+import { formatExpiryDisplay } from "@/lib/customers/athens-datetime";
 import {
   defaultProviderPackageId,
   providerPackageSummary,
+  providerPaidPackages,
   providerSellablePackages,
+  providerTrialPackages,
 } from "@/lib/customers/provider-packages";
 import {
   adminStatusFromDays,
+  athensTodayYmd,
   computePackageExpiry,
   isTrialPackage,
 } from "@/lib/customers/status";
@@ -86,7 +90,7 @@ const emptyDashboard: DashboardStats = {
 
 const emptyForm = (pricing: PackagePricing[]): FormState => {
   const packageId = defaultProviderPackageId(pricing);
-  const activatedAt = new Date().toISOString().slice(0, 10);
+  const activatedAt = athensTodayYmd();
   return {
     name: "",
     packageId,
@@ -110,9 +114,7 @@ function statusDot(tone: "green" | "orange" | "expired") {
 }
 
 function formatDate(iso: string) {
-  const [year, month, day] = iso.slice(0, 10).split("-");
-  if (!year || !month || !day) return iso;
-  return `${day}/${month}/${year}`;
+  return formatExpiryDisplay(iso);
 }
 
 const actionBtnClass =
@@ -208,6 +210,8 @@ export function AdminPanel() {
   }, [autoExpiry, form.activatedAt, form.packageId]);
 
   const sellablePackages = useMemo(() => providerSellablePackages(pricing), [pricing]);
+  const trialPackages = useMemo(() => providerTrialPackages(pricing), [pricing]);
+  const paidPackages = useMemo(() => providerPaidPackages(pricing), [pricing]);
   const createPkg = getPricingById(pricing, form.packageId);
   const createProviderInfo = providerPackageSummary(pricing, form.packageId);
 
@@ -879,11 +883,34 @@ export function AdminPanel() {
                     }}
                     className="admin-input"
                   >
-                    {(editingId ? CUSTOMER_PACKAGES : sellablePackages).map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.label}
-                      </option>
-                    ))}
+                    {editingId ? (
+                      CUSTOMER_PACKAGES.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.label}
+                        </option>
+                      ))
+                    ) : (
+                      <>
+                        {trialPackages.length > 0 ? (
+                          <optgroup label="Trial">
+                            {trialPackages.map((item) => (
+                              <option key={item.id} value={item.id}>
+                                {item.label}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ) : null}
+                        {paidPackages.length > 0 ? (
+                          <optgroup label="Συνδρομές">
+                            {paidPackages.map((item) => (
+                              <option key={item.id} value={item.id}>
+                                {item.label}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ) : null}
+                      </>
+                    )}
                   </select>
                   {!editingId && sellablePackages.length === 0 ? (
                     <p className="mt-1 text-[11px] text-rose-300">
@@ -999,9 +1026,9 @@ export function AdminPanel() {
                       {isTrialPackage(form.packageId) ? (
                         <input
                           readOnly
-                          value={form.expiresAt}
+                          value={formatExpiryDisplay(form.expiresAt)}
                           className="admin-input opacity-80"
-                          title="Υπολογίζεται αυτόματα για Trial"
+                          title="Υπολογίζεται αυτόματα για Trial (ώρα Ελλάδας)"
                         />
                       ) : (
                         <input
@@ -1017,9 +1044,29 @@ export function AdminPanel() {
                     </Field>
                   </>
                 ) : (
-                  <div className="sm:col-span-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs text-text-muted">
-                    Η ημερομηνία λήξης ορίζεται αυτόματα από τον provider μετά τη δημιουργία της
-                    γραμμής.
+                  <div className="sm:col-span-2 space-y-2">
+                    {isTrialPackage(form.packageId) ? (
+                      <div className="rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2 text-xs text-amber-100/90">
+                        <p className="font-semibold text-amber-200">Εκτιμώμενη λήξη trial</p>
+                        <p className="mt-1">{formatExpiryDisplay(form.expiresAt)}</p>
+                        {form.packageId !== "trial-1day" ? (
+                          <p className="mt-1 text-[11px] text-amber-200/80">
+                            Ο provider ενεργοποιεί trial 24 ωρών — η τελική ώρα λήξης ορίζεται από τον
+                            provider (ώρα Ελλάδας).
+                          </p>
+                        ) : (
+                          <p className="mt-1 text-[11px] text-amber-200/80">
+                            Η τελική ώρα λήξης ορίζεται από τον provider μετά τη δημιουργία της γραμμής
+                            (ώρα Ελλάδας).
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs text-text-muted">
+                        Η ημερομηνία λήξης ορίζεται αυτόματα από τον provider μετά τη δημιουργία της
+                        γραμμής (ώρα Ελλάδας).
+                      </div>
+                    )}
                   </div>
                 )}
                 <Field label="Οδηγός εγκατάστασης" className="sm:col-span-2">

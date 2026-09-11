@@ -1,4 +1,5 @@
 import { getPricingById } from "@/lib/customers/pricing";
+import { isTrialPackage } from "@/lib/customers/status";
 import { CUSTOMER_PACKAGES, type PackageId, type PackagePricing } from "@/lib/customers/types";
 import { DEFAULT_PROVIDER_PACKAGE_IDS } from "@/lib/iptv/pricing-map";
 
@@ -17,13 +18,26 @@ export function isProviderBackedPackage(pricing: PackagePricing[], packageId: Pa
 
 /** Packages that can create/renew a real provider line via API. */
 export function providerSellablePackages(pricing: PackagePricing[]) {
-  return CUSTOMER_PACKAGES.filter((item) => isProviderBackedPackage(pricing, item.id));
+  const sellable = CUSTOMER_PACKAGES.filter((item) => isProviderBackedPackage(pricing, item.id));
+  const trials = sellable.filter((item) => isTrialPackage(item.id));
+  const paid = sellable.filter((item) => !isTrialPackage(item.id) && item.id !== "1-month");
+  return [...trials, ...paid];
+}
+
+export function providerTrialPackages(pricing: PackagePricing[]) {
+  return providerSellablePackages(pricing).filter((item) => isTrialPackage(item.id));
+}
+
+export function providerPaidPackages(pricing: PackagePricing[]) {
+  return providerSellablePackages(pricing).filter((item) => !isTrialPackage(item.id));
 }
 
 export function defaultProviderPackageId(pricing: PackagePricing[]): PackageId {
   const sellable = providerSellablePackages(pricing);
+  const preferredTrial = sellable.find((item) => item.id === "trial-1day");
+  if (preferredTrial) return preferredTrial.id;
   const preferred = sellable.find((item) => item.id === "3-months");
-  return preferred?.id ?? sellable[0]?.id ?? "3-months";
+  return preferred?.id ?? sellable[0]?.id ?? "trial-1day";
 }
 
 export function providerPackageSummary(pricing: PackagePricing[], packageId: PackageId) {

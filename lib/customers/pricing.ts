@@ -2,6 +2,42 @@ import type { PackageId, PackagePricing } from "./types";
 import { PACKAGE_OPTIONS } from "./types";
 import { DEFAULT_PROVIDER_PACKAGE_IDS } from "@/lib/iptv/pricing-map";
 
+export const DEFAULT_TRIAL_PACKAGE_PRICING: PackagePricing[] = [
+  {
+    packageId: "trial-1day",
+    packageName: "Trial 24 ώρες",
+    durationMonths: 0,
+    normalPrice: 0,
+    offerPrice: 0,
+    purchaseCost: 1,
+    offerEnabled: false,
+    minimumProfit: 0,
+    providerPackageId: DEFAULT_PROVIDER_PACKAGE_IDS["trial-1day"] ?? null,
+  },
+  {
+    packageId: "trial-30min",
+    packageName: "Trial 30 λεπτών",
+    durationMonths: 0,
+    normalPrice: 0,
+    offerPrice: 0,
+    purchaseCost: 1,
+    offerEnabled: false,
+    minimumProfit: 0,
+    providerPackageId: DEFAULT_PROVIDER_PACKAGE_IDS["trial-30min"] ?? null,
+  },
+  {
+    packageId: "trial-1hour",
+    packageName: "Trial 1 ώρας",
+    durationMonths: 0,
+    normalPrice: 0,
+    offerPrice: 0,
+    purchaseCost: 1,
+    offerEnabled: false,
+    minimumProfit: 0,
+    providerPackageId: DEFAULT_PROVIDER_PACKAGE_IDS["trial-1hour"] ?? null,
+  },
+];
+
 export const DEFAULT_PACKAGE_PRICING: PackagePricing[] = [
   {
     packageId: "1-month",
@@ -72,24 +108,28 @@ export function getPricingById(list: PackagePricing[], id: PackageId): PackagePr
 
   const option = PACKAGE_OPTIONS.find((item) => item.id === id);
   if (option && option.minutes > 0) {
+    const seed = DEFAULT_TRIAL_PACKAGE_PRICING.find((item) => item.packageId === id);
     return {
       packageId: id,
       packageName: option.label,
       durationMonths: 0,
-      normalPrice: 0,
-      offerPrice: 0,
-      purchaseCost: 0,
+      normalPrice: seed?.normalPrice ?? 0,
+      offerPrice: seed?.offerPrice ?? 0,
+      purchaseCost: seed?.purchaseCost ?? 0,
       offerEnabled: false,
       minimumProfit: 0,
+      providerPackageId: seed?.providerPackageId ?? DEFAULT_PROVIDER_PACKAGE_IDS[id] ?? null,
     };
   }
 
   return ensurePricing([])[0];
 }
 
+const PRICING_SEEDS = [...DEFAULT_TRIAL_PACKAGE_PRICING, ...DEFAULT_PACKAGE_PRICING];
+
 export function ensurePricing(list: PackagePricing[] | undefined): PackagePricing[] {
   const byId = new Map((list ?? []).map((item) => [item.packageId, item]));
-  return DEFAULT_PACKAGE_PRICING.map((seed) => {
+  return PRICING_SEEDS.map((seed) => {
     const existing = byId.get(seed.packageId);
     if (!existing) return { ...seed };
     const num = (value: unknown, fallback: number) => {

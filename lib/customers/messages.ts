@@ -1,13 +1,12 @@
 import type { CustomerView, Subscription } from "./types";
+import { formatExpiryDisplay } from "./athens-datetime";
 import { formatEuro } from "./pricing";
 
 const SITE = "https://grviptv.xyz";
 const RENEW_URL = `${SITE}/paketa`;
 
 function formatDate(iso: string): string {
-  const [year, month, day] = iso.slice(0, 10).split("-");
-  if (!year || !month || !day) return iso;
-  return `${day}/${month}/${year}`;
+  return formatExpiryDisplay(iso);
 }
 
 export function magicLink(token: string, origin = SITE): string {

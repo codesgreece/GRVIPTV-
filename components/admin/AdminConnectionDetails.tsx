@@ -2,6 +2,7 @@
 
 import { Copy } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { formatExpiryDisplay } from "@/lib/customers/athens-datetime";
 import { connectionDetailsText } from "@/lib/customers/connection-details";
 import type { CustomerView } from "@/lib/customers/types";
 import { cn } from "@/lib/cn";
@@ -14,21 +15,7 @@ type AdminConnectionDetailsProps = {
 };
 
 function formatDate(iso: string) {
-  if (iso.includes("T")) {
-    const date = new Date(iso);
-    if (Number.isFinite(date.getTime())) {
-      return new Intl.DateTimeFormat("el-GR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(date);
-    }
-  }
-  const [year, month, day] = iso.slice(0, 10).split("-");
-  if (!year || !month || !day) return iso;
-  return `${day}/${month}/${year}`;
+  return formatExpiryDisplay(iso);
 }
 
 function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
