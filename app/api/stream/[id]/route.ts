@@ -36,6 +36,45 @@ async function fetchUpstream(
   });
 }
 
+/** Some panels gate streams until player_api is hit from the same egress IP. */
+async function warmXtreamSession(sourceUrl: string) {
+  try {
+    const url = new URL(sourceUrl);
+    const parts = url.pathname.split("/").filter(Boolean);
+    // /live/user/pass/id.m3u8  or /user/pass/id
+    let user = "";
+    let pass = "";
+    if (parts[0] === "live" && parts.length >= 4) {
+      user = parts[1] ?? "";
+      pass = parts[2] ?? "";
+    } else if (parts.length >= 3) {
+      user = parts[0] ?? "";
+      pass = parts[1] ?? "";
+    }
+    if (!user || !pass) return;
+
+    await fetch(
+      `${url.protocol}//${url.host}/player_api.php?username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`,
+      {
+        headers: UPSTREAM_HEADERS,
+        cache: "no-store",
+        signal: AbortSignal.timeout(8000),
+      },
+    );
+  } catch {
+    // best-effort warm-up
+  }
+}
+
+async function readErrorSnippet(res: Response): Promise<string> {
+  try {
+    const text = (await res.clone().text()).replace(/\s+/g, " ").trim();
+    return text.slice(0, 80).replace(/https?:\/\/[^\s]+/gi, "[url]");
+  } catch {
+    return "";
+  }
+}
+
 function corsHeaders(extra?: HeadersInit): Headers {
   const headers = new Headers(extra);
   headers.set("Access-Control-Allow-Origin", "*");
@@ -121,6 +160,8 @@ export async function GET(request: Request, context: RouteContext) {
       });
     }
 
+    await warmXtreamSession(channel.sourceUrl);
+
     let sourceUrl = channel.sourceUrl;
     let upstream: Response;
     let upstreamStatus = 0;
@@ -131,6 +172,9 @@ export async function GET(request: Request, context: RouteContext) {
         range: request.headers.get("range"),
       });
       upstreamStatus = upstream.status;
+      if (!upstream.ok && upstream.status !== 206) {
+        upstreamError = await readErrorSnippet(upstream);
+      }
     } catch (err) {
       upstreamStatus = 504;
       upstreamError =
@@ -147,7 +191,9 @@ export async function GET(request: Request, context: RouteContext) {
             range: request.headers.get("range"),
           });
           upstreamStatus = upstream.status;
-          upstreamError = "";
+          upstreamError = !upstream.ok && upstream.status !== 206
+            ? await readErrorSnippet(upstream)
+            : "";
         } catch (err2) {
           const msg =
             err2 instanceof Error
