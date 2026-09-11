@@ -6,6 +6,7 @@ import {
   isHlsUrl,
   rewriteHlsPlaylist,
   toMpegTsSourceUrl,
+  viaStreamRelay,
 } from "@/lib/live/stream-url";
 
 export const runtime = "nodejs";
@@ -154,7 +155,7 @@ export async function GET(request: Request, context: RouteContext) {
         });
       }
 
-      const upstream = await nodeRequest(segmentUrl, {
+      const upstream = await nodeRequest(viaStreamRelay(segmentUrl), {
         range: request.headers.get("range"),
         timeoutMs: 15_000,
         maxBytes: 4_000_000,
@@ -187,9 +188,9 @@ export async function GET(request: Request, context: RouteContext) {
 
     await warmXtreamSession(channel.sourceUrl);
 
-    const candidates = [channel.sourceUrl];
+    const candidates = [viaStreamRelay(channel.sourceUrl)];
     if (isHlsUrl(channel.sourceUrl)) {
-      candidates.push(toMpegTsSourceUrl(channel.sourceUrl));
+      candidates.push(viaStreamRelay(toMpegTsSourceUrl(channel.sourceUrl)));
     }
 
     let lastStatus = 0;

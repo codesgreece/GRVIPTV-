@@ -289,7 +289,8 @@ export function LivePlayer({ src, title, poster }: LivePlayerProps) {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/75 px-6 text-center">
             <p className="font-display text-xl text-white">Unable to play stream</p>
             <p className="max-w-md text-sm text-text-muted">
-              The live feed could not be started. You can try reconnecting.
+              The stream server refused the connection from the hosting network.
+              Try Reconnect, or contact support if this keeps happening.
             </p>
             <button
               type="button"
